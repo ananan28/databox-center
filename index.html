@@ -265,7 +265,30 @@ button:active{
           </thead>
           <tbody id="agentTable"></tbody>
         </table>
-      </div>
+        </div>
+      <div class="card full">
+  <h3>👥 用户管理中心</h3>
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>邮箱</th>
+        <th>UID</th>
+        <th>角色</th>
+        <th>余额</th>
+        <th>状态</th>
+      </tr>
+    </thead>
+
+    <tbody id="usersBody">
+      <tr>
+        <td colspan="5" style="text-align:center;color:#64748b">
+          暂无用户数据
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
 <div class="card full">
   <h3>⚙️ 账户设置</h3>
 
@@ -509,8 +532,11 @@ from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
 import {
   getFirestore,
   doc,
-  getDoc
-} from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
+  getDoc,
+  collection,
+  getDocs
+}
+from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
 const firebaseConfig = {
   apiKey: "AIzaSyDzPXn93JxnOrDwZ1cW_0lFdF5IkvMagaw",
   authDomain: "databox-web-1c4df.firebaseapp.com",
@@ -521,9 +547,40 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
+
 const auth = getAuth(app);
+
 const db = getFirestore(app);
 
+async function loadUsers(){
+
+    const usersBody =
+        document.getElementById("usersBody");
+
+    usersBody.innerHTML = "";
+
+    const querySnapshot =
+        await getDocs(
+            collection(db, "users")
+        );
+
+    querySnapshot.forEach((userDoc)=>{
+
+        const data =
+            userDoc.data();
+
+        usersBody.innerHTML += `
+        <tr>
+            <td>${data.email || ""}</td>
+            <td>${userDoc.id}</td>
+            <td>${data.role || "User"}</td>
+            <td>${data.balance || 0}</td>
+            <td>${data.status || "Active"}</td>
+        </tr>
+        `;
+    });
+
+}
 window.auth = auth;
 window.signInWithEmailAndPassword = signInWithEmailAndPassword;
 window.signOut = signOut;
@@ -660,6 +717,8 @@ document.getElementById(
     "settingBalance"
 ).innerText =
     userData.balance;
+
+await loadUsers();
 
 }
 
