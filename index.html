@@ -363,6 +363,45 @@ function downloadTask(taskId){
   link.click();
 }
 </script>
+<script type="module">
 
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
+
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDzPXn93JxnOrDwZ1cW_0lFdF5IkvMagaw",
+  authDomain: "databox-web-1c4df.firebaseapp.com",
+  projectId: "databox-web-1c4df",
+  storageBucket: "databox-web-1c4df.firebasestorage.app",
+  messagingSenderId: "358550995038",
+  appId: "1:358550995038:web:ee2d0de6f6cf8f52e2b4cf"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+window.auth = auth;
+window.signInWithEmailAndPassword = signInWithEmailAndPassword;
+window.signOut = signOut;
+
+onAuthStateChanged(auth,(user)=>{
+
+    if(user){
+
+        document.getElementById("loginSection").style.display="none";
+
+        document.getElementById("appPanel").style.display="flex";
+
+    }
+
+});
+
+</script>
 </body>
 </html>
