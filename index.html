@@ -479,6 +479,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getFirestore(app);
 
 window.auth = auth;
 window.signInWithEmailAndPassword = signInWithEmailAndPassword;
