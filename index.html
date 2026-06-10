@@ -494,13 +494,22 @@ onAuthStateChanged(auth, async (user)=>{
         document.getElementById("appPanel").style.display="flex";
 
         document.getElementById("userName").innerText =
-            user.email;
+    user.email;
 
-        renderAgents();
+renderAgents();
 
-        renderTasks();
+renderTasks();
 
-    }
+const userRef = doc(db, "users", "admin");
+
+const userSnap = await getDoc(userRef);
+
+if(userSnap.exists()){
+
+    document.getElementById("balanceText").innerText =
+        userSnap.data().balance;
+
+}
 
 });
 
