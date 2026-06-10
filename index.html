@@ -100,6 +100,8 @@ select{
 
 .login-card input{
     color:#ffffff;
+    background:rgba(255,255,255,.12);
+    border:none;
 }
 input::placeholder{
     color:rgba(255,255,255,.65);
@@ -278,8 +280,10 @@ button:active{
   <input id="newPassword" type="password" placeholder="请输入新密码，至少6位">
   <input id="confirmPassword" type="password" placeholder="再次输入新密码">
 
-  <button onclick="changePassword()">修改密码</button>
+   <button onclick="changePassword()">修改密码</button>
 </div>
+
+<div class="card full">
         <h3>📋 任务流水</h3>
         <table class="table">
           <thead>
