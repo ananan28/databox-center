@@ -506,14 +506,21 @@ const userSnap = await getDoc(userRef);
 
 if(userSnap.exists()){
 
-    document.getElementById("balanceText").innerText =
-        userSnap.data().balance;
+    const userData =
+        userSnap.data();
+
+    document.getElementById(
+        "balanceText"
+    ).innerText =
+        userData.balance;
+
+    document.getElementById(
+        "roleText"
+    ).innerText =
+        "权限组：" +
+        userData.role;
 
 }
-
-}
-
-});
 
 </script>
 </body>
