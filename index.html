@@ -277,12 +277,13 @@ button:active{
         <th>角色</th>
         <th>余额</th>
         <th>状态</th>
+        <th>操作</th>
       </tr>
     </thead>
 
     <tbody id="usersBody">
       <tr>
-        <td colspan="5" style="text-align:center;color:#64748b">
+       <td colspan="6" style="text-align:center;color:#64748b">
           暂无用户数据
         </td>
       </tr>
@@ -534,7 +535,10 @@ import {
   doc,
   getDoc,
   collection,
-  getDocs
+  getDocs,
+  updateDoc,
+  addDoc,
+  serverTimestamp
 }
 from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
 const firebaseConfig = {
@@ -576,6 +580,28 @@ async function loadUsers(){
             <td>${data.role || "User"}</td>
             <td>${data.balance || 0}</td>
             <td>${data.status || "Active"}</td>
+
+<td>
+  <button class="small-btn green"
+    onclick="changeUserBalance('${userDoc.id}',100)">
+    +100
+  </button>
+
+  <button class="small-btn orange"
+    onclick="changeUserBalance('${userDoc.id}',-100)">
+    -100
+  </button>
+
+  <button class="small-btn red"
+    onclick="freezeUser('${userDoc.id}')">
+    冻结
+  </button>
+
+  <button class="small-btn green"
+    onclick="unfreezeUser('${userDoc.id}')">
+    解冻
+  </button>
+</td>
         </tr>
         `;
     });
