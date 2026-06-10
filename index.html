@@ -201,6 +201,7 @@ button:active{
       <li>👥 社交检测</li>
       <li>👑 管理中心</li>
       <li>🗃️ 费用管理</li>
+      <li>⚙️ 账户设置</li>
     </ul>
   </aside>
 
@@ -255,8 +256,22 @@ button:active{
           <tbody id="agentTable"></tbody>
         </table>
       </div>
+<div class="card full">
+  <h3>⚙️ 账户设置</h3>
 
-      <div class="card full">
+  <p>当前邮箱：<b id="settingEmail">-</b></p>
+  <p>当前权限：<b id="settingRole">-</b></p>
+  <p>当前余额：<b id="settingBalance">-</b> 积分</p>
+
+  <hr style="border:none;border-top:1px solid #e2e8f0;margin:18px 0">
+
+  <h4>修改密码</h4>
+
+  <input id="newPassword" type="password" placeholder="请输入新密码，至少6位">
+  <input id="confirmPassword" type="password" placeholder="再次输入新密码">
+
+  <button onclick="changePassword()">修改密码</button>
+</div>
         <h3>📋 任务流水</h3>
         <table class="table">
           <thead>
@@ -457,10 +472,11 @@ function downloadTask(taskId){
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
 
 import {
-  getAuth,
-  signInWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged
+    getAuth,
+    signInWithEmailAndPassword,
+    signOut,
+    onAuthStateChanged,
+    updatePassword
 } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
 
 import {
@@ -484,6 +500,63 @@ const db = getFirestore(app);
 window.auth = auth;
 window.signInWithEmailAndPassword = signInWithEmailAndPassword;
 window.signOut = signOut;
+  async function changePassword(){
+
+    const pwd =
+        document.getElementById(
+            "newPassword"
+        ).value;
+
+    const confirmPwd =
+        document.getElementById(
+            "confirmPassword"
+        ).value;
+
+    if(!pwd){
+        alert("请输入新密码");
+        return;
+    }
+
+    if(pwd.length < 6){
+        alert("密码至少6位");
+        return;
+    }
+
+    if(pwd !== confirmPwd){
+        alert("两次密码输入不一致");
+        return;
+    }
+
+    try{
+
+        await updatePassword(
+            auth.currentUser,
+            pwd
+        );
+
+        alert("密码修改成功");
+
+        document.getElementById(
+            "newPassword"
+        ).value = "";
+
+        document.getElementById(
+            "confirmPassword"
+        ).value = "";
+
+    }catch(error){
+
+        alert(
+            "修改失败：" +
+            error.message
+        );
+
+    }
+
+}
+
+window.changePassword =
+    changePassword;
 
 onAuthStateChanged(auth, async (user)=>{
 
@@ -515,10 +588,25 @@ if(userSnap.exists()){
         userData.balance;
 
     document.getElementById(
-        "roleText"
-    ).innerText =
-        "权限组：" +
-        userData.role;
+    "roleText"
+).innerText =
+    "权限组：" +
+    userData.role;
+
+document.getElementById(
+    "settingEmail"
+).innerText =
+    user.email;
+
+document.getElementById(
+    "settingRole"
+).innerText =
+    userData.role;
+
+document.getElementById(
+    "settingBalance"
+).innerText =
+    userData.balance;
 
 }
 
