@@ -58,13 +58,19 @@ body{
 
     padding:40px;
 
-    border-radius:18px;
+    border-radius:22px;
 
-    background:rgba(255,255,255,0.92);
+    background:rgba(255,255,255,0.12);
 
-    backdrop-filter:blur(16px);
+    backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
 
-    border:1px solid rgba(255,255,255,0.4);
+    border:1px solid rgba(255,255,255,0.25);
+
+    box-shadow:
+        0 8px 32px rgba(0,0,0,0.35),
+        0 0 20px rgba(56,189,248,0.25);
+
 }
 input,select,button{width:100%;padding:12px;margin:7px 0;border-radius:8px;border:1px solid var(--border);font-size:14px}
 button{background:var(--blue);color:#fff;border:0;font-weight:bold;cursor:pointer}
