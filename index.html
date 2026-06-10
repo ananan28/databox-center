@@ -487,6 +487,13 @@ onAuthStateChanged(auth,(user)=>{
 
         document.getElementById("appPanel").style.display="flex";
 
+        document.getElementById("userName").innerText =
+            user.email;
+
+        renderAgents();
+
+        renderTasks();
+
     }
 
 });
