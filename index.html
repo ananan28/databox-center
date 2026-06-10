@@ -202,24 +202,54 @@ let agents = [
 
 let tasks = [];
 
-function login(){
-  const email = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value.trim();
+async function login(){
 
-  if(!email || !password){
-    alert("请输入账号和密码");
-    return;
-  }
+    const email =
+        document.getElementById("email").value.trim();
 
-  document.getElementById("loginSection").style.display = "none";
-  document.getElementById("appPanel").style.display = "flex";
-  document.getElementById("userName").innerText = email;
-  renderAgents();
-  renderTasks();
+    const password =
+        document.getElementById("password").value.trim();
+
+    try{
+
+        const userCredential =
+            await signInWithEmailAndPassword(
+                auth,
+                email,
+                password
+            );
+
+        document.getElementById(
+            "loginSection"
+        ).style.display = "none";
+
+        document.getElementById(
+            "appPanel"
+        ).style.display = "flex";
+
+        document.getElementById(
+            "userName"
+        ).innerText = userCredential.user.email;
+
+        renderAgents();
+        renderTasks();
+
+    }catch(error){
+
+        alert(
+            "登录失败：" +
+            error.message
+        );
+
+    }
+
 }
+async function logout(){
 
-function logout(){
-  location.reload();
+    await signOut(auth);
+
+    location.reload();
+
 }
 
 function renderAgents(){
