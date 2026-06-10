@@ -17,8 +17,55 @@
   --red:#ef4444;
 }
 *{box-sizing:border-box}
-body{margin:0;font-family:Arial,"Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text)}
-.login-card{max-width:390px;margin:130px auto;background:var(--card);padding:38px;border-radius:14px;border:1px solid var(--border);box-shadow:0 10px 30px rgba(0,0,0,.08);text-align:center}
+body{
+    margin:0;
+    padding:0;
+
+    font-family:
+    "Microsoft YaHei",
+    "PingFang SC",
+    Arial,
+    sans-serif;
+
+    background:
+    linear-gradient(
+        rgba(8,15,35,0.55),
+        rgba(8,15,35,0.65)
+    ),
+    url("./wealth-bg.jpg");
+
+    background-size:cover;
+    background-position:center center;
+    background-repeat:no-repeat;
+    background-attachment:fixed;
+
+    color:var(--text);
+
+    min-height:100vh;
+
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+}
+.login-card{
+    max-width:420px;
+
+    margin:120px auto;
+
+    padding:40px;
+
+    border-radius:18px;
+
+    background:rgba(255,255,255,0.92);
+
+    backdrop-filter:blur(16px);
+
+    border:1px solid rgba(255,255,255,0.4);
+
+    box-shadow:
+    0 20px 60px rgba(0,0,0,0.35);
+
+    text-align:center;
+}
 input,select,button{width:100%;padding:12px;margin:7px 0;border-radius:8px;border:1px solid var(--border);font-size:14px}
 button{background:var(--blue);color:#fff;border:0;font-weight:bold;cursor:pointer}
 button:hover{opacity:.9}
