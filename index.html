@@ -500,7 +500,7 @@ renderAgents();
 
 renderTasks();
 
-const userRef = doc(db, "users", "admin");
+const userRef = doc(db, "users", user.uid);
 
 const userSnap = await getDoc(userRef);
 
