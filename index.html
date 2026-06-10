@@ -277,8 +277,20 @@ button:active{
 
   <h4>修改密码</h4>
 
-  <input id="newPassword" type="password" placeholder="请输入新密码，至少6位">
-  <input id="confirmPassword" type="password" placeholder="再次输入新密码">
+<input
+id="oldPassword"
+type="password"
+placeholder="请输入当前密码">
+
+<input
+id="newPassword"
+type="password"
+placeholder="请输入新密码，至少6位">
+
+<input
+id="confirmPassword"
+type="password"
+placeholder="再次输入新密码">
 
    <button onclick="changePassword()">修改密码</button>
 </div>
@@ -488,8 +500,11 @@ import {
     signInWithEmailAndPassword,
     signOut,
     onAuthStateChanged,
-    updatePassword
-} from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
+    updatePassword,
+    EmailAuthProvider,
+    reauthenticateWithCredential
+}
+from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
 
 import {
   getFirestore,
@@ -512,7 +527,12 @@ const db = getFirestore(app);
 window.auth = auth;
 window.signInWithEmailAndPassword = signInWithEmailAndPassword;
 window.signOut = signOut;
-  async function changePassword(){
+async function changePassword(){
+
+    const oldPwd =
+        document.getElementById(
+            "oldPassword"
+        ).value;
 
     const pwd =
         document.getElementById(
@@ -523,6 +543,11 @@ window.signOut = signOut;
         document.getElementById(
             "confirmPassword"
         ).value;
+
+    if(!oldPwd){
+        alert("请输入当前密码");
+        return;
+    }
 
     if(!pwd){
         alert("请输入新密码");
@@ -541,12 +566,29 @@ window.signOut = signOut;
 
     try{
 
+        const user = auth.currentUser;
+
+        const credential =
+            EmailAuthProvider.credential(
+                user.email,
+                oldPwd
+            );
+
+        await reauthenticateWithCredential(
+            user,
+            credential
+        );
+
         await updatePassword(
-            auth.currentUser,
+            user,
             pwd
         );
 
         alert("密码修改成功");
+
+        document.getElementById(
+            "oldPassword"
+        ).value = "";
 
         document.getElementById(
             "newPassword"
@@ -566,7 +608,6 @@ window.signOut = signOut;
     }
 
 }
-
 window.changePassword =
     changePassword;
 
