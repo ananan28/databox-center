@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Databox Center</title>
+<style>
+:root{
+  --bg:#f8fafc;
+  --card:#ffffff;
+  --border:#e2e8f0;
+  --text:#0f172a;
+  --muted:#64748b;
+  --blue:#2563eb;
+  --green:#16a34a;
+  --orange:#ea580c;
+  --red:#ef4444;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,"Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text)}
+.login-card{max-width:390px;margin:130px auto;background:var(--card);padding:38px;border-radius:14px;border:1px solid var(--border);box-shadow:0 10px 30px rgba(0,0,0,.08);text-align:center}
+input,select,button{width:100%;padding:12px;margin:7px 0;border-radius:8px;border:1px solid var(--border);font-size:14px}
+button{background:var(--blue);color:#fff;border:0;font-weight:bold;cursor:pointer}
+button:hover{opacity:.9}
+.app{display:none;min-height:100vh}
+.sidebar{width:240px;background:#fff;border-right:1px solid var(--border);padding:20px 0}
+.logo{text-align:center;font-size:20px;font-weight:bold;color:var(--blue);padding-bottom:20px;border-bottom:1px solid var(--border)}
+.menu{list-style:none;margin:0;padding:15px 0}
+.menu li{padding:13px 25px;color:var(--muted);cursor:pointer;border-left:3px solid transparent}
+.menu li.active,.menu li:hover{background:#f1f5f9;color:var(--text);border-left-color:var(--blue)}
+.main{flex:1;padding:28px}
+.top{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);padding-bottom:18px;margin-bottom:24px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:22px;box-shadow:0 4px 8px rgba(0,0,0,.03)}
+.card.full{grid-column:1/3}
+.badge{display:inline-block;padding:4px 8px;border-radius:6px;background:#eff6ff;color:var(--blue);font-size:12px;font-weight:bold}
+.table{width:100%;border-collapse:collapse;margin-top:15px;background:#fff;font-size:13px}
+.table th,.table td{padding:12px;border-bottom:1px solid var(--border);text-align:left}
+.table th{background:#f8fafc;color:var(--muted)}
+.small-btn{width:auto;padding:7px 12px;margin:0;font-size:12px}
+.green{background:var(--green)}
+.orange{background:var(--orange)}
+.red{background:var(--red)}
+.notice{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;padding:12px;border-radius:8px;margin-bottom:18px;font-size:13px}
+@media(max-width:800px){
+  .app{flex-direction:column}
+  .sidebar{width:100%}
+  .grid{grid-template-columns:1fr}
+  .card.full{grid-column:1}
+}
+</style>
+</head>
+<body>
+
+<div id="loginSection" class="login-card">
+  <h2 style="color:var(--blue);margin:0 0 8px">🔒 Databox Center</h2>
+  <p style="color:var(--muted);font-size:13px;margin-bottom:22px">智能筛号管理控制台</p>
+  <input id="email" type="text" placeholder="账号 / Email">
+  <input id="password" type="password" placeholder="密码">
+  <button onclick="login()">安全登录</button>
+  <p style="font-size:12px;color:var(--muted)">当前为 GitHub Pages 前端演示版</p>
+</div>
+
+<div id="appPanel" class="app">
+  <aside class="sidebar">
+    <div class="logo">📦 Databox</div>
+    <ul class="menu">
+      <li class="active">📊 控制台</li>
+      <li>🔍 空号检测</li>
+      <li>⚡ 活跃检测</li>
+      <li>👥 社交检测</li>
+      <li>👑 管理中心</li>
+      <li>🗃️ 费用管理</li>
+    </ul>
+  </aside>
+
+  <main class="main">
+    <div class="top">
+      <div>
+        <h2 style="margin:0">欢迎回来，<span id="userName" style="color:var(--orange)">Admin</span></h2>
+        <span id="roleText" class="badge">权限组：管理员</span>
+      </div>
+      <button class="small-btn red" onclick="logout()">退出登录</button>
+    </div>
+
+    <div class="notice">
+      当前版本适合先上传 GitHub 展示页面。真实账号、密码、余额后续应接入 Firebase，不要写死在 HTML 里。
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h3>📤 上传号码文件</h3>
+        <input type="file" id="fileInput" accept=".txt,.csv,.xlsx">
+        <select>
+          <option>WhatsApp 头像检测</option>
+          <option>空号检测</option>
+          <option>活跃检测</option>
+        </select>
+        <button onclick="createTask()">创建检测任务</button>
+      </div>
+
+      <div class="card">
+        <h3>💰 当前账户</h3>
+        <p>账户余额：<b id="balanceText" style="color:var(--orange)">76.7702</b> 积分</p>
+        <p>账号状态：<b style="color:var(--green)">正常</b></p>
+        <p>实时刷新：<b style="color:var(--blue)">待接入 Firebase</b></p>
+      </div>
+
+      <div class="card full">
+        <h3>👥 员工账户管理</h3>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <input id="agentName" placeholder="子账号名" style="flex:1;min-width:180px">
+          <input id="agentBalance" type="number" placeholder="初始积分" style="flex:1;min-width:180px">
+          <button class="small-btn green" onclick="addAgent()">添加子账号</button>
+        </div>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>账号</th>
+              <th>余额</th>
+              <th>状态</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="agentTable"></tbody>
+        </table>
+      </div>
+
+      <div class="card full">
+        <h3>📋 任务流水</h3>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>批次单号</th>
+              <th>类型</th>
+              <th>总数</th>
+              <th>成功数</th>
+              <th>有头像</th>
+              <th>无头像</th>
+              <th>状态</th>
+              <th>导出</th>
+            </tr>
+          </thead>
+          <tbody id="taskTable"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+let agents = [
+  {name:"agent3313", balance:76.7702, status:"正常"}
+];
+
+let tasks = [];
+
+function login(){
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value.trim();
+
+  if(!email || !password){
+    alert("请输入账号和密码");
+    return;
+  }
+
+  document.getElementById("loginSection").style.display = "none";
+  document.getElementById("appPanel").style.display = "flex";
+  document.getElementById("userName").innerText = email;
+  renderAgents();
+  renderTasks();
+}
+
+function logout(){
+  location.reload();
+}
+
+function renderAgents(){
+  const tbody = document.getElementById("agentTable");
+  tbody.innerHTML = "";
+
+  if(agents.length === 0){
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#64748b">暂无子账号</td></tr>`;
+    return;
+  }
+
+  agents.forEach((a,index)=>{
+    tbody.innerHTML += `
+      <tr>
+        <td><b>${a.name}</b></td>
+        <td><b style="color:#ea580c">${a.balance}</b> 积分</td>
+        <td><span style="color:#16a34a">${a.status}</span></td>
+        <td>
+          <button class="small-btn orange" onclick="toggleAgent(${index})">冻结/恢复</button>
+          <button class="small-btn red" onclick="deleteAgent(${index})">删除</button>
+        </td>
+      </tr>
+    `;
+  });
+}
+
+function addAgent(){
+  const name = document.getElementById("agentName").value.trim();
+  const balance = parseFloat(document.getElementById("agentBalance").value || 0);
+
+  if(!name){
+    alert("请输入子账号名");
+    return;
+  }
+
+  agents.push({
+    name:name,
+    balance:balance.toFixed(4),
+    status:"正常"
+  });
+
+  document.getElementById("agentName").value = "";
+  document.getElementById("agentBalance").value = "";
+  renderAgents();
+}
+
+function toggleAgent(index){
+  agents[index].status = agents[index].status === "正常" ? "冻结" : "正常";
+  renderAgents();
+}
+
+function deleteAgent(index){
+  if(confirm("确定删除这个子账号吗？")){
+    agents.splice(index,1);
+    renderAgents();
+  }
+}
+
+function createTask(){
+  const taskId = "WS" + Date.now();
+  tasks.unshift({
+    id:taskId,
+    type:"WhatsApp头像检测",
+    total:100000,
+    success:84320,
+    avatar:41200,
+    noAvatar:43120,
+    status:"演示完成"
+  });
+  renderTasks();
+}
+
+function renderTasks(){
+  const tbody = document.getElementById("taskTable");
+  tbody.innerHTML = "";
+
+  if(tasks.length === 0){
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#64748b">暂无任务流水</td></tr>`;
+    return;
+  }
+
+  tasks.forEach(t=>{
+    tbody.innerHTML += `
+      <tr>
+        <td><b>${t.id}</b></td>
+        <td>${t.type}</td>
+        <td>${t.total}</td>
+        <td style="color:#16a34a;font-weight:bold">${t.success}</td>
+        <td>🟢 ${t.avatar}</td>
+        <td>⚪ ${t.noAvatar}</td>
+        <td><span class="badge">${t.status}</span></td>
+        <td><button class="small-btn green" onclick="downloadTask('${t.id}')">下载</button></td>
+      </tr>
+    `;
+  });
+}
+
+function downloadTask(taskId){
+  const text = `批次单号：${taskId}
+检测类型：WhatsApp头像检测
+总导入数量：100000
+成功数量：84320
+有头像数量：41200
+无头像数量：43120
+状态：演示数据，后续接入真实检测接口。`;
+
+  const blob = new Blob([text], {type:"text/plain;charset=utf-8"});
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = `Databox_Report_${taskId}.txt`;
+  link.click();
+}
+</script>
+
+</body>
+</html>
