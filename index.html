@@ -2002,8 +2002,7 @@ function handleDetectFileSelected(){
 
 function parseNumberList(text){
   return text
-    .split(/[
-,;，；]+/)
+    .split(/[\r\n,;，；]+/)
     .map(v=>v.trim())
     .filter(v=>v);
 }
