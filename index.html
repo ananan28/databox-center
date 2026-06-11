@@ -6,10 +6,13 @@
 <title>财盛集团 - 博亿研发中心</title>
 
 <style>
+
 :root{
-  --bg:#f8fafc;
+  --bg:#07111f;
+  --panel:#0f1e35;
+  --panel2:#132845;
   --card:#ffffff;
-  --border:#e2e8f0;
+  --border:#dbeafe;
   --text:#0f172a;
   --muted:#64748b;
   --blue:#2563eb;
@@ -18,6 +21,7 @@
   --red:#ef4444;
   --cyan:#06b6d4;
   --purple:#7c3aed;
+  --gold:#f59e0b;
 }
 
 *{box-sizing:border-box}
@@ -27,7 +31,9 @@ body{
   padding:0;
   font-family:"Microsoft YaHei","PingFang SC",Arial,sans-serif;
   background:
-    linear-gradient(rgba(8,15,35,.55),rgba(8,15,35,.70)),
+    radial-gradient(circle at 18% 12%,rgba(37,99,235,.28),transparent 32%),
+    radial-gradient(circle at 82% 18%,rgba(6,182,212,.22),transparent 28%),
+    linear-gradient(rgba(8,15,35,.62),rgba(8,15,35,.82)),
     url("./wealth-bg.jpg");
   background-size:cover;
   background-position:center;
@@ -39,20 +45,32 @@ body{
   -moz-osx-font-smoothing:grayscale;
 }
 
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  background-image:
+    linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);
+  background-size:42px 42px;
+  mask-image:linear-gradient(to bottom,rgba(0,0,0,.75),rgba(0,0,0,.05));
+}
+
 .login-card{
   position:absolute;
-  top:90px;
-  left:80px;
-  width:420px;
-  padding:40px;
-  border-radius:24px;
-  background:rgba(12,25,60,.45);
-  backdrop-filter:blur(25px);
-  -webkit-backdrop-filter:blur(25px);
-  border:1px solid rgba(255,255,255,.15);
+  top:78px;
+  left:76px;
+  width:440px;
+  padding:42px;
+  border-radius:28px;
+  background:rgba(8,22,55,.52);
+  backdrop-filter:blur(28px);
+  -webkit-backdrop-filter:blur(28px);
+  border:1px solid rgba(255,255,255,.18);
   box-shadow:
-    0 20px 50px rgba(0,0,0,.45),
-    0 0 40px rgba(37,99,235,.25);
+    0 24px 70px rgba(0,0,0,.48),
+    0 0 46px rgba(37,99,235,.28);
   color:#fff;
   overflow:hidden;
 }
@@ -61,16 +79,67 @@ body{
   content:"";
   position:absolute;
   inset:-1px;
-  background:linear-gradient(120deg,rgba(96,165,250,.25),transparent,rgba(34,211,238,.18));
+  background:linear-gradient(120deg,rgba(96,165,250,.32),transparent 42%,rgba(34,211,238,.22));
   pointer-events:none;
+}
+
+.login-card::after{
+  content:"V1.76 FRONTEND";
+  position:absolute;
+  right:24px;
+  top:20px;
+  font-size:11px;
+  letter-spacing:1.6px;
+  color:rgba(186,230,253,.8);
 }
 
 .login-card h2,
 .login-card p,
 .login-card input,
-.login-card button{
+.login-card button,
+.login-brand{
   position:relative;
   z-index:1;
+}
+
+.login-brand{
+  width:58px;
+  height:58px;
+  border-radius:18px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin-bottom:18px;
+  background:linear-gradient(135deg,rgba(37,99,235,.95),rgba(6,182,212,.9));
+  box-shadow:0 0 28px rgba(6,182,212,.42);
+  font-size:28px;
+}
+
+.login-info{
+  position:relative;
+  z-index:1;
+  display:inline-block;
+  max-width:315px;
+  margin:4px 0 18px;
+  padding:8px 12px;
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,.38);
+  background:rgba(255,255,255,.07);
+  color:#cbd5e1;
+  font-size:13px;
+  line-height:1.55;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.04);
+}
+
+.login-version{
+  position:absolute;
+  right:22px;
+  bottom:18px;
+  z-index:2;
+  color:rgba(203,213,225,.82);
+  font-size:11px;
+  letter-spacing:.8px;
+  user-select:none;
 }
 
 input,select,textarea{
@@ -95,7 +164,12 @@ textarea{
 .login-card input{
   color:#fff;
   background:rgba(255,255,255,.12);
-  border:none;
+  border:1px solid rgba(255,255,255,.16);
+}
+
+.login-card input:focus{
+  border-color:rgba(34,211,238,.75);
+  box-shadow:0 0 0 4px rgba(6,182,212,.12);
 }
 
 .login-card input::placeholder{
@@ -117,18 +191,18 @@ button{
   font-weight:700;
   letter-spacing:1px;
   cursor:pointer;
-  transition:all .3s ease;
+  transition:all .25s ease;
   box-shadow:
-    0 0 15px rgba(37,99,235,.6),
-    0 0 30px rgba(6,182,212,.4);
+    0 0 15px rgba(37,99,235,.55),
+    0 0 30px rgba(6,182,212,.32);
 }
 
 button:hover{
   transform:translateY(-2px);
   background:linear-gradient(135deg,#3b82f6,#22d3ee);
   box-shadow:
-    0 0 25px rgba(37,99,235,.9),
-    0 0 50px rgba(6,182,212,.8);
+    0 0 25px rgba(37,99,235,.78),
+    0 0 50px rgba(6,182,212,.62);
 }
 
 button:active{transform:scale(.98)}
@@ -146,20 +220,29 @@ button:disabled{
 }
 
 .sidebar{
-  width:240px;
-  background:rgba(255,255,255,.96);
-  border-right:1px solid var(--border);
+  width:260px;
+  background:rgba(7,17,31,.86);
+  border-right:1px solid rgba(148,163,184,.2);
   padding:20px 0;
-  backdrop-filter:blur(10px);
+  backdrop-filter:blur(18px);
+  box-shadow:12px 0 38px rgba(0,0,0,.18);
 }
 
 .logo{
   text-align:center;
   font-size:20px;
   font-weight:bold;
-  color:var(--blue);
-  padding-bottom:20px;
-  border-bottom:1px solid var(--border);
+  color:#e0f2fe;
+  padding:0 18px 20px;
+  border-bottom:1px solid rgba(148,163,184,.22);
+}
+
+.logo small{
+  display:block;
+  margin-top:7px;
+  color:#93c5fd;
+  font-size:12px;
+  font-weight:500;
 }
 
 .menu{
@@ -169,36 +252,47 @@ button:disabled{
 }
 
 .menu li{
-  padding:13px 25px;
-  color:var(--muted);
+  margin:4px 12px;
+  padding:13px 16px;
+  color:#b6c7dd;
   cursor:pointer;
   border-left:3px solid transparent;
+  border-radius:12px;
+  transition:all .2s ease;
 }
 
 .menu li.active,.menu li:hover{
-  background:#f1f5f9;
-  color:var(--text);
-  border-left-color:var(--blue);
+  background:rgba(59,130,246,.16);
+  color:#fff;
+  border-left-color:#22d3ee;
+  box-shadow:inset 0 0 0 1px rgba(34,211,238,.1);
 }
 
 .main{
   flex:1;
   padding:28px;
+  min-width:0;
 }
 
 .top{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  border-bottom:1px solid rgba(255,255,255,.65);
+  border-bottom:1px solid rgba(255,255,255,.28);
   padding-bottom:18px;
   margin-bottom:20px;
   color:#fff;
 }
 
 .top h2{
-  color:#f97316;
+  color:#f8fafc;
   text-shadow:0 2px 8px rgba(0,0,0,.35);
+}
+
+.top-sub{
+  color:#bae6fd;
+  font-size:13px;
+  margin-top:8px;
 }
 
 .grid{
@@ -209,18 +303,37 @@ button:disabled{
 
 .card{
   background:rgba(255,255,255,.97);
-  border:1px solid var(--border);
-  border-radius:14px;
+  border:1px solid rgba(226,232,240,.92);
+  border-radius:18px;
   padding:22px;
-  box-shadow:0 8px 20px rgba(0,0,0,.06);
+  box-shadow:0 14px 34px rgba(15,23,42,.11);
 }
 
 .card.full{grid-column:1/3}
 
+.card.dark{
+  color:#eaf6ff;
+  background:linear-gradient(145deg,rgba(8,33,68,.94),rgba(3,12,28,.94));
+  border:1px solid rgba(0,191,255,.22);
+}
+
+.card.dark p,
+.card.dark .mini{
+  color:#b8cbe2;
+}
+
+.module-panel{
+  display:none;
+}
+
+.module-panel.active{
+  display:block;
+}
+
 .badge{
   display:inline-block;
-  padding:4px 8px;
-  border-radius:6px;
+  padding:5px 10px;
+  border-radius:999px;
   background:#eff6ff;
   color:var(--blue);
   font-size:12px;
@@ -231,8 +344,8 @@ button:disabled{
   background:#fff7ed;
   border:1px solid #fed7aa;
   color:#9a3412;
-  padding:12px;
-  border-radius:8px;
+  padding:13px 14px;
+  border-radius:12px;
   margin-bottom:18px;
   font-size:13px;
 }
@@ -248,19 +361,25 @@ button:disabled{
   margin-top:15px;
   background:#fff;
   font-size:13px;
+  border-radius:14px;
+  overflow:hidden;
 }
 
 .table th,.table td{
   padding:12px;
-  border-bottom:1px solid var(--border);
+  border-bottom:1px solid #e2e8f0;
   text-align:left;
   vertical-align:middle;
 }
 
 .table th{
   background:#f8fafc;
-  color:var(--muted);
+  color:#475569;
   white-space:nowrap;
+}
+
+.table tr:hover td{
+  background:#f8fbff;
 }
 
 .small-btn{
@@ -357,23 +476,116 @@ button:disabled{
   background:#fff7ed;
   color:#9a3412;
   border:1px solid #fed7aa;
-  border-radius:8px;
+  border-radius:10px;
   padding:10px;
   margin-top:8px;
   font-size:12px;
 }
 
-.v175-box{
+.v175-box,
+.v176-grid,
+.package-grid,
+.kpi-grid{
   display:grid;
   grid-template-columns:repeat(3,1fr);
-  gap:12px;
+  gap:14px;
 }
 
-.v175-item{
-  border:1px dashed #cbd5e1;
-  border-radius:12px;
-  padding:14px;
+.v175-item,
+.v176-card,
+.package-card,
+.kpi-card{
+  border:1px solid #dbeafe;
+  border-radius:16px;
+  padding:16px;
   background:#f8fafc;
+}
+
+.v176-card{
+  cursor:pointer;
+  background:linear-gradient(145deg,#eff6ff,#ffffff);
+  transition:all .22s ease;
+}
+
+.v176-card:hover{
+  transform:translateY(-3px);
+  border-color:#38bdf8;
+  box-shadow:0 12px 24px rgba(14,165,233,.18);
+}
+
+.v176-card h4,
+.package-card h4,
+.kpi-card h4{
+  margin:0 0 8px;
+}
+
+.v176-card span{
+  color:#0284c7;
+  font-weight:bold;
+  font-size:13px;
+}
+
+.kpi-card strong{
+  display:block;
+  font-size:28px;
+  color:#0f172a;
+  margin-top:8px;
+}
+
+.flow-steps{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:14px;
+}
+
+.flow-step{
+  background:#f8fafc;
+  border:1px solid #e2e8f0;
+  border-radius:16px;
+  padding:16px;
+}
+
+.flow-step b{
+  display:inline-flex;
+  width:28px;
+  height:28px;
+  align-items:center;
+  justify-content:center;
+  background:#2563eb;
+  color:#fff;
+  border-radius:50%;
+  margin-bottom:10px;
+}
+
+.price{
+  font-size:30px;
+  color:#0284c7;
+  font-weight:bold;
+  margin:10px 0;
+}
+
+.page-head{
+  color:#fff;
+  margin-bottom:18px;
+}
+
+.page-head h3{
+  margin:0 0 8px;
+  font-size:24px;
+}
+
+.page-head p{
+  color:#bfdbfe;
+  margin:0;
+}
+
+@media(max-width:1100px){
+  .v176-grid,
+  .package-grid,
+  .kpi-grid,
+  .flow-steps{
+    grid-template-columns:1fr 1fr;
+  }
 }
 
 @media(max-width:900px){
@@ -381,6 +593,11 @@ button:disabled{
     left:20px;
     right:20px;
     width:auto;
+    padding:34px 28px 48px;
+  }
+  .login-info{
+    max-width:100%;
+    font-size:12px;
   }
   .app{
     flex-direction:column;
@@ -407,35 +624,49 @@ button:disabled{
   .top .small-btn{
     width:auto;
   }
-  .v175-box{
+  .v175-box,
+  .v176-grid,
+  .package-grid,
+  .kpi-grid,
+  .flow-steps{
     grid-template-columns:1fr;
   }
 }
+
 </style>
 </head>
 
 <body>
 
 <div id="loginSection" class="login-card">
-  <h2 style="color:#60a5fa;margin:0 0 8px">财盛集团</h2>
-  <p style="color:#cbd5e1;font-size:14px;">博亿研发中心 · 企业级数据服务平台</p>
+  <div class="login-brand">🏛</div>
+  <h2 style="color:#e0f2fe;margin:0 0 8px;font-size:30px">财盛集团</h2>
+  <div class="login-info">
+    博亿研发中心 · 企业级数据服务平台<br>
+    前端版本：V1.76 产品设计阶段
+  </div>
   <input id="email" type="email" placeholder="账号 / Email">
   <input id="password" type="password" placeholder="密码">
   <button onclick="login()">安全登录</button>
-  <p style="font-size:12px;color:#cbd5e1">当前为 GitHub Pages 企业内部管理系统</p>
+  <div class="login-version">V1.76</div>
 </div>
 
 <div id="appPanel" class="app">
   <aside class="sidebar">
-    <div class="logo">🏛 财盛集团</div>
+    <div class="logo">
+      🏛 财盛集团
+      <small>博亿研发中心 · V1.76</small>
+    </div>
     <ul class="menu">
-      <li class="active">📊 控制台</li>
-      <li>🔍 空号检测</li>
-      <li>⚡ 活跃检测</li>
-      <li>👥 社交检测</li>
-      <li>👑 管理中心</li>
-      <li>💳 查账中心</li>
-      <li>⚙️ 账户设置</li>
+      <li class="active" data-target="dashboardPanel" onclick="showModule('dashboardPanel')">📊 控制台</li>
+      <li data-target="numberDetectionPanel" onclick="showModule('numberDetectionPanel')">🔍 号码检测设计</li>
+      <li data-target="providerCenter" onclick="showModule('providerCenter')">🔌 接口商配置中心</li>
+      <li data-target="detectionTaskCenter" onclick="showModule('detectionTaskCenter')">📋 检测任务中心</li>
+      <li data-target="packageCenter" onclick="showModule('packageCenter')">💎 积分套餐设置</li>
+      <li data-target="userCenterPanel" onclick="showModule('userCenterPanel')">👑 用户管理中心</li>
+      <li data-target="logsPanel" onclick="showModule('logsPanel')">💳 查账中心</li>
+      <li data-target="settingsPanel" onclick="showModule('settingsPanel')">⚙️ 账户设置</li>
+      <li data-target="v175Panel" onclick="showModule('v175Panel')">🚀 V1.75 预留入口</li>
     </ul>
   </aside>
 
@@ -443,6 +674,7 @@ button:disabled{
     <div class="top">
       <div>
         <h2 style="margin:0">欢迎回来，<span id="userName">-</span></h2>
+        <div class="top-sub">财盛集团 - 博亿研发中心 · 前端产品设计控制台</div>
         <span id="roleText" class="badge">权限组：-</span>
       </div>
       <button class="small-btn red" onclick="logout()">退出登录</button>
@@ -452,174 +684,444 @@ button:disabled{
       权限结构：SuperAdmin 最高权限；GM 二级管理员；Agent 子账号；User 普通用户。
     </div>
 
-    <div class="grid">
+    <section id="dashboardPanel" class="module-panel active">
+      <div class="grid">
+        <div class="card dark">
+          <h3>📌 V1.76 当前阶段</h3>
+          <p>后端 V1.75 暂停，当前只做 GitHub Pages 前端页面、产品流程、后台布局和价格方案。</p>
+          <div class="warn">不升级 Blaze / 不部署 Functions / 不接真实 API Key / 不接支付。</div>
+        </div>
 
-      <div class="card">
-        <h3>📤 上传号码文件</h3>
-        <input type="file" id="fileInput" accept=".txt,.csv,.xlsx">
-        <select>
-          <option>WhatsApp 头像检测</option>
-          <option>空号检测</option>
-          <option>活跃检测</option>
-        </select>
-        <button onclick="createTask()">创建检测任务</button>
-        <div class="warn">当前检测任务为演示流水，真实检测接口后续再接入。</div>
+        <div class="card">
+          <h3>💰 当前账户</h3>
+          <p>账户余额：<b id="balanceText" style="color:var(--orange)">-</b> 积分</p>
+          <p>账号状态：<b id="statusText" style="color:var(--green)">-</b></p>
+          <p>实时状态：<b style="color:var(--blue)">Firebase 已接入</b></p>
+        </div>
+
+        <div class="card full">
+          <div class="section-title">
+            <h3>🚀 V1.76 快速入口</h3>
+            <span class="muted">以下页面均为前端展示设计，不调用真实检测接口。</span>
+          </div>
+
+          <div class="v176-grid">
+            <div class="v176-card" onclick="openV176Page('providerCenter')">
+              <h4>🔌 接口商配置中心</h4>
+              <p class="mini">管理 WhatsApp、运营商、号码有效性等未来接口商配置。</p>
+              <span>进入配置 →</span>
+            </div>
+            <div class="v176-card" onclick="openV176Page('detectionTaskCenter')">
+              <h4>📋 检测任务中心</h4>
+              <p class="mini">展示上传文件、检测进度、任务状态、扣费和导出结果。</p>
+              <span>进入任务 →</span>
+            </div>
+            <div class="v176-card" onclick="openV176Page('packageCenter')">
+              <h4>💎 积分套餐设置</h4>
+              <p class="mini">设计积分套餐、扣费规则、批量价格和用户套餐。</p>
+              <span>进入套餐 →</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>📤 快速创建演示任务</h3>
+          <input type="file" id="fileInput" accept=".txt,.csv,.xlsx">
+          <select>
+            <option>WhatsApp 头像检测</option>
+            <option>空号检测</option>
+            <option>活跃检测</option>
+            <option>运营商识别</option>
+          </select>
+          <button onclick="createTask()">创建检测任务</button>
+          <div class="warn">当前检测任务为演示流水，真实检测接口后续再接入。</div>
+        </div>
+
+        <div class="card">
+          <h3>📊 产品数据看板</h3>
+          <div class="kpi-grid" style="grid-template-columns:1fr 1fr;gap:12px">
+            <div class="kpi-card"><span class="muted">今日任务</span><strong>0</strong></div>
+            <div class="kpi-card"><span class="muted">接口状态</span><strong>预留</strong></div>
+          </div>
+        </div>
+
+        <div class="card full">
+          <h3>📋 任务流水</h3>
+          <div class="table-wrap">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>批次单号</th>
+                  <th>类型</th>
+                  <th>总数</th>
+                  <th>成功数</th>
+                  <th>有头像</th>
+                  <th>无头像</th>
+                  <th>状态</th>
+                  <th>导出</th>
+                </tr>
+              </thead>
+              <tbody id="taskTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="numberDetectionPanel" class="module-panel">
+      <div class="page-head">
+        <h3>🔍 号码检测功能页面设计</h3>
+        <p>V1.76 只设计流程，不做真实 WhatsApp 检测、不做真实运营商检测。</p>
       </div>
 
-      <div class="card">
-        <h3>💰 当前账户</h3>
-        <p>账户余额：<b id="balanceText" style="color:var(--orange)">-</b> 积分</p>
-        <p>账号状态：<b id="statusText" style="color:var(--green)">-</b></p>
-        <p>实时状态：<b style="color:var(--blue)">Firebase 已接入</b></p>
+      <div class="grid">
+        <div class="card full">
+          <h3>上传号码文件流程</h3>
+          <div class="flow-steps">
+            <div class="flow-step"><b>1</b><h4>上传文件</h4><p class="mini">支持 TXT / CSV / XLSX，后续可批量导入美国号码。</p></div>
+            <div class="flow-step"><b>2</b><h4>选择检测类型</h4><p class="mini">WhatsApp、头像、运营商、空号、活跃度等。</p></div>
+            <div class="flow-step"><b>3</b><h4>预估扣费</h4><p class="mini">系统按号码数量和检测组合计算需要积分。</p></div>
+            <div class="flow-step"><b>4</b><h4>导出结果</h4><p class="mini">导出 CSV / XLSX / TXT，按状态分组。</p></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>检测类型设计</h3>
+          <select>
+            <option>WhatsApp 注册检测</option>
+            <option>WhatsApp 头像检测</option>
+            <option>运营商识别</option>
+            <option>Mobile / VoIP / Landline 区分</option>
+            <option>号码有效性检测</option>
+          </select>
+          <input placeholder="示例：预计上传 10000 条号码">
+          <button onclick="alert('V1.76 演示：这里只做页面设计，后续接真实接口。')">预估检测积分</button>
+        </div>
+
+        <div class="card">
+          <h3>积分扣费规则</h3>
+          <p class="mini">WhatsApp 注册检测：1 条 = 1 积分</p>
+          <p class="mini">WhatsApp 头像检测：1 条 = 1 积分</p>
+          <p class="mini">运营商识别：1 条 = 1 积分</p>
+          <p class="mini">组合检测：1 条 = 2-3 积分</p>
+        </div>
+
+        <div class="card full">
+          <h3>检测结果表格设计</h3>
+          <div class="table-wrap">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>号码</th>
+                  <th>国家</th>
+                  <th>号码类型</th>
+                  <th>运营商</th>
+                  <th>WhatsApp</th>
+                  <th>头像</th>
+                  <th>状态</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>+14155550101</td><td>US</td><td>Mobile</td><td>Verizon</td><td>Yes</td><td>Yes</td><td><span class="ok-text">有效</span></td></tr>
+                <tr><td>+12125550102</td><td>US</td><td>VoIP</td><td>Unknown</td><td>No</td><td>No</td><td><span class="warn-text">需过滤</span></td></tr>
+                <tr><td>+13105550103</td><td>US</td><td>Landline</td><td>AT&T</td><td>No</td><td>No</td><td><span class="danger-text">不推荐</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card full">
+          <h3>导出结果格式</h3>
+          <div class="v176-grid">
+            <div class="v176-card"><h4>CSV</h4><p class="mini">适合系统批量处理，字段清晰。</p></div>
+            <div class="v176-card"><h4>XLSX</h4><p class="mini">适合人工查看、筛选、分类。</p></div>
+            <div class="v176-card"><h4>TXT</h4><p class="mini">适合只导出有效号码，一行一个。</p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="providerCenter" class="module-panel">
+      <div class="page-head">
+        <h3>🔌 接口商配置中心</h3>
+        <p>V1.76 仅做接口商对比和配置页面，暂不填写真实 API Key。</p>
       </div>
 
-      <div class="card full" id="initPanel">
+      <div class="card full">
         <div class="section-title">
-          <h3>👥 账号资料初始化</h3>
-          <span class="muted">GitHub Pages 前端无法安全创建 Auth 登录账号，V1.75 再接 Cloud Functions。</span>
-        </div>
-
-        <div class="mini">
-          现在流程：先到 Firebase Authentication 手动创建邮箱和密码，再复制 Auth 用户 UID 到这里初始化 Firestore 用户资料。
-          <br>
-          SuperAdmin 可初始化 SuperAdmin / GM / Agent / User；GM 只能初始化 Agent / User。
-        </div>
-
-        <div class="form-row">
-          <input id="newUid" placeholder="Auth 用户 UID">
-          <input id="newEmail" type="email" placeholder="邮箱">
-          <select id="newRole"></select>
-          <input id="newBalance" type="number" placeholder="初始积分" value="0">
-          <input id="newNote" placeholder="账号备注，例如：GM02负责美国">
-          <button class="small-btn green" onclick="initUserProfile()">初始化资料</button>
-        </div>
-      </div>
-
-      <div class="card full" id="userCenterPanel">
-        <div class="section-title">
-          <h3>👥 用户管理中心</h3>
-          <span class="muted" id="userViewHint">-</span>
+          <h3>API 接口商对比表</h3>
+          <button class="small-btn gray" onclick="backToDashboard()">返回控制台</button>
         </div>
 
         <div class="table-wrap">
           <table class="table">
             <thead>
               <tr>
-                <th>邮箱</th>
-                <th>UID</th>
-                <th>角色</th>
-                <th>余额</th>
-                <th>状态</th>
-                <th>账号备注</th>
-                <th>操作</th>
-              </tr>
-            </thead>
-            <tbody id="usersBody">
-              <tr><td colspan="7" style="text-align:center;color:#64748b">暂无用户数据</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="card full" id="logsPanel">
-        <div class="section-title">
-          <h3>💳 查账中心 / 积分操作记录</h3>
-          <button class="small-btn green" onclick="loadLogs()">刷新记录</button>
-        </div>
-
-        <div class="mini" id="logViewHint">-</div>
-
-        <div class="table-wrap">
-          <table class="table log-table">
-            <thead>
-              <tr>
-                <th>时间</th>
-                <th>操作人</th>
-                <th>目标账号</th>
-                <th>目标角色</th>
-                <th>类型</th>
-                <th>变动</th>
-                <th>变动后余额</th>
+                <th>接口商</th>
+                <th>检测类型</th>
+                <th>当前状态</th>
+                <th>成本预估</th>
+                <th>优先级</th>
                 <th>备注</th>
               </tr>
             </thead>
-            <tbody id="logsBody">
-              <tr><td colspan="8" style="text-align:center;color:#64748b">暂无记录</td></tr>
+            <tbody>
+              <tr><td>Provider A</td><td>WhatsApp 注册/头像</td><td>预留</td><td>$0.003 / 条</td><td>高</td><td>后续接真实 API</td></tr>
+              <tr><td>Provider B</td><td>运营商识别</td><td>预留</td><td>$0.002 / 条</td><td>中</td><td>Mobile / VoIP / Landline</td></tr>
+              <tr><td>Provider C</td><td>号码有效性</td><td>预留</td><td>$0.001 / 条</td><td>中</td><td>空号、无效号过滤</td></tr>
             </tbody>
           </table>
         </div>
       </div>
 
-      <div class="card full" id="v175Panel">
+      <div class="grid" style="margin-top:20px">
+        <div class="card">
+          <h3>接口配置预留</h3>
+          <input placeholder="接口商名称，例如 Provider A">
+          <input placeholder="API Base URL，V1.76 暂不启用">
+          <input placeholder="API Key，暂时不要填写真实密钥">
+          <button onclick="alert('V1.76 只做页面展示，不保存真实 API Key。')">保存配置演示</button>
+        </div>
+
+        <div class="card">
+          <h3>安全说明</h3>
+          <p class="mini">真实 API Key 不能放在 GitHub Pages 前端代码里。</p>
+          <p class="mini">后续需要 Firebase Cloud Functions 或后端服务器统一代理接口请求。</p>
+          <div class="warn">现在不要在 index.html 里填写任何真实接口密钥。</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="detectionTaskCenter" class="module-panel">
+      <div class="page-head">
+        <h3>📋 检测任务中心</h3>
+        <p>展示任务状态、上传文件、扣费、导出格式；当前为演示数据。</p>
+      </div>
+
+      <div class="card full">
         <div class="section-title">
-          <h3>🚀 V1.75 账号管理预留入口</h3>
-          <span class="muted">创建账号 / 删除账号 / 重置密码，需要 Firebase Cloud Functions + Admin SDK。</span>
+          <h3>任务列表设计</h3>
+          <button class="small-btn green" onclick="createTask()">新增演示任务</button>
         </div>
 
-        <div class="v175-box">
-          <div class="v175-item">
-            <h4>创建账号</h4>
-            <p class="mini">计划函数：createUserByAdmin()</p>
-            <button class="small-btn blue" onclick="v175Notice('创建账号')">预留入口</button>
-          </div>
-          <div class="v175-item">
-            <h4>删除账号</h4>
-            <p class="mini">计划函数：deleteUserByAdmin()</p>
-            <button class="small-btn red" onclick="v175Notice('删除账号')">预留入口</button>
-          </div>
-          <div class="v175-item">
-            <h4>重置密码</h4>
-            <p class="mini">计划函数：resetPasswordByAdmin()</p>
-            <button class="small-btn purple" onclick="v175Notice('重置密码')">预留入口</button>
-          </div>
-        </div>
-
-        <div class="warn">
-          这三个功能不能只靠 GitHub Pages 前端完成。因为前端不能持有 Firebase Admin 权限，否则会有安全风险。
-        </div>
-      </div>
-
-      <div class="card full">
-        <h3>⚙️ 账户设置</h3>
-        <p>当前邮箱：<b id="settingEmail">-</b></p>
-        <p>当前权限：<b id="settingRole">-</b></p>
-        <p>当前余额：<b id="settingBalance">-</b> 积分</p>
-
-        <hr style="border:none;border-top:1px solid #e2e8f0;margin:18px 0">
-
-        <h4>修改密码</h4>
-        <input id="oldPassword" type="password" placeholder="请输入当前密码">
-        <input id="newPassword" type="password" placeholder="请输入新密码，至少6位">
-        <input id="confirmPassword" type="password" placeholder="再次输入新密码">
-        <button onclick="changePassword()">修改密码</button>
-      </div>
-
-      <div class="card full">
-        <h3>📋 任务流水</h3>
         <div class="table-wrap">
           <table class="table">
             <thead>
               <tr>
-                <th>批次单号</th>
-                <th>类型</th>
-                <th>总数</th>
-                <th>成功数</th>
-                <th>有头像</th>
-                <th>无头像</th>
+                <th>任务编号</th>
+                <th>文件名</th>
+                <th>号码数量</th>
+                <th>检测类型</th>
                 <th>状态</th>
+                <th>扣除积分</th>
                 <th>导出</th>
               </tr>
             </thead>
-            <tbody id="taskTable"></tbody>
+            <tbody>
+              <tr><td>TASK-001</td><td>sample_numbers.csv</td><td>1,000</td><td>WhatsApp + 运营商</td><td><span class="badge">页面示例</span></td><td>2,000</td><td>CSV / XLSX</td></tr>
+              <tr><td>TASK-002</td><td>usa_mobile.xlsx</td><td>5,000</td><td>号码有效性</td><td><span class="badge">页面示例</span></td><td>5,000</td><td>TXT</td></tr>
+            </tbody>
           </table>
         </div>
       </div>
 
-    </div>
+      <div class="grid" style="margin-top:20px">
+        <div class="card">
+          <h3>任务状态</h3>
+          <p class="mini">Pending：等待检测</p>
+          <p class="mini">Processing：检测中</p>
+          <p class="mini">Completed：检测完成</p>
+          <p class="mini">Failed：检测失败</p>
+        </div>
+
+        <div class="card">
+          <h3>扣费逻辑</h3>
+          <p class="mini">创建任务前预估积分。</p>
+          <p class="mini">任务确认后冻结或扣除积分。</p>
+          <p class="mini">失败任务后续可设计退回积分。</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="packageCenter" class="module-panel">
+      <div class="page-head">
+        <h3>💎 积分套餐设置</h3>
+        <p>V1.76 只设计套餐价格，不接 Stripe、银行卡或加密支付。</p>
+      </div>
+
+      <div class="card full">
+        <h3>用户套餐价格</h3>
+        <div class="package-grid">
+          <div class="package-card">
+            <h4>基础套餐</h4>
+            <div class="price">$99</div>
+            <p>10,000 积分</p>
+            <p class="mini">适合小批量测试</p>
+          </div>
+          <div class="package-card">
+            <h4>专业套餐</h4>
+            <div class="price">$299</div>
+            <p>50,000 积分</p>
+            <p class="mini">适合代理和日常检测</p>
+          </div>
+          <div class="package-card">
+            <h4>企业套餐</h4>
+            <div class="price">$999</div>
+            <p>250,000 积分</p>
+            <p class="mini">适合大批量号码检测</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card full" style="margin-top:20px">
+        <h3>积分扣费规则</h3>
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>检测项目</th>
+                <th>扣费规则</th>
+                <th>说明</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>WhatsApp 注册检测</td><td>1 条 = 1 积分</td><td>判断号码是否注册 WhatsApp</td></tr>
+              <tr><td>WhatsApp 头像检测</td><td>1 条 = 1 积分</td><td>判断是否有头像</td></tr>
+              <tr><td>运营商识别</td><td>1 条 = 1 积分</td><td>识别 Carrier</td></tr>
+              <tr><td>组合检测</td><td>1 条 = 2-3 积分</td><td>多个检测项目叠加</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="card full module-panel" id="initPanel">
+      <div class="section-title">
+        <h3>👥 账号资料初始化</h3>
+        <span class="muted">GitHub Pages 前端无法安全创建 Auth 登录账号，V1.75 再接 Cloud Functions。</span>
+      </div>
+
+      <div class="mini">
+        现在流程：先到 Firebase Authentication 手动创建邮箱和密码，再复制 Auth 用户 UID 到这里初始化 Firestore 用户资料。
+        <br>
+        SuperAdmin 可初始化 SuperAdmin / GM / Agent / User；GM 只能初始化 Agent / User。
+      </div>
+
+      <div class="form-row">
+        <input id="newUid" placeholder="Auth 用户 UID">
+        <input id="newEmail" type="email" placeholder="邮箱">
+        <select id="newRole"></select>
+        <input id="newBalance" type="number" placeholder="初始积分" value="0">
+        <input id="newNote" placeholder="账号备注，例如：GM02负责美国">
+        <button class="small-btn green" onclick="initUserProfile()">初始化资料</button>
+      </div>
+    </section>
+
+    <section class="card full module-panel" id="userCenterPanel">
+      <div class="section-title">
+        <h3>👥 用户管理中心</h3>
+        <span class="muted" id="userViewHint">-</span>
+      </div>
+
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>邮箱</th>
+              <th>UID</th>
+              <th>角色</th>
+              <th>余额</th>
+              <th>状态</th>
+              <th>账号备注</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="usersBody">
+            <tr><td colspan="7" style="text-align:center;color:#64748b">暂无用户数据</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card full module-panel" id="logsPanel">
+      <div class="section-title">
+        <h3>💳 查账中心 / 积分操作记录</h3>
+        <button class="small-btn green" onclick="loadLogs()">刷新记录</button>
+      </div>
+
+      <div class="mini" id="logViewHint">-</div>
+
+      <div class="table-wrap">
+        <table class="table log-table">
+          <thead>
+            <tr>
+              <th>时间</th>
+              <th>操作人</th>
+              <th>目标账号</th>
+              <th>目标角色</th>
+              <th>类型</th>
+              <th>变动</th>
+              <th>变动后余额</th>
+              <th>备注</th>
+            </tr>
+          </thead>
+          <tbody id="logsBody">
+            <tr><td colspan="8" style="text-align:center;color:#64748b">暂无记录</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card full module-panel" id="v175Panel">
+      <div class="section-title">
+        <h3>🚀 V1.75 账号管理预留入口</h3>
+        <span class="muted">创建账号 / 删除账号 / 重置密码，需要 Firebase Cloud Functions + Admin SDK。</span>
+      </div>
+
+      <div class="v175-box">
+        <div class="v175-item">
+          <h4>创建账号</h4>
+          <p class="mini">计划函数：createUserByAdmin()</p>
+          <button class="small-btn blue" onclick="v175Notice('创建账号')">预留入口</button>
+        </div>
+        <div class="v175-item">
+          <h4>删除账号</h4>
+          <p class="mini">计划函数：deleteUserByAdmin()</p>
+          <button class="small-btn red" onclick="v175Notice('删除账号')">预留入口</button>
+        </div>
+        <div class="v175-item">
+          <h4>重置密码</h4>
+          <p class="mini">计划函数：resetPasswordByAdmin()</p>
+          <button class="small-btn purple" onclick="v175Notice('重置密码')">预留入口</button>
+        </div>
+      </div>
+
+      <div class="warn">
+        这三个功能不能只靠 GitHub Pages 前端完成。因为前端不能持有 Firebase Admin 权限，否则会有安全风险。
+      </div>
+    </section>
+
+    <section class="card full module-panel" id="settingsPanel">
+      <h3>⚙️ 账户设置</h3>
+      <p>当前邮箱：<b id="settingEmail">-</b></p>
+      <p>当前权限：<b id="settingRole">-</b></p>
+      <p>当前余额：<b id="settingBalance">-</b> 积分</p>
+
+      <hr style="border:none;border-top:1px solid #e2e8f0;margin:18px 0">
+
+      <h4>修改密码</h4>
+      <input id="oldPassword" type="password" placeholder="请输入当前密码">
+      <input id="newPassword" type="password" placeholder="请输入新密码，至少6位">
+      <input id="confirmPassword" type="password" placeholder="再次输入新密码">
+      <button onclick="changePassword()">修改密码</button>
+    </section>
+
   </main>
 </div>
 
+
 <script type="module">
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
 import {
   getAuth,
@@ -1290,6 +1792,40 @@ function v175Notice(name){
   alert(`${name} 是 V1.75 功能。\n\n需要先部署 Firebase Cloud Functions + Firebase Admin SDK，不能只靠 GitHub Pages 前端完成。`);
 }
 
+
+/* V1.76 前端页面切换：只切换页面显示，不调用后端接口 */
+function showModule(moduleId){
+  document.querySelectorAll(".module-panel").forEach(panel=>{
+    panel.classList.remove("active");
+  });
+
+  const target = document.getElementById(moduleId);
+  if(target){
+    target.classList.add("active");
+  }
+
+  document.querySelectorAll(".menu li").forEach(item=>{
+    item.classList.remove("active");
+    if(item.dataset.target === moduleId){
+      item.classList.add("active");
+    }
+  });
+
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+function openV176Page(moduleId){
+  showModule(moduleId);
+}
+
+function backToDashboard(){
+  showModule("dashboardPanel");
+}
+
+window.showModule = showModule;
+window.openV176Page = openV176Page;
+window.backToDashboard = backToDashboard;
+
 window.initUserProfile = initUserProfile;
 window.customChangeBalance = customChangeBalance;
 window.changeUserBalance = changeUserBalance;
@@ -1326,6 +1862,7 @@ onAuthStateChanged(auth, async (user)=>{
   await loadUsers();
   await loadLogs();
 });
+
 </script>
 
 </body>
