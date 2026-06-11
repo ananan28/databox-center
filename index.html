@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>财盛集团 - 博亿研发中心</title>
+<title>财盛集团 - 博亿研发中心 V2.0</title>
 
 <style>
 :root{
@@ -440,6 +440,25 @@ button:disabled{
   .transfer-row{grid-template-columns:1fr}
 }
 
+
+
+.module-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:12px;
+}
+.module-box{
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:14px;
+  background:#f8fafc;
+}
+.module-box b{display:block;color:var(--blue);font-size:18px;margin-top:6px}
+.tag{display:inline-block;padding:4px 8px;border-radius:999px;background:#eef2ff;color:#4338ca;font-size:12px;margin:2px}
+.switch-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:8px 0}
+.file-card{border:1px dashed #cbd5e1;border-radius:12px;padding:12px;background:#fff;margin-top:10px}
+@media(max-width:900px){.module-grid{grid-template-columns:1fr}}
+
 @media(max-width:900px){
   .login-card{
     left:20px;
@@ -498,6 +517,11 @@ button:disabled{
       <li onclick="showPage('users', this)">👥 用户管理</li>
       <li onclick="showPage('billing', this)">💳 查账计费</li>
       <li onclick="showPage('history', this)">🧾 检测历史</li>
+      <li onclick="showPage('data', this)">📈 数据中心</li>
+      <li onclick="showPage('ticket', this)">🎧 工单客服</li>
+      <li onclick="showPage('api', this)">🔌 API中心</li>
+      <li onclick="showPage('risk', this)">🛡️ 风控中心</li>
+      <li onclick="showPage('help', this)">📚 帮助中心</li>
       <li onclick="showPage('settings', this)">⚙️ 系统设置</li>
     </ul>
   </aside>
@@ -524,6 +548,15 @@ button:disabled{
           <div class="stat-box">今日检测<b id="dashTodayTasks">0</b></div>
           <div class="stat-box">总检测订单<b id="dashTaskCount">0</b></div>
           <div class="stat-box">当前余额<b id="dashBalance">0</b></div>
+        </div>
+      </div>
+
+      <div class="card full page-card" data-page="dashboard" id="dashboardExtraPanel">
+        <h3>🏢 企业运营总览</h3>
+        <div class="module-grid">
+          <div class="module-box">今日收入<b id="dashTodayIncome">0</b><span class="muted">积分消耗折算</span></div>
+          <div class="module-box">本月检测<b id="dashMonthTasks">0</b><span class="muted">自动统计历史记录</span></div>
+          <div class="module-box">系统状态<b id="dashSystemStatus">正常</b><span class="muted">可在系统中心维护</span></div>
         </div>
       </div>
 
@@ -597,8 +630,21 @@ button:disabled{
           <h3>📢 系统公告中心</h3>
           <button id="saveAnnouncementBtn" class="small-btn blue" onclick="saveAnnouncement()">发布公告</button>
         </div>
+        <input type="hidden" id="editingAnnouncementId" value="">
         <input id="announcementTitle" placeholder="公告标题，例如：系统维护通知">
         <textarea id="announcementContent" placeholder="公告内容"></textarea>
+        <div class="search-bar" id="announcementOptions">
+          <select id="announcementStatus">
+            <option value="Active">显示中</option>
+            <option value="Closed">已关闭</option>
+          </select>
+          <select id="announcementPinned">
+            <option value="false">普通公告</option>
+            <option value="true">📌 置顶公告</option>
+          </select>
+          <button id="cancelEditAnnouncementBtn" class="small-btn gray" style="display:none" onclick="cancelEditAnnouncement()">取消编辑</button>
+        </div>
+        <div class="mini">SuperAdmin / GM 可发布、编辑、删除、置顶、关闭公告。Agent / User 只能查看并关闭自己的通知。</div>
         <div id="latestAnnouncement" class="announce-box">暂无公告</div>
       </div>
 
@@ -660,6 +706,17 @@ button:disabled{
             </tbody>
           </table>
         </div>
+      </div>
+
+      <div class="card full page-card" data-page="users" id="tagPanel">
+        <h3>🏷️ 用户标签 / 备注历史</h3>
+        <div class="transfer-row">
+          <input id="tagTargetUid" placeholder="目标用户 UID">
+          <input id="tagValue" placeholder="标签，例如：VIP / 美国客户 / 大客户 / 风险客户">
+          <input id="tagNote" placeholder="备注历史，例如：准备充值5000积分">
+          <button class="small-btn blue" onclick="saveUserTagNote()">保存标签备注</button>
+        </div>
+        <div id="tagResult" class="warn">保存后会写入 users/{uid} 的 tags 与 noteHistory 字段。</div>
       </div>
 
       <div class="card full page-card" data-page="billing" id="logsPanel">
@@ -749,6 +806,34 @@ button:disabled{
         </div>
       </div>
 
+      <div class="card full page-card" data-page="billing" id="rechargePanel">
+        <div class="section-title">
+          <h3>💵 充值申请 / 审核中心</h3>
+          <button class="small-btn green" onclick="submitRechargeRequest()">提交充值申请</button>
+        </div>
+        <div class="transfer-row">
+          <input id="rechargeAmount" type="number" placeholder="充值积分数量">
+          <input id="rechargeNote" placeholder="充值备注 / 支付方式 / 流水号">
+          <input id="rechargeUserEmail" placeholder="申请账号邮箱，默认当前账号">
+          <button class="small-btn blue" onclick="loadRechargeRequests()">刷新申请</button>
+        </div>
+        <div class="table-wrap">
+          <table class="table"><thead><tr><th>时间</th><th>申请账号</th><th>数量</th><th>状态</th><th>备注</th><th>操作</th></tr></thead><tbody id="rechargeBody"><tr><td colspan="6" style="text-align:center;color:#64748b">暂无充值申请</td></tr></tbody></table>
+        </div>
+      </div>
+
+      <div class="card full page-card" data-page="billing" id="batchBalancePanel">
+        <h3>➕ 批量加积分</h3>
+        <textarea id="batchBalanceText" placeholder="一行一个：UID,积分,备注&#10;用户UID1,100,手动充值&#10;用户UID2,50,补偿积分"></textarea>
+        <button class="small-btn green" onclick="batchAddBalance()">执行批量加积分</button>
+        <div class="warn">仅 SuperAdmin / GM 可用。前端版适合少量管理操作，大规模批量建议后续用 Cloud Functions。</div>
+      </div>
+
+      <div class="card full page-card" data-page="billing" id="priceLogPanel">
+        <div class="section-title"><h3>🧾 价格修改日志</h3><button class="small-btn green" onclick="loadPriceLogs()">刷新</button></div>
+        <div class="table-wrap"><table class="table"><thead><tr><th>时间</th><th>操作人</th><th>类型</th><th>备注</th></tr></thead><tbody id="priceLogsBody"><tr><td colspan="4" style="text-align:center;color:#64748b">暂无价格日志</td></tr></tbody></table></div>
+      </div>
+
       <div class="card full page-card" data-page="history" id="historyPanel">
         <div class="section-title">
           <h3>🧾 检测历史记录</h3>
@@ -795,6 +880,77 @@ button:disabled{
         </div>
       </div>
 
+      <div class="card full page-card" data-page="data" id="dataCenterPanel">
+        <h3>📈 数据统计中心</h3>
+        <div class="module-grid">
+          <div class="module-box">今日检测量<b id="dataTodayCount">0</b></div>
+          <div class="module-box">本月检测量<b id="dataMonthCount">0</b></div>
+          <div class="module-box">总检测量<b id="dataTotalCount">0</b></div>
+        </div>
+        <div class="table-wrap"><table class="table"><thead><tr><th>排行榜</th><th>账号</th><th>数值</th></tr></thead><tbody id="rankingBody"><tr><td>消费排行</td><td>-</td><td>0</td></tr><tr><td>检测排行</td><td>-</td><td>0</td></tr><tr><td>GM业绩排行</td><td>-</td><td>0</td></tr></tbody></table></div>
+      </div>
+
+      <div class="card full page-card" data-page="ticket" id="ticketPanel">
+        <div class="section-title"><h3>🎧 工单客服中心</h3><button class="small-btn green" onclick="submitTicket()">提交工单</button></div>
+        <input id="ticketTitle" placeholder="工单标题">
+        <textarea id="ticketContent" placeholder="请描述问题 / 建议 / 充值说明"></textarea>
+        <div class="table-wrap"><table class="table"><thead><tr><th>时间</th><th>提交人</th><th>标题</th><th>状态</th><th>操作</th></tr></thead><tbody id="ticketBody"><tr><td colspan="5" style="text-align:center;color:#64748b">暂无工单</td></tr></tbody></table></div>
+      </div>
+
+      <div class="card full page-card" data-page="api" id="apiPanel">
+        <div class="section-title"><h3>🔌 API接口商配置中心</h3><button class="small-btn green" onclick="saveApiProvider()">保存接口商</button></div>
+        <div class="form-row">
+          <input id="apiName" placeholder="接口名称，例如 WhatsApp-A">
+          <input id="apiType" placeholder="接口类型，例如 wa/avatar/carrier">
+          <input id="apiCost" type="number" step="0.0001" placeholder="接口成本">
+          <select id="apiStatus"><option>启用</option><option>停用</option><option>备用</option></select>
+          <input id="apiRemark" placeholder="备注 / 成功率 / 联系人">
+          <button class="small-btn blue" onclick="loadApiProviders()">刷新</button>
+        </div>
+        <div class="table-wrap"><table class="table"><thead><tr><th>名称</th><th>类型</th><th>成本</th><th>状态</th><th>备注</th></tr></thead><tbody id="apiBody"><tr><td colspan="5" style="text-align:center;color:#64748b">暂无接口商</td></tr></tbody></table></div>
+      </div>
+
+      <div class="card full page-card" data-page="risk" id="riskPanel">
+        <div class="section-title"><h3>🛡️ 风控与操作日志</h3><button class="small-btn green" onclick="loadRiskLogs()">刷新日志</button></div>
+        <div class="module-grid">
+          <div class="module-box">最后登录<b id="lastLoginText">-</b></div>
+          <div class="module-box">风险操作<b>删除 / 转积分 / 改价格</b></div>
+          <div class="module-box">异常登录<b>前端预留</b></div>
+        </div>
+        <div class="table-wrap"><table class="table"><thead><tr><th>时间</th><th>账号</th><th>操作</th><th>备注</th></tr></thead><tbody id="riskBody"><tr><td colspan="4" style="text-align:center;color:#64748b">暂无风险日志</td></tr></tbody></table></div>
+      </div>
+
+      <div class="card full page-card" data-page="help" id="helpPanel">
+        <h3>📚 帮助中心 / 下载中心</h3>
+        <div class="module-grid">
+          <div class="module-box">号码文件模板<b>TXT / CSV</b><button class="small-btn blue" onclick="downloadTemplate()">下载模板</button></div>
+          <div class="module-box">常见问题<b>检测 / 充值 / 权限</b><button class="small-btn gray" onclick="alert('帮助中心内容可在后续版本接入 Firestore 可编辑文档')">查看说明</button></div>
+          <div class="module-box">接口文档<b>API预留</b><button class="small-btn gray" onclick="alert('API接口文档后续接入')">查看文档</button></div>
+        </div>
+      </div>
+
+      <div class="card full page-card" data-page="settings" id="globalConfigPanel">
+        <div class="section-title"><h3>🧩 全局配置中心</h3><button class="small-btn green" onclick="saveGlobalConfig()">保存配置</button></div>
+        <div class="form-row">
+          <input id="cfgPlatformName" placeholder="平台名称" value="财盛集团 - 博亿研发中心">
+          <input id="cfgLogoText" placeholder="Logo文字" value="🏛 财盛集团">
+          <input id="cfgSupport" placeholder="客服联系方式">
+          <select id="cfgMaintenance"><option value="off">系统正常</option><option value="on">维护模式</option></select>
+          <select id="cfgNoticeSwitch"><option value="on">公告开启</option><option value="off">公告关闭</option></select>
+          <button class="small-btn blue" onclick="loadGlobalConfig()">刷新</button>
+        </div>
+        <div class="warn">系统维护开关、客服配置、Logo文字都保存到 Firestore settings/global。</div>
+      </div>
+
+      <div class="card full page-card" data-page="settings" id="fileManagePanel">
+        <h3>🗂️ 文件管理中心</h3>
+        <div class="file-card">Logo、帮助文档、公告附件：GitHub Pages 前端可做入口展示；真实上传保存建议后续接 Firebase Storage。</div>
+        <input type="file" id="managedFile" accept=".png,.jpg,.jpeg,.pdf,.doc,.docx,.txt,.csv">
+        <button class="small-btn blue" onclick="previewManagedFile()">选择文件预览</button>
+        <div id="managedFileHint" class="mini">暂无文件</div>
+      </div>
+
+
     </div>
   </main>
 </div>
@@ -818,6 +974,7 @@ import {
   collection,
   getDocs,
   updateDoc,
+  deleteDoc,
   addDoc,
   serverTimestamp,
   runTransaction
@@ -1556,28 +1713,187 @@ async function savePricing(){
     remark:"修改套餐价格配置"
   });
 
+  await addDoc(collection(db,"price_logs"),{
+    operatorUid:auth.currentUser.uid,
+    operatorEmail:currentUserProfile.email || auth.currentUser.email,
+    operatorRole:currentUserProfile.role,
+    type:"update_pricing",
+    remark:"修改套餐价格配置",
+    createdAt:serverTimestamp()
+  });
+
   alert("套餐价格已保存，其他用户刷新后会看到最新价格");
   renderPricing();
 }
 
+function canManageAnnouncement(){
+  return currentUserProfile?.role === "SuperAdmin" || currentUserProfile?.role === "GM";
+}
+
+function announcementHiddenKey(id){
+  return `hidden_announcement_${auth.currentUser?.uid || "guest"}_${id}`;
+}
+
 async function saveAnnouncement(){
-  if(currentUserProfile?.role !== "SuperAdmin"){
-    alert("权限不足：只有 SuperAdmin 可以发布公告");
+  if(!canManageAnnouncement()){
+    alert("权限不足：只有 SuperAdmin / GM 可以管理公告");
     return;
   }
 
+  const id = document.getElementById("editingAnnouncementId").value.trim();
   const title = document.getElementById("announcementTitle").value.trim();
   const content = document.getElementById("announcementContent").value.trim();
+  const status = document.getElementById("announcementStatus").value;
+  const isPinned = document.getElementById("announcementPinned").value === "true";
 
   if(!title || !content){
     alert("请输入公告标题和内容");
     return;
   }
 
-  await setDoc(doc(db,"settings","announcement"),{
+  const payload = {
     title,
     content,
-    updatedBy:currentUserProfile.email || auth.currentUser.email,
+    status,
+    isPinned,
+    updatedByUid:auth.currentUser.uid,
+    updatedByEmail:currentUserProfile.email || auth.currentUser.email,
+    updatedByRole:currentUserProfile.role,
+    updatedAt:serverTimestamp()
+  };
+
+  if(id){
+    await setDoc(doc(db,"announcements",id),payload,{merge:true});
+  }else{
+    await addDoc(collection(db,"announcements"),{
+      ...payload,
+      createdByUid:auth.currentUser.uid,
+      createdByEmail:currentUserProfile.email || auth.currentUser.email,
+      createdByRole:currentUserProfile.role,
+      createdAt:serverTimestamp()
+    });
+  }
+
+  await writeLog({
+    targetUid:auth.currentUser.uid,
+    targetEmail:currentUserProfile.email || auth.currentUser.email,
+    targetRole:currentUserProfile.role,
+    type:id ? "edit_announcement" : "publish_announcement",
+    amount:0,
+    balance:Number(currentUserProfile.balance || 0),
+    remark:title
+  });
+
+  cancelEditAnnouncement(false);
+  alert(id ? "公告已保存" : "公告已发布");
+  await loadAnnouncement();
+}
+
+async function loadAnnouncement(){
+  const box = document.getElementById("latestAnnouncement");
+  const canManage = canManageAnnouncement();
+
+  document.getElementById("announcementTitle").style.display = canManage ? "block" : "none";
+  document.getElementById("announcementContent").style.display = canManage ? "block" : "none";
+  document.getElementById("announcementOptions").style.display = canManage ? "flex" : "none";
+  document.getElementById("saveAnnouncementBtn").style.display = canManage ? "inline-block" : "none";
+
+  const querySnapshot = await getDocs(collection(db,"announcements"));
+  let items = [];
+
+  querySnapshot.forEach(docSnap=>{
+    const a = docSnap.data();
+    const id = docSnap.id;
+
+    if(!canManage && a.status === "Closed") return;
+    if(localStorage.getItem(announcementHiddenKey(id)) === "1") return;
+
+    items.push({id,...a});
+  });
+
+  items.sort((a,b)=>{
+    if(Boolean(a.isPinned) !== Boolean(b.isPinned)) return a.isPinned ? -1 : 1;
+    const at = a.updatedAt?.toMillis ? a.updatedAt.toMillis() : (a.createdAt?.toMillis ? a.createdAt.toMillis() : 0);
+    const bt = b.updatedAt?.toMillis ? b.updatedAt.toMillis() : (b.createdAt?.toMillis ? b.createdAt.toMillis() : 0);
+    return bt - at;
+  });
+
+  if(items.length === 0){
+    box.innerHTML = "暂无公告";
+    return;
+  }
+
+  box.innerHTML = items.map(a=>{
+    const statusText = a.status === "Closed" ? '<span class="danger-text">已关闭</span>' : '<span class="ok-text">显示中</span>';
+    const pinText = a.isPinned ? "📌 " : "";
+    const manageBtns = canManage ? `
+      <button class="small-btn blue" onclick="editAnnouncement('${a.id}')">编辑</button>
+      <button class="small-btn orange" onclick="toggleAnnouncementStatus('${a.id}','${a.status === "Closed" ? "Active" : "Closed"}')">${a.status === "Closed" ? "启用" : "关闭"}</button>
+      <button class="small-btn purple" onclick="toggleAnnouncementPin('${a.id}',${a.isPinned ? "false" : "true"})">${a.isPinned ? "取消置顶" : "置顶"}</button>
+      <button class="small-btn red" onclick="deleteAnnouncementItem('${a.id}')">删除</button>
+    ` : "";
+
+    return `
+      <div class="announce-box">
+        <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap">
+          <div>
+            <b>${pinText}${safeText(a.title)}</b>
+            <div class="muted" style="margin-top:4px">状态：${statusText}</div>
+          </div>
+          <div>
+            <button class="small-btn gray" onclick="hideAnnouncementForMe('${a.id}')">关闭通知</button>
+            ${manageBtns}
+          </div>
+        </div>
+        <div style="margin-top:8px;white-space:pre-wrap">${safeText(a.content)}</div>
+        <div class="muted" style="margin-top:8px">
+          发布人：${safeText(a.createdByEmail || a.updatedByEmail || "-")}　角色：${safeText(a.createdByRole || a.updatedByRole || "-")}　时间：${safeText(nowTextFromTimestamp(a.createdAt || a.updatedAt))}
+          <br>最后修改：${safeText(a.updatedByEmail || "-")}　${safeText(nowTextFromTimestamp(a.updatedAt))}
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+async function editAnnouncement(id){
+  if(!canManageAnnouncement()) return;
+
+  const snap = await getDoc(doc(db,"announcements",id));
+  if(!snap.exists()){
+    alert("公告不存在");
+    return;
+  }
+
+  const a = snap.data();
+  document.getElementById("editingAnnouncementId").value = id;
+  document.getElementById("announcementTitle").value = a.title || "";
+  document.getElementById("announcementContent").value = a.content || "";
+  document.getElementById("announcementStatus").value = a.status || "Active";
+  document.getElementById("announcementPinned").value = a.isPinned ? "true" : "false";
+  document.getElementById("saveAnnouncementBtn").innerText = "保存修改";
+  document.getElementById("cancelEditAnnouncementBtn").style.display = "inline-block";
+  document.getElementById("announcementTitle").scrollIntoView({behavior:"smooth",block:"center"});
+}
+
+function cancelEditAnnouncement(showAlert=true){
+  document.getElementById("editingAnnouncementId").value = "";
+  document.getElementById("announcementTitle").value = "";
+  document.getElementById("announcementContent").value = "";
+  document.getElementById("announcementStatus").value = "Active";
+  document.getElementById("announcementPinned").value = "false";
+  document.getElementById("saveAnnouncementBtn").innerText = "发布公告";
+  document.getElementById("cancelEditAnnouncementBtn").style.display = "none";
+  if(showAlert) alert("已取消编辑");
+}
+
+async function toggleAnnouncementStatus(id,nextStatus){
+  if(!canManageAnnouncement()) return;
+
+  await updateDoc(doc(db,"announcements",id),{
+    status:nextStatus,
+    updatedByUid:auth.currentUser.uid,
+    updatedByEmail:currentUserProfile.email || auth.currentUser.email,
+    updatedByRole:currentUserProfile.role,
     updatedAt:serverTimestamp()
   });
 
@@ -1585,38 +1901,111 @@ async function saveAnnouncement(){
     targetUid:auth.currentUser.uid,
     targetEmail:currentUserProfile.email || auth.currentUser.email,
     targetRole:currentUserProfile.role,
-    type:"publish_announcement",
+    type:"toggle_announcement_status",
     amount:0,
     balance:Number(currentUserProfile.balance || 0),
-    remark:title
+    remark:`公告状态改为 ${nextStatus}`
   });
 
-  document.getElementById("announcementTitle").value = "";
-  document.getElementById("announcementContent").value = "";
-  alert("公告已发布");
   await loadAnnouncement();
 }
 
-async function loadAnnouncement(){
-  const box = document.getElementById("latestAnnouncement");
-  const snap = await getDoc(doc(db,"settings","announcement"));
+async function toggleAnnouncementPin(id,nextPinned){
+  if(!canManageAnnouncement()) return;
 
-  if(!snap.exists()){
-    box.innerHTML = "暂无公告";
-    return;
+  await updateDoc(doc(db,"announcements",id),{
+    isPinned:Boolean(nextPinned),
+    updatedByUid:auth.currentUser.uid,
+    updatedByEmail:currentUserProfile.email || auth.currentUser.email,
+    updatedByRole:currentUserProfile.role,
+    updatedAt:serverTimestamp()
+  });
+
+  await writeLog({
+    targetUid:auth.currentUser.uid,
+    targetEmail:currentUserProfile.email || auth.currentUser.email,
+    targetRole:currentUserProfile.role,
+    type:"toggle_announcement_pin",
+    amount:0,
+    balance:Number(currentUserProfile.balance || 0),
+    remark:nextPinned ? "公告置顶" : "取消公告置顶"
+  });
+
+  await loadAnnouncement();
+}
+
+async function deleteAnnouncementItem(id){
+  if(!canManageAnnouncement()) return;
+  if(!confirm("确定删除此公告吗？删除后不可恢复。")) return;
+
+  await deleteDoc(doc(db,"announcements",id));
+
+  await writeLog({
+    targetUid:auth.currentUser.uid,
+    targetEmail:currentUserProfile.email || auth.currentUser.email,
+    targetRole:currentUserProfile.role,
+    type:"delete_announcement",
+    amount:0,
+    balance:Number(currentUserProfile.balance || 0),
+    remark:id
+  });
+
+  await loadAnnouncement();
+}
+
+async function hideAnnouncementForMe(id){
+  localStorage.setItem(announcementHiddenKey(id),"1");
+  try{
+    await setDoc(doc(db,"user_notice_hidden",`${auth.currentUser.uid}_${id}`),{
+      userUid:auth.currentUser.uid,
+      noticeId:id,
+      hidden:true,
+      hiddenAt:serverTimestamp()
+    },{merge:true});
+  }catch(e){
+    console.warn("保存关闭通知状态失败，已使用本地隐藏",e);
+  }
+  await loadAnnouncement();
+}
+
+
+async function getDetectionInput(){
+  const fileInput = document.getElementById("detectFile");
+  const file = fileInput?.files?.[0];
+
+  if(file){
+    const text = await file.text();
+    return {
+      text,
+      source:"文件上传",
+      fileName:file.name
+    };
   }
 
-  const a = snap.data();
-  box.innerHTML = `
-    <b>${safeText(a.title)}</b><br>
-    <div style="margin-top:8px;white-space:pre-wrap">${safeText(a.content)}</div>
-    <div class="muted" style="margin-top:8px">发布人：${safeText(a.updatedBy || "-")}　时间：${safeText(nowTextFromTimestamp(a.updatedAt))}</div>
-  `;
+  return {
+    text:document.getElementById("numberInput").value,
+    source:"手动输入",
+    fileName:"-"
+  };
+}
 
-  const isSuper = currentUserProfile?.role === "SuperAdmin";
-  document.getElementById("announcementTitle").style.display = isSuper ? "block" : "none";
-  document.getElementById("announcementContent").style.display = isSuper ? "block" : "none";
-  document.getElementById("saveAnnouncementBtn").style.display = isSuper ? "inline-block" : "none";
+function handleDetectFileSelected(){
+  const file = document.getElementById("detectFile")?.files?.[0];
+  const hint = document.getElementById("detectFileHint");
+  if(!hint) return;
+  if(file){
+    hint.innerText = `已选择文件：${file.name}，大小：${Math.round(file.size / 1024)} KB。点击开始检测后会优先读取文件。`;
+  }else{
+    hint.innerText = "未选择文件。支持 TXT / CSV，每行一个号码，也兼容逗号分隔。";
+  }
+}
+
+function parseNumberList(text){
+  return text
+    .split(/[
+,;，；]+/)
+    .map(v=>v.trim())
+    .filter(v=>v);
 }
 
 async function runDetection(){
@@ -1627,17 +2016,19 @@ async function runDetection(){
     return;
   }
 
-  const text = document.getElementById("numberInput").value;
+  const inputData = await getDetectionInput();
 
-  if(!text.trim()){
-    alert("请输入号码");
+  if(!inputData.text.trim()){
+    alert("请上传号码文件，或在文本框输入号码");
     return;
   }
 
-  const rawList = text
-    .split(/\r?\n/)
-    .map(v=>v.trim())
-    .filter(v=>v);
+  const rawList = parseNumberList(inputData.text);
+
+  if(rawList.length === 0){
+    alert("没有识别到有效号码");
+    return;
+  }
 
   const total = rawList.length;
   const uniqueList = [...new Set(rawList)];
@@ -1668,7 +2059,7 @@ async function runDetection(){
 
   document.getElementById("detectResult").innerHTML = `
     <b>检测完成</b><br><br>
-    数据来源：${inputData.source}<br>
+    数据来源：${safeText(inputData.source)}<br>
     文件名称：${safeText(inputData.fileName)}<br>
     原始数量：${total}<br>
     去重后数量：${uniqueList.length}<br>
@@ -1677,7 +2068,7 @@ async function runDetection(){
   `;
 
   document.getElementById("dedupeTable").innerHTML = `
-    <tr><td>数据来源</td><td>${inputData.source}</td></tr>
+    <tr><td>数据来源</td><td>${safeText(inputData.source)}</td></tr>
     <tr><td>文件名称</td><td>${safeText(inputData.fileName)}</td></tr>
     <tr><td>原始数量</td><td>${total}</td></tr>
     <tr><td>去重后数量</td><td>${uniqueList.length}</td></tr>
@@ -1693,6 +2084,8 @@ async function runDetection(){
     unique:uniqueList.length,
     duplicate:duplicateCount,
     cost,
+    source:inputData.source,
+    fileName:inputData.fileName,
     createdAt:serverTimestamp()
   });
 
@@ -1718,6 +2111,13 @@ async function runDetection(){
   renderTasks();
   await loadDetectionHistory();
   await updateDashboard();
+  await updateDataCenter();
+  await loadRechargeRequests();
+  await loadPriceLogs();
+  await loadTickets();
+  await loadApiProviders();
+  await loadRiskLogs();
+  await loadGlobalConfig();
 }
 
 async function loadDetectionHistory(){
@@ -1903,6 +2303,185 @@ function showPage(pageName, menuItem){
   window.scrollTo({top:0,behavior:"smooth"});
 }
 
+
+function canOperateAdminTools(){
+  return currentUserProfile?.role === "SuperAdmin" || currentUserProfile?.role === "GM";
+}
+
+async function submitRechargeRequest(){
+  const amount = Number(document.getElementById("rechargeAmount").value || 0);
+  const note = document.getElementById("rechargeNote").value.trim();
+  const email = document.getElementById("rechargeUserEmail").value.trim() || currentUserProfile.email || auth.currentUser.email;
+  if(!amount || amount <= 0){ alert("请输入充值积分数量"); return; }
+  await addDoc(collection(db,"recharge_requests"),{
+    uid:auth.currentUser.uid,
+    email,
+    amount,
+    note,
+    status:"Pending",
+    createdAt:serverTimestamp()
+  });
+  document.getElementById("rechargeAmount").value = "";
+  document.getElementById("rechargeNote").value = "";
+  alert("充值申请已提交");
+  await loadRechargeRequests();
+}
+
+async function loadRechargeRequests(){
+  const body = document.getElementById("rechargeBody");
+  if(!body) return;
+  body.innerHTML = "";
+  const qs = await getDocs(collection(db,"recharge_requests"));
+  let rows=[];
+  qs.forEach(s=>{
+    const d=s.data();
+    if(canOperateAdminTools() || d.uid === auth.currentUser.uid) rows.push({id:s.id,...d});
+  });
+  rows.sort((a,b)=>(b.createdAt?.toMillis?.()||0)-(a.createdAt?.toMillis?.()||0));
+  if(rows.length===0){ body.innerHTML='<tr><td colspan="6" style="text-align:center;color:#64748b">暂无充值申请</td></tr>'; return; }
+  body.innerHTML=rows.slice(0,100).map(r=>`
+    <tr><td>${safeText(nowTextFromTimestamp(r.createdAt))}</td><td>${safeText(r.email)}</td><td>${safeText(r.amount)}</td><td>${safeText(r.status)}</td><td>${safeText(r.note||"-")}</td><td>${canOperateAdminTools() && r.status === "Pending" ? `<button class="small-btn green" onclick="approveRecharge('${r.id}','${r.uid}',${Number(r.amount||0)})">通过</button><button class="small-btn red" onclick="rejectRecharge('${r.id}')">拒绝</button>` : '<span class="muted">-</span>'}</td></tr>
+  `).join("");
+}
+
+async function approveRecharge(id,uid,amount){
+  if(!canOperateAdminTools()) return;
+  await changeUserBalance(uid, Number(amount), "充值审核通过");
+  await updateDoc(doc(db,"recharge_requests",id),{status:"Approved",reviewBy:currentUserProfile.email,reviewAt:serverTimestamp()});
+  await loadRechargeRequests();
+}
+
+async function rejectRecharge(id){
+  if(!canOperateAdminTools()) return;
+  await updateDoc(doc(db,"recharge_requests",id),{status:"Rejected",reviewBy:currentUserProfile.email,reviewAt:serverTimestamp()});
+  await loadRechargeRequests();
+}
+
+async function batchAddBalance(){
+  if(!canOperateAdminTools()){ alert("权限不足"); return; }
+  const text=document.getElementById("batchBalanceText").value.trim();
+  if(!text){ alert("请输入批量内容"); return; }
+  const rows=text.split(/\r?\n/).map(v=>v.trim()).filter(Boolean);
+  let ok=0;
+  for(const row of rows){
+    const [uid,amountRaw,...noteParts]=row.split(",").map(v=>v.trim());
+    const amount=Number(amountRaw||0);
+    if(uid && amount>0){ await changeUserBalance(uid,amount,noteParts.join(",")||"批量加积分"); ok++; }
+  }
+  alert(`批量完成：${ok} 条`);
+  document.getElementById("batchBalanceText").value="";
+}
+
+async function saveUserTagNote(){
+  if(!canOperateAdminTools()){ alert("权限不足"); return; }
+  const uid=document.getElementById("tagTargetUid").value.trim();
+  const tag=document.getElementById("tagValue").value.trim();
+  const note=document.getElementById("tagNote").value.trim();
+  if(!uid){ alert("请输入目标UID"); return; }
+  const ref=doc(db,"users",uid);
+  const snap=await getDoc(ref);
+  if(!snap.exists()){ alert("用户不存在"); return; }
+  const data=snap.data();
+  const tags=Array.isArray(data.tags)?data.tags:[];
+  if(tag && !tags.includes(tag)) tags.push(tag);
+  const noteHistory=Array.isArray(data.noteHistory)?data.noteHistory:[];
+  if(note) noteHistory.push({note,by:currentUserProfile.email || auth.currentUser.email,at:new Date().toISOString()});
+  await updateDoc(ref,{tags,noteHistory,note:note || data.note || ""});
+  document.getElementById("tagResult").innerHTML=`已保存：<span class="tag">${safeText(tag||"无标签")}</span> ${safeText(note||"")}`;
+  await loadUsers();
+}
+
+async function loadPriceLogs(){
+  const body=document.getElementById("priceLogsBody");
+  if(!body) return;
+  const qs=await getDocs(collection(db,"price_logs"));
+  let rows=[]; qs.forEach(s=>rows.push(s.data()));
+  rows.sort((a,b)=>(b.createdAt?.toMillis?.()||0)-(a.createdAt?.toMillis?.()||0));
+  body.innerHTML = rows.length ? rows.slice(0,50).map(r=>`<tr><td>${safeText(nowTextFromTimestamp(r.createdAt))}</td><td>${safeText(r.operatorEmail)}</td><td>${safeText(r.type)}</td><td>${safeText(r.remark)}</td></tr>`).join("") : '<tr><td colspan="4" style="text-align:center;color:#64748b">暂无价格日志</td></tr>';
+}
+
+async function updateDataCenter(){
+  const qs=await getDocs(collection(db,"detection_history"));
+  let total=0, month=0, today=0;
+  const now=new Date(); const ymd=now.toISOString().slice(0,10); const ym=now.toISOString().slice(0,7);
+  qs.forEach(s=>{
+    const d=s.data(); const dt=d.createdAt?.toDate?.(); if(!dt) return;
+    total += Number(d.total||0);
+    if(dt.toISOString().slice(0,7)===ym) month += Number(d.total||0);
+    if(dt.toISOString().slice(0,10)===ymd) today += Number(d.total||0);
+  });
+  const set=(id,val)=>{const el=document.getElementById(id); if(el) el.innerText=val;};
+  set("dataTodayCount",today); set("dataMonthCount",month); set("dataTotalCount",total); set("dashMonthTasks",month);
+}
+
+async function submitTicket(){
+  const title=document.getElementById("ticketTitle").value.trim();
+  const content=document.getElementById("ticketContent").value.trim();
+  if(!title || !content){ alert("请输入工单标题和内容"); return; }
+  await addDoc(collection(db,"tickets"),{title,content,status:"Open",uid:auth.currentUser.uid,email:currentUserProfile.email||auth.currentUser.email,createdAt:serverTimestamp()});
+  document.getElementById("ticketTitle").value=""; document.getElementById("ticketContent").value="";
+  await loadTickets(); alert("工单已提交");
+}
+
+async function loadTickets(){
+  const body=document.getElementById("ticketBody"); if(!body) return;
+  const qs=await getDocs(collection(db,"tickets")); let rows=[];
+  qs.forEach(s=>{const d=s.data(); if(canOperateAdminTools() || d.uid===auth.currentUser.uid) rows.push({id:s.id,...d});});
+  rows.sort((a,b)=>(b.createdAt?.toMillis?.()||0)-(a.createdAt?.toMillis?.()||0));
+  body.innerHTML=rows.length?rows.slice(0,100).map(t=>`<tr><td>${safeText(nowTextFromTimestamp(t.createdAt))}</td><td>${safeText(t.email)}</td><td>${safeText(t.title)}</td><td>${safeText(t.status)}</td><td>${canOperateAdminTools()?`<button class="small-btn green" onclick="closeTicket('${t.id}')">关闭</button>`:'-'}</td></tr>`).join(""):'<tr><td colspan="5" style="text-align:center;color:#64748b">暂无工单</td></tr>';
+}
+
+async function closeTicket(id){ await updateDoc(doc(db,"tickets",id),{status:"Closed",closedBy:currentUserProfile.email,closedAt:serverTimestamp()}); await loadTickets(); }
+
+async function saveApiProvider(){
+  if(!canOperateAdminTools()){ alert("权限不足"); return; }
+  const data={name:document.getElementById("apiName").value.trim(),type:document.getElementById("apiType").value.trim(),cost:Number(document.getElementById("apiCost").value||0),status:document.getElementById("apiStatus").value,remark:document.getElementById("apiRemark").value.trim(),updatedAt:serverTimestamp(),updatedBy:currentUserProfile.email||auth.currentUser.email};
+  if(!data.name){ alert("请输入接口名称"); return; }
+  await addDoc(collection(db,"api_providers"),data); await loadApiProviders(); alert("接口商已保存");
+}
+async function loadApiProviders(){
+  const body=document.getElementById("apiBody"); if(!body) return;
+  const qs=await getDocs(collection(db,"api_providers")); let rows=[]; qs.forEach(s=>rows.push(s.data()));
+  body.innerHTML=rows.length?rows.map(a=>`<tr><td>${safeText(a.name)}</td><td>${safeText(a.type)}</td><td>${safeText(a.cost)}</td><td>${safeText(a.status)}</td><td>${safeText(a.remark)}</td></tr>`).join(""):'<tr><td colspan="5" style="text-align:center;color:#64748b">暂无接口商</td></tr>';
+}
+
+async function loadRiskLogs(){
+  const body=document.getElementById("riskBody"); if(!body) return;
+  const qs=await getDocs(collection(db,"balance_logs")); let rows=[];
+  qs.forEach(s=>{const d=s.data(); if(["transfer_balance","delete_announcement","update_pricing","freeze_user"].includes(d.type)) rows.push(d);});
+  rows.sort((a,b)=>(b.createdAt?.toMillis?.()||0)-(a.createdAt?.toMillis?.()||0));
+  body.innerHTML=rows.length?rows.slice(0,100).map(r=>`<tr><td>${safeText(nowTextFromTimestamp(r.createdAt))}</td><td>${safeText(r.operatorEmail||r.actorEmail)}</td><td>${safeText(r.type)}</td><td>${safeText(r.remark||r.note)}</td></tr>`).join(""):'<tr><td colspan="4" style="text-align:center;color:#64748b">暂无风险日志</td></tr>';
+}
+
+async function saveGlobalConfig(){
+  if(currentUserProfile?.role !== "SuperAdmin"){ alert("只有 SuperAdmin 可以修改全局配置"); return; }
+  const data={platformName:document.getElementById("cfgPlatformName").value.trim(),logoText:document.getElementById("cfgLogoText").value.trim(),support:document.getElementById("cfgSupport").value.trim(),maintenance:document.getElementById("cfgMaintenance").value,noticeSwitch:document.getElementById("cfgNoticeSwitch").value,updatedAt:serverTimestamp(),updatedBy:currentUserProfile.email||auth.currentUser.email};
+  await setDoc(doc(db,"settings","global"),data,{merge:true});
+  alert("全局配置已保存");
+  await loadGlobalConfig();
+}
+async function loadGlobalConfig(){
+  const snap=await getDoc(doc(db,"settings","global"));
+  if(!snap.exists()) return;
+  const d=snap.data();
+  const set=(id,v)=>{const el=document.getElementById(id); if(el && v!==undefined) el.value=v;};
+  set("cfgPlatformName",d.platformName); set("cfgLogoText",d.logoText); set("cfgSupport",d.support); set("cfgMaintenance",d.maintenance); set("cfgNoticeSwitch",d.noticeSwitch);
+  const status=document.getElementById("dashSystemStatus"); if(status) status.innerText=d.maintenance === "on" ? "维护中" : "正常";
+}
+
+function previewManagedFile(){
+  const f=document.getElementById("managedFile")?.files?.[0];
+  document.getElementById("managedFileHint").innerText = f ? `已选择：${f.name}，大小 ${Math.round(f.size/1024)} KB。真实上传后续接 Firebase Storage。` : "暂无文件";
+}
+
+function downloadTemplate(){
+  const text="+12025550123\n+12025550124\n+12025550123\n";
+  const blob=new Blob([text],{type:"text/plain;charset=utf-8"});
+  const link=document.createElement("a");
+  link.href=URL.createObjectURL(blob); link.download="number_template.txt"; link.click();
+}
+
+
 window.initUserProfile = initUserProfile;
 window.customChangeBalance = customChangeBalance;
 window.changeUserBalance = changeUserBalance;
@@ -1917,11 +2496,36 @@ window.v175Notice = v175Notice;
 window.runDetection = runDetection;
 window.savePricing = savePricing;
 window.saveAnnouncement = saveAnnouncement;
+window.editAnnouncement = editAnnouncement;
+window.cancelEditAnnouncement = cancelEditAnnouncement;
+window.toggleAnnouncementStatus = toggleAnnouncementStatus;
+window.toggleAnnouncementPin = toggleAnnouncementPin;
+window.deleteAnnouncementItem = deleteAnnouncementItem;
+window.hideAnnouncementForMe = hideAnnouncementForMe;
 window.loadDetectionHistory = loadDetectionHistory;
 window.clearUserSearch = clearUserSearch;
 window.loadUsers = loadUsers;
 window.transferBalance = transferBalance;
 window.showPage = showPage;
+window.handleDetectFileSelected = handleDetectFileSelected;
+window.submitRechargeRequest = submitRechargeRequest;
+window.loadRechargeRequests = loadRechargeRequests;
+window.approveRecharge = approveRecharge;
+window.rejectRecharge = rejectRecharge;
+window.batchAddBalance = batchAddBalance;
+window.saveUserTagNote = saveUserTagNote;
+window.loadPriceLogs = loadPriceLogs;
+window.submitTicket = submitTicket;
+window.loadTickets = loadTickets;
+window.closeTicket = closeTicket;
+window.saveApiProvider = saveApiProvider;
+window.loadApiProviders = loadApiProviders;
+window.loadRiskLogs = loadRiskLogs;
+window.saveGlobalConfig = saveGlobalConfig;
+window.loadGlobalConfig = loadGlobalConfig;
+window.previewManagedFile = previewManagedFile;
+window.downloadTemplate = downloadTemplate;
+
 
 onAuthStateChanged(auth, async (user)=>{
   if(!user) return;
@@ -1951,6 +2555,13 @@ onAuthStateChanged(auth, async (user)=>{
   await loadLogs();
   await loadDetectionHistory();
   await updateDashboard();
+  await updateDataCenter();
+  await loadRechargeRequests();
+  await loadPriceLogs();
+  await loadTickets();
+  await loadApiProviders();
+  await loadRiskLogs();
+  await loadGlobalConfig();
 });
 </script>
 
