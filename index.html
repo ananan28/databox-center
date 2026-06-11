@@ -4,28 +4,416 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>财盛集团 - 博亿研发中心</title>
+
 <style>
 :root{
-  --bg:#f8fafc;--card:#ffffff;--border:#e2e8f0;--text:#0f172a;--muted:#64748b;
-  --blue:#2563eb;--green:#16a34a;--orange:#ea580c;--red:#ef4444;--cyan:#06b6d4;
+  --bg:#f8fafc;
+  --card:#ffffff;
+  --border:#e2e8f0;
+  --text:#0f172a;
+  --muted:#64748b;
+  --blue:#2563eb;
+  --green:#16a34a;
+  --orange:#ea580c;
+  --red:#ef4444;
+  --cyan:#06b6d4;
+  --purple:#7c3aed;
 }
+
 *{box-sizing:border-box}
-body{margin:0;padding:0;font-family:"Microsoft YaHei","PingFang SC",Arial,sans-serif;background:linear-gradient(rgba(8,15,35,.55),rgba(8,15,35,.70)),url("./wealth-bg.jpg");background-size:cover;background-position:center;background-repeat:no-repeat;background-attachment:fixed;color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;}
-.login-card{position:absolute;top:90px;left:80px;width:420px;padding:40px;border-radius:24px;background:rgba(12,25,60,.45);backdrop-filter:blur(25px);-webkit-backdrop-filter:blur(25px);border:1px solid rgba(255,255,255,.15);box-shadow:0 20px 50px rgba(0,0,0,.45),0 0 40px rgba(37,99,235,.25);color:#fff;overflow:hidden;}
-input,select{width:100%;height:48px;margin:12px 0;padding:0 16px;border:1px solid #cbd5e1;border-radius:12px;outline:none;background:#fff;color:#0f172a;font-size:15px;}
-.login-card input{color:#fff;background:rgba(255,255,255,.12);border:none;}
-input::placeholder{color:#64748b}
-button{width:100%;height:54px;border:none;border-radius:12px;background:linear-gradient(135deg,#2563eb,#06b6d4);color:#fff;font-size:16px;font-weight:700;letter-spacing:1px;cursor:pointer;transition:all .3s ease;box-shadow:0 0 15px rgba(37,99,235,.6),0 0 30px rgba(6,182,212,.4);}
-button:hover{transform:translateY(-2px);background:linear-gradient(135deg,#3b82f6,#22d3ee);box-shadow:0 0 25px rgba(37,99,235,.9),0 0 50px rgba(6,182,212,.8)}
+
+body{
+  margin:0;
+  padding:0;
+  font-family:"Microsoft YaHei","PingFang SC",Arial,sans-serif;
+  background:
+    linear-gradient(rgba(8,15,35,.55),rgba(8,15,35,.70)),
+    url("./wealth-bg.jpg");
+  background-size:cover;
+  background-position:center;
+  background-repeat:no-repeat;
+  background-attachment:fixed;
+  color:var(--text);
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+
+.login-card{
+  position:absolute;
+  top:90px;
+  left:80px;
+  width:420px;
+  padding:40px;
+  border-radius:24px;
+  background:rgba(12,25,60,.45);
+  backdrop-filter:blur(25px);
+  -webkit-backdrop-filter:blur(25px);
+  border:1px solid rgba(255,255,255,.15);
+  box-shadow:
+    0 20px 50px rgba(0,0,0,.45),
+    0 0 40px rgba(37,99,235,.25);
+  color:#fff;
+  overflow:hidden;
+}
+
+.login-card::before{
+  content:"";
+  position:absolute;
+  inset:-1px;
+  background:linear-gradient(120deg,rgba(96,165,250,.25),transparent,rgba(34,211,238,.18));
+  pointer-events:none;
+}
+
+.login-card h2,
+.login-card p,
+.login-card input,
+.login-card button{
+  position:relative;
+  z-index:1;
+}
+
+input,select,textarea{
+  width:100%;
+  min-height:48px;
+  margin:10px 0;
+  padding:0 16px;
+  border:1px solid #cbd5e1;
+  border-radius:12px;
+  outline:none;
+  background:#fff;
+  color:#0f172a;
+  font-size:14px;
+}
+
+textarea{
+  padding:12px 16px;
+  resize:vertical;
+  min-height:72px;
+}
+
+.login-card input{
+  color:#fff;
+  background:rgba(255,255,255,.12);
+  border:none;
+}
+
+.login-card input::placeholder{
+  color:#cbd5e1;
+}
+
+input::placeholder,textarea::placeholder{
+  color:#64748b;
+}
+
+button{
+  width:100%;
+  height:54px;
+  border:none;
+  border-radius:12px;
+  background:linear-gradient(135deg,#2563eb,#06b6d4);
+  color:#fff;
+  font-size:16px;
+  font-weight:700;
+  letter-spacing:1px;
+  cursor:pointer;
+  transition:all .3s ease;
+  box-shadow:
+    0 0 15px rgba(37,99,235,.6),
+    0 0 30px rgba(6,182,212,.4);
+}
+
+button:hover{
+  transform:translateY(-2px);
+  background:linear-gradient(135deg,#3b82f6,#22d3ee);
+  box-shadow:
+    0 0 25px rgba(37,99,235,.9),
+    0 0 50px rgba(6,182,212,.8);
+}
+
 button:active{transform:scale(.98)}
-.app{display:none;min-height:100vh}.sidebar{width:240px;background:#fff;border-right:1px solid var(--border);padding:20px 0}.logo{text-align:center;font-size:20px;font-weight:bold;color:var(--blue);padding-bottom:20px;border-bottom:1px solid var(--border)}
-.menu{list-style:none;margin:0;padding:15px 0}.menu li{padding:13px 25px;color:var(--muted);cursor:pointer;border-left:3px solid transparent}.menu li.active,.menu li:hover{background:#f1f5f9;color:var(--text);border-left-color:var(--blue)}
-.main{flex:1;padding:28px}.top{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,.65);padding-bottom:18px;margin-bottom:20px;color:#fff}.top h2{color:#f97316}.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}.card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:22px;box-shadow:0 4px 8px rgba(0,0,0,.03)}.card.full{grid-column:1/3}
-.badge{display:inline-block;padding:4px 8px;border-radius:6px;background:#eff6ff;color:var(--blue);font-size:12px;font-weight:bold}.notice{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;padding:12px;border-radius:8px;margin-bottom:18px;font-size:13px}.table-wrap{width:100%;overflow:auto}.table{width:100%;border-collapse:collapse;margin-top:15px;background:#fff;font-size:13px}.table th,.table td{padding:12px;border-bottom:1px solid var(--border);text-align:left;vertical-align:middle}.table th{background:#f8fafc;color:var(--muted)}
-.small-btn{width:auto;height:36px;padding:7px 12px;margin:2px;font-size:12px}.green{background:var(--green)}.orange{background:var(--orange)}.red{background:var(--red)}.gray{background:#64748b}.blue{background:var(--blue)}.muted{color:var(--muted);font-size:12px}.danger-text{color:var(--red);font-weight:bold}.ok-text{color:var(--green);font-weight:bold}.inline-input{width:90px;height:34px;margin:0 5px 0 0;padding:0 8px}.note-input{width:150px;height:34px;margin:0 5px 0 0;padding:0 8px}.form-row{display:grid;grid-template-columns:1.2fr 1.4fr 160px 140px auto;gap:10px;align-items:center}.log-table{font-size:12px}.log-table td{word-break:break-all}.role-pill{font-weight:700}.hidden{display:none!important}.section-title{display:flex;justify-content:space-between;align-items:center;gap:10px}.mini{font-size:12px;color:#64748b;line-height:1.6}.warn{background:#fff7ed;color:#9a3412;border:1px solid #fed7aa;border-radius:8px;padding:10px;margin-top:8px;font-size:12px}
-@media(max-width:900px){.login-card{left:20px;right:20px;width:auto}.app{flex-direction:column}.sidebar{width:100%}.grid{grid-template-columns:1fr}.card.full{grid-column:1}.form-row{grid-template-columns:1fr}.main{padding:18px}.top{align-items:flex-start;gap:10px}.top .small-btn{width:auto}}
+
+button:disabled{
+  cursor:not-allowed;
+  opacity:.55;
+  box-shadow:none;
+  transform:none;
+}
+
+.app{
+  display:none;
+  min-height:100vh;
+}
+
+.sidebar{
+  width:240px;
+  background:rgba(255,255,255,.96);
+  border-right:1px solid var(--border);
+  padding:20px 0;
+  backdrop-filter:blur(10px);
+}
+
+.logo{
+  text-align:center;
+  font-size:20px;
+  font-weight:bold;
+  color:var(--blue);
+  padding-bottom:20px;
+  border-bottom:1px solid var(--border);
+}
+
+.menu{
+  list-style:none;
+  margin:0;
+  padding:15px 0;
+}
+
+.menu li{
+  padding:13px 25px;
+  color:var(--muted);
+  cursor:pointer;
+  border-left:3px solid transparent;
+}
+
+.menu li.active,.menu li:hover{
+  background:#f1f5f9;
+  color:var(--text);
+  border-left-color:var(--blue);
+}
+
+.main{
+  flex:1;
+  padding:28px;
+}
+
+.top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  border-bottom:1px solid rgba(255,255,255,.65);
+  padding-bottom:18px;
+  margin-bottom:20px;
+  color:#fff;
+}
+
+.top h2{
+  color:#f97316;
+  text-shadow:0 2px 8px rgba(0,0,0,.35);
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:20px;
+}
+
+.card{
+  background:rgba(255,255,255,.97);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:22px;
+  box-shadow:0 8px 20px rgba(0,0,0,.06);
+}
+
+.card.full{grid-column:1/3}
+
+.badge{
+  display:inline-block;
+  padding:4px 8px;
+  border-radius:6px;
+  background:#eff6ff;
+  color:var(--blue);
+  font-size:12px;
+  font-weight:bold;
+}
+
+.notice{
+  background:#fff7ed;
+  border:1px solid #fed7aa;
+  color:#9a3412;
+  padding:12px;
+  border-radius:8px;
+  margin-bottom:18px;
+  font-size:13px;
+}
+
+.table-wrap{
+  width:100%;
+  overflow:auto;
+}
+
+.table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:15px;
+  background:#fff;
+  font-size:13px;
+}
+
+.table th,.table td{
+  padding:12px;
+  border-bottom:1px solid var(--border);
+  text-align:left;
+  vertical-align:middle;
+}
+
+.table th{
+  background:#f8fafc;
+  color:var(--muted);
+  white-space:nowrap;
+}
+
+.small-btn{
+  width:auto;
+  height:36px;
+  padding:7px 12px;
+  margin:2px;
+  font-size:12px;
+  letter-spacing:0;
+  box-shadow:none;
+}
+
+.green{background:var(--green)}
+.orange{background:var(--orange)}
+.red{background:var(--red)}
+.gray{background:#64748b}
+.blue{background:var(--blue)}
+.purple{background:var(--purple)}
+
+.muted{
+  color:var(--muted);
+  font-size:12px;
+}
+
+.danger-text{
+  color:var(--red);
+  font-weight:bold;
+}
+
+.ok-text{
+  color:var(--green);
+  font-weight:bold;
+}
+
+.warn-text{
+  color:var(--orange);
+  font-weight:bold;
+}
+
+.inline-input{
+  width:95px;
+  height:34px;
+  min-height:34px;
+  margin:0 5px 0 0;
+  padding:0 8px;
+}
+
+.note-input{
+  width:160px;
+  height:34px;
+  min-height:34px;
+  margin:0 5px 0 0;
+  padding:0 8px;
+}
+
+.form-row{
+  display:grid;
+  grid-template-columns:1.2fr 1.4fr 150px 120px 1.4fr auto;
+  gap:10px;
+  align-items:center;
+}
+
+.log-table{
+  font-size:12px;
+}
+
+.log-table td{
+  word-break:break-word;
+}
+
+.role-pill{
+  font-weight:700;
+}
+
+.hidden{
+  display:none!important;
+}
+
+.section-title{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.mini{
+  font-size:12px;
+  color:#64748b;
+  line-height:1.7;
+}
+
+.warn{
+  background:#fff7ed;
+  color:#9a3412;
+  border:1px solid #fed7aa;
+  border-radius:8px;
+  padding:10px;
+  margin-top:8px;
+  font-size:12px;
+}
+
+.v175-box{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:12px;
+}
+
+.v175-item{
+  border:1px dashed #cbd5e1;
+  border-radius:12px;
+  padding:14px;
+  background:#f8fafc;
+}
+
+@media(max-width:900px){
+  .login-card{
+    left:20px;
+    right:20px;
+    width:auto;
+  }
+  .app{
+    flex-direction:column;
+  }
+  .sidebar{
+    width:100%;
+  }
+  .grid{
+    grid-template-columns:1fr;
+  }
+  .card.full{
+    grid-column:1;
+  }
+  .form-row{
+    grid-template-columns:1fr;
+  }
+  .main{
+    padding:18px;
+  }
+  .top{
+    align-items:flex-start;
+    gap:10px;
+  }
+  .top .small-btn{
+    width:auto;
+  }
+  .v175-box{
+    grid-template-columns:1fr;
+  }
+}
 </style>
 </head>
+
 <body>
 
 <div id="loginSection" class="login-card">
@@ -46,7 +434,7 @@ button:active{transform:scale(.98)}
       <li>⚡ 活跃检测</li>
       <li>👥 社交检测</li>
       <li>👑 管理中心</li>
-      <li>🗃️ 费用管理</li>
+      <li>💳 查账中心</li>
       <li>⚙️ 账户设置</li>
     </ul>
   </aside>
@@ -61,10 +449,11 @@ button:active{transform:scale(.98)}
     </div>
 
     <div class="notice" id="permissionNotice">
-      权限结构：SuperAdmin 最高权限；GM 二级管理员；Agent 子账号；User 客户账号。GM 不可查看、创建或管理 SuperAdmin，也不可管理同级 GM。
+      权限结构：SuperAdmin 最高权限；GM 二级管理员；Agent 子账号；User 普通用户。
     </div>
 
     <div class="grid">
+
       <div class="card">
         <h3>📤 上传号码文件</h3>
         <input type="file" id="fileInput" accept=".txt,.csv,.xlsx">
@@ -74,29 +463,34 @@ button:active{transform:scale(.98)}
           <option>活跃检测</option>
         </select>
         <button onclick="createTask()">创建检测任务</button>
+        <div class="warn">当前检测任务为演示流水，真实检测接口后续再接入。</div>
       </div>
 
       <div class="card">
         <h3>💰 当前账户</h3>
         <p>账户余额：<b id="balanceText" style="color:var(--orange)">-</b> 积分</p>
         <p>账号状态：<b id="statusText" style="color:var(--green)">-</b></p>
-        <p>实时刷新：<b style="color:var(--blue)">Firebase 已接入</b></p>
+        <p>实时状态：<b style="color:var(--blue)">Firebase 已接入</b></p>
       </div>
 
       <div class="card full" id="initPanel">
         <div class="section-title">
-          <h3>👥 账号资料初始化 / 创建权限资料</h3>
-          <span class="muted">Authentication 创建登录账号后，在这里用 UID 初始化 Firestore 资料</span>
+          <h3>👥 账号资料初始化</h3>
+          <span class="muted">GitHub Pages 前端无法安全创建 Auth 登录账号，V1.75 再接 Cloud Functions。</span>
         </div>
+
         <div class="mini">
-          说明：GitHub Pages 前端不能安全创建 Firebase 登录密码。先到 Firebase Authentication 创建邮箱和密码，再复制 Auth 用户 UID 到这里初始化资料。
-          <br>SuperAdmin 可初始化 SuperAdmin / GM / Agent / User；GM 只能初始化 Agent / User。
+          现在流程：先到 Firebase Authentication 手动创建邮箱和密码，再复制 Auth 用户 UID 到这里初始化 Firestore 用户资料。
+          <br>
+          SuperAdmin 可初始化 SuperAdmin / GM / Agent / User；GM 只能初始化 Agent / User。
         </div>
+
         <div class="form-row">
           <input id="newUid" placeholder="Auth 用户 UID">
           <input id="newEmail" type="email" placeholder="邮箱">
           <select id="newRole"></select>
           <input id="newBalance" type="number" placeholder="初始积分" value="0">
+          <input id="newNote" placeholder="账号备注，例如：GM02负责美国">
           <button class="small-btn green" onclick="initUserProfile()">初始化资料</button>
         </div>
       </div>
@@ -106,6 +500,7 @@ button:active{transform:scale(.98)}
           <h3>👥 用户管理中心</h3>
           <span class="muted" id="userViewHint">-</span>
         </div>
+
         <div class="table-wrap">
           <table class="table">
             <thead>
@@ -115,11 +510,12 @@ button:active{transform:scale(.98)}
                 <th>角色</th>
                 <th>余额</th>
                 <th>状态</th>
+                <th>账号备注</th>
                 <th>操作</th>
               </tr>
             </thead>
             <tbody id="usersBody">
-              <tr><td colspan="6" style="text-align:center;color:#64748b">暂无用户数据</td></tr>
+              <tr><td colspan="7" style="text-align:center;color:#64748b">暂无用户数据</td></tr>
             </tbody>
           </table>
         </div>
@@ -127,18 +523,20 @@ button:active{transform:scale(.98)}
 
       <div class="card full" id="logsPanel">
         <div class="section-title">
-          <h3>💳 积分操作记录 / 查账</h3>
+          <h3>💳 查账中心 / 积分操作记录</h3>
           <button class="small-btn green" onclick="loadLogs()">刷新记录</button>
         </div>
+
         <div class="mini" id="logViewHint">-</div>
+
         <div class="table-wrap">
           <table class="table log-table">
             <thead>
               <tr>
                 <th>时间</th>
                 <th>操作人</th>
-                <th>对象账号</th>
-                <th>对象角色</th>
+                <th>目标账号</th>
+                <th>目标角色</th>
                 <th>类型</th>
                 <th>变动</th>
                 <th>变动后余额</th>
@@ -152,12 +550,43 @@ button:active{transform:scale(.98)}
         </div>
       </div>
 
+      <div class="card full" id="v175Panel">
+        <div class="section-title">
+          <h3>🚀 V1.75 账号管理预留入口</h3>
+          <span class="muted">创建账号 / 删除账号 / 重置密码，需要 Firebase Cloud Functions + Admin SDK。</span>
+        </div>
+
+        <div class="v175-box">
+          <div class="v175-item">
+            <h4>创建账号</h4>
+            <p class="mini">计划函数：createUserByAdmin()</p>
+            <button class="small-btn blue" onclick="v175Notice('创建账号')">预留入口</button>
+          </div>
+          <div class="v175-item">
+            <h4>删除账号</h4>
+            <p class="mini">计划函数：deleteUserByAdmin()</p>
+            <button class="small-btn red" onclick="v175Notice('删除账号')">预留入口</button>
+          </div>
+          <div class="v175-item">
+            <h4>重置密码</h4>
+            <p class="mini">计划函数：resetPasswordByAdmin()</p>
+            <button class="small-btn purple" onclick="v175Notice('重置密码')">预留入口</button>
+          </div>
+        </div>
+
+        <div class="warn">
+          这三个功能不能只靠 GitHub Pages 前端完成。因为前端不能持有 Firebase Admin 权限，否则会有安全风险。
+        </div>
+      </div>
+
       <div class="card full">
         <h3>⚙️ 账户设置</h3>
         <p>当前邮箱：<b id="settingEmail">-</b></p>
         <p>当前权限：<b id="settingRole">-</b></p>
         <p>当前余额：<b id="settingBalance">-</b> 积分</p>
+
         <hr style="border:none;border-top:1px solid #e2e8f0;margin:18px 0">
+
         <h4>修改密码</h4>
         <input id="oldPassword" type="password" placeholder="请输入当前密码">
         <input id="newPassword" type="password" placeholder="请输入新密码，至少6位">
@@ -171,22 +600,49 @@ button:active{transform:scale(.98)}
           <table class="table">
             <thead>
               <tr>
-                <th>批次单号</th><th>类型</th><th>总数</th><th>成功数</th><th>有头像</th><th>无头像</th><th>状态</th><th>导出</th>
+                <th>批次单号</th>
+                <th>类型</th>
+                <th>总数</th>
+                <th>成功数</th>
+                <th>有头像</th>
+                <th>无头像</th>
+                <th>状态</th>
+                <th>导出</th>
               </tr>
             </thead>
             <tbody id="taskTable"></tbody>
           </table>
         </div>
       </div>
+
     </div>
   </main>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, collection, getDocs, updateDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  updatePassword,
+  EmailAuthProvider,
+  reauthenticateWithCredential
+} from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc,
+  collection,
+  getDocs,
+  updateDoc,
+  addDoc,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
 
+/* Firebase 配置：已保留你当前项目 databox-web-1c4df */
 const firebaseConfig = {
   apiKey: "AIzaSyDzPXn93JxnOrDwZ1cW_0lFdF5IkvMagaw",
   authDomain: "databox-web-1c4df.firebaseapp.com",
@@ -208,6 +664,16 @@ function shortUid(uid){
   return uid.length > 12 ? uid.substring(0,10) + "..." : uid;
 }
 
+function safeText(value){
+  if(value === undefined || value === null || value === "") return "-";
+  return String(value)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
 function nowTextFromTimestamp(ts){
   if(!ts) return "-";
   try{
@@ -216,11 +682,6 @@ function nowTextFromTimestamp(ts){
   }catch(e){
     return "-";
   }
-}
-
-function roleRank(role){
-  const ranks = { SuperAdmin:4, GM:3, Agent:2, User:1 };
-  return ranks[role] || 0;
 }
 
 function allowedCreateRoles(role){
@@ -246,9 +707,20 @@ function canInitializeRole(currentRole, newRole){
   return allowedCreateRoles(currentRole).includes(newRole);
 }
 
+function noteWithReminder(rawNote, actionName){
+  const note = (rawNote || "").trim();
+  if(note) return note;
+
+  const ok = confirm(`${actionName} 当前没有填写备注。\n\n备注不是必填，但建议填写，方便以后查账。\n\n是否继续操作？`);
+  if(!ok) return null;
+
+  return "未填写备注";
+}
+
 function fillRoleOptions(){
   const select = document.getElementById("newRole");
   select.innerHTML = "";
+
   allowedCreateRoles(currentUserProfile?.role).forEach(role=>{
     const opt = document.createElement("option");
     opt.value = role;
@@ -265,21 +737,26 @@ function fillRoleOptions(){
 
 function permissionNoticeText(role){
   if(role === "SuperAdmin"){
-    return "当前权限：SuperAdmin 最高权限，可查看和管理全部账号，可创建 SuperAdmin / GM / Agent / User。";
+    return "当前权限：SuperAdmin 最高权限。可查看和管理全部账号，可初始化 SuperAdmin / GM / Agent / User 资料，可查看全部查账记录。";
   }
   if(role === "GM"){
-    return "当前权限：GM 二级管理员。可创建和管理 Agent / User；不可查看、创建或管理 SuperAdmin；不可管理同级 GM。";
+    return "当前权限：GM 二级管理员。可查看 GM / Agent / User；不可查看 SuperAdmin；只能管理 Agent / User；不能管理同级 GM。";
   }
   if(role === "Agent"){
-    return "当前权限：Agent 子账号。只能查看自己的资料和自己的操作记录。";
+    return "当前权限：Agent。当前版本只显示自己的资料和自己的查账记录。";
   }
-  return "当前权限：User 客户账号。只能查看自己的资料和自己的操作记录。";
+  return "当前权限：User。无后台管理权限，只显示自己的资料和自己的查账记录。";
 }
 
 window.login = async function login(){
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value.trim();
-  if(!email || !password){ alert("请输入邮箱和密码"); return; }
+
+  if(!email || !password){
+    alert("请输入邮箱和密码");
+    return;
+  }
+
   try{
     await signInWithEmailAndPassword(auth,email,password);
   }catch(error){
@@ -295,18 +772,26 @@ window.logout = async function logout(){
 async function loadCurrentUserProfile(user){
   const userRef = doc(db,"users",user.uid);
   const userSnap = await getDoc(userRef);
+
   if(!userSnap.exists()){
     alert("登录成功，但 Firestore users 里没有这个 UID 的资料。请先初始化用户资料。");
     await signOut(auth);
     return null;
   }
+
   const data = userSnap.data();
-  const profile = { uid:user.uid, email:user.email, ...data };
+  const profile = {
+    uid:user.uid,
+    email:user.email,
+    ...data
+  };
+
   if(profile.status === "Frozen"){
     alert("此账号已被冻结，请联系管理员。");
     await signOut(auth);
     return null;
   }
+
   return profile;
 }
 
@@ -325,50 +810,69 @@ async function loadUsers(){
     if(!canSeeTarget(currentUserProfile.role, targetRole, targetUid)) return;
 
     visibleCount++;
-    const manageable = canManageTarget(currentUserProfile.role, targetRole, targetUid);
-    const roleColor = targetRole === "SuperAdmin" ? "danger-text" : targetRole === "GM" ? "ok-text" : "role-pill";
 
-    let actionHtml = `<span class="muted">无权限</span>`;
+    const manageable = canManageTarget(currentUserProfile.role, targetRole, targetUid);
+    const roleColor =
+      targetRole === "SuperAdmin" ? "danger-text" :
+      targetRole === "GM" ? "ok-text" :
+      targetRole === "Agent" ? "warn-text" :
+      "role-pill";
+
+    let actionHtml = `<span class="muted">无管理权限</span>`;
+
     if(manageable){
       actionHtml = `
         <input id="amount_${targetUid}" class="inline-input" type="number" placeholder="数量">
-        <input id="note_${targetUid}" class="note-input" placeholder="备注必填">
+        <input id="opnote_${targetUid}" class="note-input" placeholder="操作备注，非必填">
         <button class="small-btn green" onclick="customChangeBalance('${targetUid}','add')">增加</button>
         <button class="small-btn orange" onclick="customChangeBalance('${targetUid}','minus')">扣除</button>
         <button class="small-btn red" onclick="freezeUser('${targetUid}')">冻结</button>
         <button class="small-btn green" onclick="unfreezeUser('${targetUid}')">解冻</button>
+        <br>
+        <input id="accountnote_${targetUid}" class="note-input" style="width:260px;margin-top:6px" placeholder="账号备注" value="${safeText(data.note || "")}">
+        <button class="small-btn blue" onclick="saveAccountNote('${targetUid}')">保存备注</button>
       `;
     }
 
     usersBody.innerHTML += `
       <tr>
-        <td>${data.email || ""}</td>
-        <td title="${targetUid}">${shortUid(targetUid)}</td>
-        <td><span class="${roleColor}">${targetRole}</span></td>
-        <td><b style="color:var(--orange)">${data.balance || 0}</b></td>
+        <td>${safeText(data.email || "")}</td>
+        <td title="${safeText(targetUid)}">${safeText(shortUid(targetUid))}</td>
+        <td><span class="${roleColor}">${safeText(targetRole)}</span></td>
+        <td><b style="color:var(--orange)">${Number(data.balance || 0)}</b></td>
         <td>${data.status === "Frozen" ? '<span class="danger-text">Frozen</span>' : '<span class="ok-text">Active</span>'}</td>
+        <td>${safeText(data.note || "-")}</td>
         <td>${actionHtml}</td>
       </tr>
     `;
   });
 
   if(visibleCount === 0){
-    usersBody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#64748b">暂无可查看用户</td></tr>`;
+    usersBody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#64748b">暂无可查看用户</td></tr>`;
   }
 
-  document.getElementById("userViewHint").innerText = currentUserProfile.role === "SuperAdmin" ? "SuperAdmin 可查看全部账号" : currentUserProfile.role === "GM" ? "GM 已隐藏 SuperAdmin，且不可管理同级 GM" : "当前仅可查看自己";
+  document.getElementById("userViewHint").innerText =
+    currentUserProfile.role === "SuperAdmin" ? "SuperAdmin：可查看和管理全部账号。" :
+    currentUserProfile.role === "GM" ? "GM：已隐藏 SuperAdmin，只能管理 Agent / User，不能管理同级 GM。" :
+    "当前账号：仅可查看自己的账号资料。";
 }
 
 async function initUserProfile(){
   if(!currentUserProfile) return;
+
   const uid = document.getElementById("newUid").value.trim();
   const email = document.getElementById("newEmail").value.trim();
   const role = document.getElementById("newRole").value;
   const balance = Number(document.getElementById("newBalance").value || 0);
+  const note = document.getElementById("newNote").value.trim();
 
-  if(!uid || !email){ alert("请输入 Auth 用户 UID 和邮箱"); return; }
+  if(!uid || !email){
+    alert("请输入 Auth 用户 UID 和邮箱");
+    return;
+  }
+
   if(!canInitializeRole(currentUserProfile.role, role)){
-    alert("权限不足：你不能创建 " + role + " 资料");
+    alert("权限不足：你不能初始化 " + role + " 资料");
     return;
   }
 
@@ -377,75 +881,121 @@ async function initUserProfile(){
     balance,
     role,
     status:"Active",
+    note,
     createdByUid:auth.currentUser.uid,
     createdByEmail:currentUserProfile.email || auth.currentUser.email,
     createdByRole:currentUserProfile.role,
     createdAt:serverTimestamp()
   });
 
-  await addDoc(collection(db,"balance_logs"),{
-    actorUid:auth.currentUser.uid,
-    actorEmail:currentUserProfile.email || auth.currentUser.email,
-    actorRole:currentUserProfile.role,
+  await writeLog({
     targetUid:uid,
     targetEmail:email,
     targetRole:role,
     type:"init_profile",
     amount:balance,
     balance:balance,
-    note:"初始化账号资料",
-    createdAt:serverTimestamp()
+    remark: note ? `初始化账号资料：${note}` : "初始化账号资料"
   });
 
   document.getElementById("newUid").value = "";
   document.getElementById("newEmail").value = "";
   document.getElementById("newBalance").value = "0";
+  document.getElementById("newNote").value = "";
+
   alert("账号资料初始化成功");
+  await loadUsers();
+  await loadLogs();
+}
+
+async function saveAccountNote(uid){
+  const noteInput = document.getElementById(`accountnote_${uid}`);
+  const note = noteInput.value.trim();
+
+  const userRef = doc(db,"users",uid);
+  const userSnap = await getDoc(userRef);
+
+  if(!userSnap.exists()){
+    alert("用户不存在");
+    return;
+  }
+
+  const data = userSnap.data();
+
+  if(!canManageTarget(currentUserProfile.role, data.role || "User", uid)){
+    alert("权限不足：不能修改该账号备注");
+    return;
+  }
+
+  await updateDoc(userRef,{ note });
+
+  await writeLog({
+    targetUid:uid,
+    targetEmail:data.email || "",
+    targetRole:data.role || "User",
+    type:"update_note",
+    amount:0,
+    balance:Number(data.balance || 0),
+    remark: note ? `修改账号备注：${note}` : "清空账号备注"
+  });
+
+  alert("账号备注已保存");
   await loadUsers();
   await loadLogs();
 }
 
 async function customChangeBalance(uid, action){
   const input = document.getElementById(`amount_${uid}`);
-  const noteInput = document.getElementById(`note_${uid}`);
-  const value = Number(input.value);
-  const note = noteInput.value.trim();
+  const noteInput = document.getElementById(`opnote_${uid}`);
 
-  if(!value || value <= 0){ alert("请输入正确数量"); return; }
-  if(!note){ alert("请输入备注，方便查账"); return; }
+  const value = Number(input.value);
+  if(!value || value <= 0){
+    alert("请输入正确数量");
+    return;
+  }
+
+  const actionName = action === "add" ? "增加积分" : "扣除积分";
+  const remark = noteWithReminder(noteInput.value, actionName);
+  if(remark === null) return;
 
   const amount = action === "add" ? value : -value;
-  await changeUserBalance(uid, amount, note);
+
+  await changeUserBalance(uid, amount, remark);
+
   input.value = "";
   noteInput.value = "";
 }
 
-async function changeUserBalance(uid, amount, note){
+async function changeUserBalance(uid, amount, remark){
   const userRef = doc(db,"users",uid);
   const userSnap = await getDoc(userRef);
-  if(!userSnap.exists()){ alert("用户不存在"); return; }
+
+  if(!userSnap.exists()){
+    alert("用户不存在");
+    return;
+  }
 
   const data = userSnap.data();
+
   if(!canManageTarget(currentUserProfile.role, data.role || "User", uid)){
     alert("权限不足：不能管理该账号");
     return;
   }
 
   const newBalance = Number(data.balance || 0) + Number(amount);
-  await updateDoc(userRef,{ balance:newBalance });
 
-  await addDoc(collection(db,"balance_logs"),{
-    actorUid:auth.currentUser.uid,
-    actorEmail:currentUserProfile.email || auth.currentUser.email,
-    actorRole:currentUserProfile.role,
+  await updateDoc(userRef,{
+    balance:newBalance
+  });
+
+  await writeLog({
     targetUid:uid,
     targetEmail:data.email || "",
     targetRole:data.role || "User",
     type:amount > 0 ? "add_balance" : "minus_balance",
     amount,
     balance:newBalance,
-    note,
-    createdAt:serverTimestamp()
+    remark
   });
 
   alert("积分调整成功");
@@ -455,12 +1005,20 @@ async function changeUserBalance(uid, amount, note){
 }
 
 async function freezeUser(uid){
-  const note = prompt("请输入冻结备注：");
-  if(!note || !note.trim()){ alert("冻结必须填写备注"); return; }
+  const raw = prompt("请输入冻结备注，可不填：");
+  if(raw === null) return;
+
+  const remark = noteWithReminder(raw, "冻结账号");
+  if(remark === null) return;
 
   const userRef = doc(db,"users",uid);
   const userSnap = await getDoc(userRef);
-  if(!userSnap.exists()){ alert("用户不存在"); return; }
+
+  if(!userSnap.exists()){
+    alert("用户不存在");
+    return;
+  }
+
   const data = userSnap.data();
 
   if(!canManageTarget(currentUserProfile.role, data.role || "User", uid)){
@@ -468,19 +1026,18 @@ async function freezeUser(uid){
     return;
   }
 
-  await updateDoc(userRef,{status:"Frozen"});
-  await addDoc(collection(db,"balance_logs"),{
-    actorUid:auth.currentUser.uid,
-    actorEmail:currentUserProfile.email || auth.currentUser.email,
-    actorRole:currentUserProfile.role,
+  await updateDoc(userRef,{
+    status:"Frozen"
+  });
+
+  await writeLog({
     targetUid:uid,
     targetEmail:data.email || "",
     targetRole:data.role || "User",
     type:"freeze_user",
     amount:0,
     balance:Number(data.balance || 0),
-    note:note.trim(),
-    createdAt:serverTimestamp()
+    remark
   });
 
   alert("账号已冻结");
@@ -489,12 +1046,20 @@ async function freezeUser(uid){
 }
 
 async function unfreezeUser(uid){
-  const note = prompt("请输入解冻备注：");
-  if(!note || !note.trim()){ alert("解冻必须填写备注"); return; }
+  const raw = prompt("请输入解冻备注，可不填：");
+  if(raw === null) return;
+
+  const remark = noteWithReminder(raw, "解冻账号");
+  if(remark === null) return;
 
   const userRef = doc(db,"users",uid);
   const userSnap = await getDoc(userRef);
-  if(!userSnap.exists()){ alert("用户不存在"); return; }
+
+  if(!userSnap.exists()){
+    alert("用户不存在");
+    return;
+  }
+
   const data = userSnap.data();
 
   if(!canManageTarget(currentUserProfile.role, data.role || "User", uid)){
@@ -502,24 +1067,49 @@ async function unfreezeUser(uid){
     return;
   }
 
-  await updateDoc(userRef,{status:"Active"});
-  await addDoc(collection(db,"balance_logs"),{
-    actorUid:auth.currentUser.uid,
-    actorEmail:currentUserProfile.email || auth.currentUser.email,
-    actorRole:currentUserProfile.role,
+  await updateDoc(userRef,{
+    status:"Active"
+  });
+
+  await writeLog({
     targetUid:uid,
     targetEmail:data.email || "",
     targetRole:data.role || "User",
     type:"unfreeze_user",
     amount:0,
     balance:Number(data.balance || 0),
-    note:note.trim(),
-    createdAt:serverTimestamp()
+    remark
   });
 
   alert("账号已解冻");
   await loadUsers();
   await loadLogs();
+}
+
+async function writeLog({targetUid,targetEmail,targetRole,type,amount,balance,remark}){
+  const logData = {
+    /* 你原规划字段 */
+    operatorUid:auth.currentUser.uid,
+    operatorEmail:currentUserProfile.email || auth.currentUser.email,
+
+    targetUid,
+    targetEmail,
+    targetRole,
+
+    amount:Number(amount || 0),
+    balance:Number(balance || 0),
+    type,
+    remark:remark || "未填写备注",
+    createdAt:serverTimestamp(),
+
+    /* 兼容旧版页面字段 */
+    actorUid:auth.currentUser.uid,
+    actorEmail:currentUserProfile.email || auth.currentUser.email,
+    actorRole:currentUserProfile.role,
+    note:remark || "未填写备注"
+  };
+
+  await addDoc(collection(db,"balance_logs"),logData);
 }
 
 async function refreshCurrentBalanceIfNeeded(uid,newBalance){
@@ -535,13 +1125,20 @@ async function loadLogs(){
 
   const querySnapshot = await getDocs(collection(db,"balance_logs"));
   let logs = [];
+
   querySnapshot.forEach(docSnap=>{
     const data = docSnap.data();
+
     if(currentUserProfile.role === "SuperAdmin"){
       logs.push(data);
     }else{
       const uid = auth.currentUser.uid;
-      if(data.actorUid === uid || data.targetUid === uid){
+
+      /*
+        GM 当前前端版：显示自己操作的记录，或自己账号相关记录。
+        后续如果要严格显示“GM 管理范围记录”，需要给 Agent/User 增加 parentGmUid 字段。
+      */
+      if(data.operatorUid === uid || data.actorUid === uid || data.targetUid === uid){
         logs.push(data);
       }
     }
@@ -552,46 +1149,74 @@ async function loadLogs(){
     const bt = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
     return bt - at;
   });
+
   logs = logs.slice(0,100);
 
   if(logs.length === 0){
     logsBody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#64748b">暂无记录</td></tr>`;
   }else{
     logs.forEach(log=>{
-      const amountText = Number(log.amount || 0) > 0 ? `+${log.amount}` : `${log.amount || 0}`;
-      const amountColor = Number(log.amount || 0) > 0 ? "ok-text" : Number(log.amount || 0) < 0 ? "danger-text" : "muted";
+      const operatorEmail = log.operatorEmail || log.actorEmail || "-";
+      const operatorRole = log.operatorRole || log.actorRole || "";
+      const remark = log.remark || log.note || "-";
+      const amountNum = Number(log.amount || 0);
+      const amountText = amountNum > 0 ? `+${amountNum}` : `${amountNum}`;
+      const amountColor = amountNum > 0 ? "ok-text" : amountNum < 0 ? "danger-text" : "muted";
+
       logsBody.innerHTML += `
         <tr>
-          <td>${nowTextFromTimestamp(log.createdAt)}</td>
-          <td>${log.actorEmail || "-"}<br><span class="muted">${log.actorRole || ""}</span></td>
-          <td>${log.targetEmail || "-"}<br><span class="muted" title="${log.targetUid || ""}">${shortUid(log.targetUid || "")}</span></td>
-          <td>${log.targetRole || "-"}</td>
-          <td>${log.type || "-"}</td>
-          <td><span class="${amountColor}">${amountText}</span></td>
-          <td>${log.balance ?? "-"}</td>
-          <td>${log.note || "-"}</td>
+          <td>${safeText(nowTextFromTimestamp(log.createdAt))}</td>
+          <td>${safeText(operatorEmail)}<br><span class="muted">${safeText(operatorRole)}</span></td>
+          <td>${safeText(log.targetEmail || "-")}<br><span class="muted" title="${safeText(log.targetUid || "")}">${safeText(shortUid(log.targetUid || ""))}</span></td>
+          <td>${safeText(log.targetRole || "-")}</td>
+          <td>${safeText(log.type || "-")}</td>
+          <td><span class="${amountColor}">${safeText(amountText)}</span></td>
+          <td>${safeText(log.balance ?? "-")}</td>
+          <td>${safeText(remark)}</td>
         </tr>
       `;
     });
   }
 
-  document.getElementById("logViewHint").innerText = currentUserProfile.role === "SuperAdmin" ? "SuperAdmin：显示全部账号的积分、冻结、解冻、初始化记录。" : "当前账号：只显示与你自己相关的记录。";
+  document.getElementById("logViewHint").innerText =
+    currentUserProfile.role === "SuperAdmin" ? "SuperAdmin：显示全部账号的积分、冻结、解冻、备注、初始化记录。" :
+    "当前权限：显示与你自己相关的记录。GM 管理范围记录后续可加 parentGmUid 后进一步细分。";
 }
 
 async function changePassword(){
   const oldPwd = document.getElementById("oldPassword").value;
   const pwd = document.getElementById("newPassword").value;
   const confirmPwd = document.getElementById("confirmPassword").value;
-  if(!oldPwd){ alert("请输入当前密码"); return; }
-  if(!pwd){ alert("请输入新密码"); return; }
-  if(pwd.length < 6){ alert("密码至少6位"); return; }
-  if(pwd !== confirmPwd){ alert("两次密码输入不一致"); return; }
+
+  if(!oldPwd){
+    alert("请输入当前密码");
+    return;
+  }
+
+  if(!pwd){
+    alert("请输入新密码");
+    return;
+  }
+
+  if(pwd.length < 6){
+    alert("密码至少6位");
+    return;
+  }
+
+  if(pwd !== confirmPwd){
+    alert("两次密码输入不一致");
+    return;
+  }
+
   try{
     const user = auth.currentUser;
     const credential = EmailAuthProvider.credential(user.email, oldPwd);
+
     await reauthenticateWithCredential(user, credential);
     await updatePassword(user, pwd);
+
     alert("密码修改成功");
+
     document.getElementById("oldPassword").value = "";
     document.getElementById("newPassword").value = "";
     document.getElementById("confirmPassword").value = "";
@@ -602,34 +1227,67 @@ async function changePassword(){
 
 function createTask(){
   const taskId = "WS" + Date.now();
-  tasks.unshift({id:taskId,type:"WhatsApp头像检测",total:100000,success:84320,avatar:41200,noAvatar:43120,status:"演示完成"});
+
+  tasks.unshift({
+    id:taskId,
+    type:"WhatsApp头像检测",
+    total:100000,
+    success:84320,
+    avatar:41200,
+    noAvatar:43120,
+    status:"演示完成"
+  });
+
   renderTasks();
 }
 
 function renderTasks(){
   const tbody = document.getElementById("taskTable");
   tbody.innerHTML = "";
+
   if(tasks.length === 0){
     tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#64748b">暂无任务流水</td></tr>`;
     return;
   }
+
   tasks.forEach(t=>{
     tbody.innerHTML += `
       <tr>
-        <td><b>${t.id}</b></td><td>${t.type}</td><td>${t.total}</td>
-        <td style="color:#16a34a;font-weight:bold">${t.success}</td><td>🟢 ${t.avatar}</td><td>⚪ ${t.noAvatar}</td>
-        <td><span class="badge">${t.status}</span></td><td><button class="small-btn green" onclick="downloadTask('${t.id}')">下载</button></td>
-      </tr>`;
+        <td><b>${safeText(t.id)}</b></td>
+        <td>${safeText(t.type)}</td>
+        <td>${safeText(t.total)}</td>
+        <td style="color:#16a34a;font-weight:bold">${safeText(t.success)}</td>
+        <td>🟢 ${safeText(t.avatar)}</td>
+        <td>⚪ ${safeText(t.noAvatar)}</td>
+        <td><span class="badge">${safeText(t.status)}</span></td>
+        <td><button class="small-btn green" onclick="downloadTask('${safeText(t.id)}')">下载</button></td>
+      </tr>
+    `;
   });
 }
 
 function downloadTask(taskId){
-  const text = `批次单号：${taskId}\n检测类型：WhatsApp头像检测\n总导入数量：100000\n成功数量：84320\n有头像数量：41200\n无头像数量：43120\n状态：演示数据，后续接入真实检测接口。`;
-  const blob = new Blob([text], {type:"text/plain;charset=utf-8"});
+  const text =
+`批次单号：${taskId}
+检测类型：WhatsApp头像检测
+总导入数量：100000
+成功数量：84320
+有头像数量：41200
+无头像数量：43120
+状态：演示数据，后续接入真实检测接口。`;
+
+  const blob = new Blob([text], {
+    type:"text/plain;charset=utf-8"
+  });
+
   const link = document.createElement("a");
   link.href = URL.createObjectURL(blob);
   link.download = `Databox_Report_${taskId}.txt`;
   link.click();
+}
+
+function v175Notice(name){
+  alert(`${name} 是 V1.75 功能。\n\n需要先部署 Firebase Cloud Functions + Firebase Admin SDK，不能只靠 GitHub Pages 前端完成。`);
 }
 
 window.initUserProfile = initUserProfile;
@@ -637,32 +1295,38 @@ window.customChangeBalance = customChangeBalance;
 window.changeUserBalance = changeUserBalance;
 window.freezeUser = freezeUser;
 window.unfreezeUser = unfreezeUser;
+window.saveAccountNote = saveAccountNote;
 window.loadLogs = loadLogs;
 window.changePassword = changePassword;
 window.createTask = createTask;
 window.downloadTask = downloadTask;
+window.v175Notice = v175Notice;
 
 onAuthStateChanged(auth, async (user)=>{
   if(!user) return;
+
   currentUserProfile = await loadCurrentUserProfile(user);
   if(!currentUserProfile) return;
 
   document.getElementById("loginSection").style.display = "none";
   document.getElementById("appPanel").style.display = "flex";
+
   document.getElementById("userName").innerText = user.email;
-  document.getElementById("roleText").innerText = "权限组：" + currentUserProfile.role;
+  document.getElementById("roleText").innerText = "权限组：" + (currentUserProfile.role || "-");
   document.getElementById("balanceText").innerText = currentUserProfile.balance ?? 0;
   document.getElementById("statusText").innerText = currentUserProfile.status || "Active";
   document.getElementById("settingEmail").innerText = user.email;
-  document.getElementById("settingRole").innerText = currentUserProfile.role;
+  document.getElementById("settingRole").innerText = currentUserProfile.role || "-";
   document.getElementById("settingBalance").innerText = currentUserProfile.balance ?? 0;
   document.getElementById("permissionNotice").innerText = permissionNoticeText(currentUserProfile.role);
 
   fillRoleOptions();
   renderTasks();
+
   await loadUsers();
   await loadLogs();
 });
 </script>
+
 </body>
 </html>
