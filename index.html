@@ -693,7 +693,75 @@ async function changePassword(){
 }
 window.changePassword =
     changePassword;
+async function changeUserBalance(uid, amount){
 
+    const userRef =
+        doc(db, "users", uid);
+
+    const userSnap =
+        await getDoc(userRef);
+
+    if(!userSnap.exists()) return;
+
+    const data =
+        userSnap.data();
+
+    const newBalance =
+        Number(data.balance || 0) +
+        Number(amount);
+
+    await updateDoc(userRef,{
+        balance:newBalance
+    });
+
+    await addDoc(
+        collection(db,"balance_logs"),
+        {
+            uid:uid,
+            type:"admin_adjust",
+            amount:amount,
+            balance:newBalance,
+            createdAt:serverTimestamp()
+        }
+    );
+
+    await loadUsers();
+
+}
+async function freezeUser(uid){
+
+    await updateDoc(
+        doc(db,"users",uid),
+        {
+            status:"Frozen"
+        }
+    );
+
+    await loadUsers();
+
+}
+
+async function unfreezeUser(uid){
+
+    await updateDoc(
+        doc(db,"users",uid),
+        {
+            status:"Active"
+        }
+    );
+
+    await loadUsers();
+
+}
+
+window.changeUserBalance =
+    changeUserBalance;
+
+window.freezeUser =
+    freezeUser;
+
+window.unfreezeUser =
+    unfreezeUser;  
 onAuthStateChanged(auth, async (user)=>{
 
     if(user){
