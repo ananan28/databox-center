@@ -20,146 +20,73 @@
 body{
     margin:0;
     padding:0;
-
-    font-family:
-    "Microsoft YaHei",
-    "PingFang SC",
-    Arial,
-    sans-serif;
-
+    font-family:"Microsoft YaHei","PingFang SC",Arial,sans-serif;
     background:
-    linear-gradient(
-        rgba(8,15,35,0.55),
-        rgba(8,15,35,0.65)
-    ),
+    linear-gradient(rgba(8,15,35,0.55),rgba(8,15,35,0.65)),
     url("./wealth-bg.jpg");
-
     background-size:cover;
     background-position:center center;
     background-repeat:no-repeat;
     background-attachment:fixed;
-
     color:var(--text);
-
     min-height:100vh;
-
     -webkit-font-smoothing:antialiased;
     -moz-osx-font-smoothing:grayscale;
 }
 .login-card{
-
     position:absolute;
-
     top:90px;
-
     left:80px;
-
     width:420px;
-
     padding:40px;
-
     border-radius:24px;
-
     background:rgba(12,25,60,.45);
-
     backdrop-filter:blur(25px);
-
     -webkit-backdrop-filter:blur(25px);
-
     border:1px solid rgba(255,255,255,.15);
-
-    box-shadow:
-        0 20px 50px rgba(0,0,0,.45),
-        0 0 40px rgba(37,99,235,.25);
-
+    box-shadow:0 20px 50px rgba(0,0,0,.45),0 0 40px rgba(37,99,235,.25);
     color:#fff;
-
     overflow:hidden;
-
 }
-  input,
-input,
-select{
-
+input,select{
     width:100%;
     height:48px;
     margin:12px 0;
     padding:0 16px;
-    border:none;
     border-radius:12px;
     outline:none;
     box-sizing:border-box;
-
     border:1px solid #cbd5e1;
     background:#ffffff;
-
     color:#0f172a;
-
     font-size:15px;
 }
-
 .login-card input{
     color:#ffffff;
     background:rgba(255,255,255,.12);
     border:none;
 }
-input::placeholder{
-    color:#64748b;
-}
+input::placeholder{color:#64748b;}
 button{
-
     width:100%;
-
     height:54px;
-
     border:none;
-
     border-radius:12px;
-
-    background:linear-gradient(
-        135deg,
-        #2563eb,
-        #06b6d4
-    );
-
+    background:linear-gradient(135deg,#2563eb,#06b6d4);
     color:#ffffff;
-
     font-size:16px;
-
     font-weight:700;
-
     letter-spacing:1px;
-
     cursor:pointer;
-
     transition:all .3s ease;
-
-    box-shadow:
-        0 0 15px rgba(37,99,235,.6),
-        0 0 30px rgba(6,182,212,.4);
-
+    box-shadow:0 0 15px rgba(37,99,235,.6),0 0 30px rgba(6,182,212,.4);
 }
 button:hover{
-
     transform:translateY(-2px);
-
-    background:linear-gradient(
-        135deg,
-        #3b82f6,
-        #22d3ee
-    );
-
-    box-shadow:
-        0 0 25px rgba(37,99,235,.9),
-        0 0 50px rgba(6,182,212,.8);
-
+    background:linear-gradient(135deg,#3b82f6,#22d3ee);
+    box-shadow:0 0 25px rgba(37,99,235,.9),0 0 50px rgba(6,182,212,.8);
 }
-
-button:active{
-
-    transform:scale(.98);
-
-}
+button:active{transform:scale(.98);}
 .app{display:none;min-height:100vh}
 .sidebar{width:240px;background:#fff;border-right:1px solid var(--border);padding:20px 0}
 .logo{text-align:center;font-size:20px;font-weight:bold;color:var(--blue);padding-bottom:20px;border-bottom:1px solid var(--border)}
@@ -173,13 +100,15 @@ button:active{
 .card.full{grid-column:1/3}
 .badge{display:inline-block;padding:4px 8px;border-radius:6px;background:#eff6ff;color:var(--blue);font-size:12px;font-weight:bold}
 .table{width:100%;border-collapse:collapse;margin-top:15px;background:#fff;font-size:13px}
-.table th,.table td{padding:12px;border-bottom:1px solid var(--border);text-align:left}
+.table th,.table td{padding:12px;border-bottom:1px solid var(--border);text-align:left;vertical-align:middle}
 .table th{background:#f8fafc;color:var(--muted)}
-.small-btn{width:auto;padding:7px 12px;margin:0;font-size:12px}
+.small-btn{width:auto;height:36px;padding:7px 12px;margin:2px;font-size:12px;letter-spacing:0}
 .green{background:var(--green)}
 .orange{background:var(--orange)}
 .red{background:var(--red)}
 .notice{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;padding:12px;border-radius:8px;margin-bottom:18px;font-size:13px}
+.inline-input{width:90px;height:34px;margin:0 4px 0 0;padding:0 8px;font-size:12px;border-radius:8px}
+.remark-input{width:150px;height:34px;margin:0 4px 0 0;padding:0 8px;font-size:12px;border-radius:8px}
 @media(max-width:800px){
   .app{flex-direction:column}
   .sidebar{width:100%}
@@ -196,9 +125,7 @@ button:active{
   <input id="email" type="email" placeholder="账号 / Email">
   <input id="password" type="password" placeholder="密码">
   <button onclick="login()">安全登录</button>
-<p style="font-size:12px;color:var(--muted)">
-    当前为 GitHub Pages 企业内部管理系统
-</p>
+  <p style="font-size:12px;color:var(--muted)">当前为 GitHub Pages 企业内部管理系统</p>
 </div>
 
 <div id="appPanel" class="app">
@@ -225,7 +152,7 @@ button:active{
     </div>
 
     <div class="notice">
-      当前版本适合先上传 GitHub 展示页面。真实账号、密码、余额后续应接入 Firebase，不要写死在 HTML 里。
+      当前版本：V1.7.1-B。已接入用户管理、自定义积分调整、冻结/解冻、积分操作记录与备注。
     </div>
 
     <div class="grid">
@@ -242,9 +169,9 @@ button:active{
 
       <div class="card">
         <h3>💰 当前账户</h3>
-        <p>账户余额：<b id="balanceText" style="color:var(--orange)">76.7702</b> 积分</p>
-        <p>账号状态：<b style="color:var(--green)">正常</b></p>
-        <p>实时刷新：<b style="color:var(--blue)">待接入 Firebase</b></p>
+        <p>账户余额：<b id="balanceText" style="color:var(--orange)">-</b> 积分</p>
+        <p>账号状态：<b id="accountStatusText" style="color:var(--green)">-</b></p>
+        <p>实时刷新：<b style="color:var(--blue)">已接入 Firebase</b></p>
       </div>
 
       <div class="card full">
@@ -265,61 +192,67 @@ button:active{
           </thead>
           <tbody id="agentTable"></tbody>
         </table>
-        </div>
+      </div>
+
       <div class="card full">
-  <h3>👥 用户管理中心</h3>
+        <h3>👥 用户管理中心</h3>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>邮箱</th>
+              <th>UID</th>
+              <th>角色</th>
+              <th>余额</th>
+              <th>状态</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="usersBody">
+            <tr>
+              <td colspan="6" style="text-align:center;color:#64748b">暂无用户数据</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
-  <table class="table">
-    <thead>
-      <tr>
-        <th>邮箱</th>
-        <th>UID</th>
-        <th>角色</th>
-        <th>余额</th>
-        <th>状态</th>
-        <th>操作</th>
-      </tr>
-    </thead>
+      <div class="card full">
+        <h3>📒 积分操作记录 / 查账</h3>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>时间</th>
+              <th>对象邮箱</th>
+              <th>对象UID</th>
+              <th>角色</th>
+              <th>操作</th>
+              <th>变动</th>
+              <th>变动后余额</th>
+              <th>备注</th>
+              <th>操作人</th>
+            </tr>
+          </thead>
+          <tbody id="logsBody">
+            <tr>
+              <td colspan="9" style="text-align:center;color:#64748b">暂无操作记录</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
-    <tbody id="usersBody">
-      <tr>
-       <td colspan="6" style="text-align:center;color:#64748b">
-          暂无用户数据
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</div>
-<div class="card full">
-  <h3>⚙️ 账户设置</h3>
+      <div class="card full">
+        <h3>⚙️ 账户设置</h3>
+        <p>当前邮箱：<b id="settingEmail">-</b></p>
+        <p>当前权限：<b id="settingRole">-</b></p>
+        <p>当前余额：<b id="settingBalance">-</b> 积分</p>
+        <hr style="border:none;border-top:1px solid #e2e8f0;margin:18px 0">
+        <h4>修改密码</h4>
+        <input id="oldPassword" type="password" placeholder="请输入当前密码">
+        <input id="newPassword" type="password" placeholder="请输入新密码，至少6位">
+        <input id="confirmPassword" type="password" placeholder="再次输入新密码">
+        <button onclick="changePassword()">修改密码</button>
+      </div>
 
-  <p>当前邮箱：<b id="settingEmail">-</b></p>
-  <p>当前权限：<b id="settingRole">-</b></p>
-  <p>当前余额：<b id="settingBalance">-</b> 积分</p>
-
-  <hr style="border:none;border-top:1px solid #e2e8f0;margin:18px 0">
-
-  <h4>修改密码</h4>
-
-<input
-id="oldPassword"
-type="password"
-placeholder="请输入当前密码">
-
-<input
-id="newPassword"
-type="password"
-placeholder="请输入新密码，至少6位">
-
-<input
-id="confirmPassword"
-type="password"
-placeholder="再次输入新密码">
-
-   <button onclick="changePassword()">修改密码</button>
-</div>
-
-<div class="card full">
+      <div class="card full">
         <h3>📋 任务流水</h3>
         <table class="table">
           <thead>
@@ -342,77 +275,40 @@ placeholder="再次输入新密码">
 </div>
 
 <script>
-let agents = [
-  {name:"agent3313", balance:76.7702, status:"正常"}
-];
-
+let agents = [{name:"agent3313", balance:76.7702, status:"正常"}];
 let tasks = [];
 
 async function login(){
-
-    const email =
-        document.getElementById("email").value.trim();
-
-    const password =
-        document.getElementById("password").value.trim();
-if (!email || !password) {
-
-    alert("请输入邮箱和密码");
-
-    return;
-
-}
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value.trim();
+    if (!email || !password) {
+        alert("请输入邮箱和密码");
+        return;
+    }
     try{
-
-        const userCredential =
-            await signInWithEmailAndPassword(
-                auth,
-                email,
-                password
-            );
-
-        document.getElementById(
-            "loginSection"
-        ).style.display = "none";
-
-        document.getElementById(
-            "appPanel"
-        ).style.display = "flex";
-
-        document.getElementById(
-            "userName"
-        ).innerText = userCredential.user.email;
-
+        const userCredential = await signInWithEmailAndPassword(auth,email,password);
+        document.getElementById("loginSection").style.display = "none";
+        document.getElementById("appPanel").style.display = "flex";
+        document.getElementById("userName").innerText = userCredential.user.email;
         renderAgents();
         renderTasks();
-
     }catch(error){
-
-        alert(
-            "登录失败：" +
-            error.message
-        );
-
+        alert("登录失败：" + error.message);
     }
-
 }
+
 async function logout(){
-
     await signOut(auth);
-
     location.reload();
-
 }
 
 function renderAgents(){
   const tbody = document.getElementById("agentTable");
   tbody.innerHTML = "";
-
   if(agents.length === 0){
     tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#64748b">暂无子账号</td></tr>`;
     return;
   }
-
   agents.forEach((a,index)=>{
     tbody.innerHTML += `
       <tr>
@@ -431,18 +327,11 @@ function renderAgents(){
 function addAgent(){
   const name = document.getElementById("agentName").value.trim();
   const balance = parseFloat(document.getElementById("agentBalance").value || 0);
-
   if(!name){
     alert("请输入子账号名");
     return;
   }
-
-  agents.push({
-    name:name,
-    balance:balance.toFixed(4),
-    status:"正常"
-  });
-
+  agents.push({name:name,balance:balance.toFixed(4),status:"正常"});
   document.getElementById("agentName").value = "";
   document.getElementById("agentBalance").value = "";
   renderAgents();
@@ -462,27 +351,17 @@ function deleteAgent(index){
 
 function createTask(){
   const taskId = "WS" + Date.now();
-  tasks.unshift({
-    id:taskId,
-    type:"WhatsApp头像检测",
-    total:100000,
-    success:84320,
-    avatar:41200,
-    noAvatar:43120,
-    status:"演示完成"
-  });
+  tasks.unshift({id:taskId,type:"WhatsApp头像检测",total:100000,success:84320,avatar:41200,noAvatar:43120,status:"演示完成"});
   renderTasks();
 }
 
 function renderTasks(){
   const tbody = document.getElementById("taskTable");
   tbody.innerHTML = "";
-
   if(tasks.length === 0){
     tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#64748b">暂无任务流水</td></tr>`;
     return;
   }
-
   tasks.forEach(t=>{
     tbody.innerHTML += `
       <tr>
@@ -500,14 +379,7 @@ function renderTasks(){
 }
 
 function downloadTask(taskId){
-  const text = `批次单号：${taskId}
-检测类型：WhatsApp头像检测
-总导入数量：100000
-成功数量：84320
-有头像数量：41200
-无头像数量：43120
-状态：演示数据，后续接入真实检测接口。`;
-
+  const text = `批次单号：${taskId}\n检测类型：WhatsApp头像检测\n总导入数量：100000\n成功数量：84320\n有头像数量：41200\n无头像数量：43120\n状态：演示数据，后续接入真实检测接口。`;
   const blob = new Blob([text], {type:"text/plain;charset=utf-8"});
   const link = document.createElement("a");
   link.href = URL.createObjectURL(blob);
@@ -515,10 +387,9 @@ function downloadTask(taskId){
   link.click();
 }
 </script>
+
 <script type="module">
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
-
 import {
     getAuth,
     signInWithEmailAndPassword,
@@ -527,8 +398,7 @@ import {
     updatePassword,
     EmailAuthProvider,
     reauthenticateWithCredential
-}
-from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
+} from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
 
 import {
   getFirestore,
@@ -538,9 +408,12 @@ import {
   getDocs,
   updateDoc,
   addDoc,
-  serverTimestamp
-}
-from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
+  serverTimestamp,
+  query,
+  orderBy,
+  limit
+} from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
+
 const firebaseConfig = {
   apiKey: "AIzaSyDzPXn93JxnOrDwZ1cW_0lFdF5IkvMagaw",
   authDomain: "databox-web-1c4df.firebaseapp.com",
@@ -551,28 +424,28 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-
 const auth = getAuth(app);
-
 const db = getFirestore(app);
+let currentUserData = null;
+
+window.auth = auth;
+window.signInWithEmailAndPassword = signInWithEmailAndPassword;
+window.signOut = signOut;
+
+function formatLogTime(value){
+    if(!value) return "-";
+    if(value.toDate){
+        return value.toDate().toLocaleString("zh-CN");
+    }
+    return String(value);
+}
 
 async function loadUsers(){
-
-    const usersBody =
-        document.getElementById("usersBody");
-
+    const usersBody = document.getElementById("usersBody");
     usersBody.innerHTML = "";
-
-    const querySnapshot =
-        await getDocs(
-            collection(db, "users")
-        );
-
+    const querySnapshot = await getDocs(collection(db, "users"));
     querySnapshot.forEach((userDoc)=>{
-
-        const data =
-            userDoc.data();
-
+        const data = userDoc.data();
         usersBody.innerHTML += `
         <tr>
             <td>${data.email || ""}</td>
@@ -580,244 +453,193 @@ async function loadUsers(){
             <td>${data.role || "User"}</td>
             <td>${data.balance || 0}</td>
             <td>${data.status || "Active"}</td>
-
-<td>
-  <button class="small-btn green"
-    onclick="changeUserBalance('${userDoc.id}',100)">
-    +100
-  </button>
-
-  <button class="small-btn orange"
-    onclick="changeUserBalance('${userDoc.id}',-100)">
-    -100
-  </button>
-
-  <button class="small-btn red"
-    onclick="freezeUser('${userDoc.id}')">
-    冻结
-  </button>
-
-  <button class="small-btn green"
-    onclick="unfreezeUser('${userDoc.id}')">
-    解冻
-  </button>
-</td>
-        </tr>
-        `;
+            <td>
+                <input id="amount_${userDoc.id}" class="inline-input" type="number" placeholder="数量">
+                <input id="remark_${userDoc.id}" class="remark-input" type="text" placeholder="备注">
+                <button class="small-btn green" onclick="customChangeBalance('${userDoc.id}', 'add')">增加</button>
+                <button class="small-btn orange" onclick="customChangeBalance('${userDoc.id}', 'minus')">扣除</button>
+                <button class="small-btn red" onclick="freezeUser('${userDoc.id}')">冻结</button>
+                <button class="small-btn green" onclick="unfreezeUser('${userDoc.id}')">解冻</button>
+            </td>
+        </tr>`;
     });
-
 }
-window.auth = auth;
-window.signInWithEmailAndPassword = signInWithEmailAndPassword;
-window.signOut = signOut;
-async function changePassword(){
 
-    const oldPwd =
-        document.getElementById(
-            "oldPassword"
-        ).value;
-
-    const pwd =
-        document.getElementById(
-            "newPassword"
-        ).value;
-
-    const confirmPwd =
-        document.getElementById(
-            "confirmPassword"
-        ).value;
-
-    if(!oldPwd){
-        alert("请输入当前密码");
-        return;
-    }
-
-    if(!pwd){
-        alert("请输入新密码");
-        return;
-    }
-
-    if(pwd.length < 6){
-        alert("密码至少6位");
-        return;
-    }
-
-    if(pwd !== confirmPwd){
-        alert("两次密码输入不一致");
-        return;
-    }
-
+async function loadBalanceLogs(){
+    const logsBody = document.getElementById("logsBody");
+    logsBody.innerHTML = "";
+    let logSnapshot;
     try{
-
-        const user = auth.currentUser;
-
-        const credential =
-            EmailAuthProvider.credential(
-                user.email,
-                oldPwd
-            );
-
-        await reauthenticateWithCredential(
-            user,
-            credential
-        );
-
-        await updatePassword(
-            user,
-            pwd
-        );
-
-        alert("密码修改成功");
-
-        document.getElementById(
-            "oldPassword"
-        ).value = "";
-
-        document.getElementById(
-            "newPassword"
-        ).value = "";
-
-        document.getElementById(
-            "confirmPassword"
-        ).value = "";
-
+        const q = query(collection(db,"balance_logs"), orderBy("createdAt","desc"), limit(50));
+        logSnapshot = await getDocs(q);
     }catch(error){
-
-        alert(
-            "修改失败：" +
-            error.message
-        );
-
+        logSnapshot = await getDocs(collection(db,"balance_logs"));
     }
-
-}
-window.changePassword =
-    changePassword;
-async function changeUserBalance(uid, amount){
-
-    const userRef =
-        doc(db, "users", uid);
-
-    const userSnap =
-        await getDoc(userRef);
-
-    if(!userSnap.exists()) return;
-
-    const data =
-        userSnap.data();
-
-    const newBalance =
-        Number(data.balance || 0) +
-        Number(amount);
-
-    await updateDoc(userRef,{
-        balance:newBalance
+    if(logSnapshot.empty){
+        logsBody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:#64748b">暂无操作记录</td></tr>`;
+        return;
+    }
+    logSnapshot.forEach((logDoc)=>{
+        const log = logDoc.data();
+        logsBody.innerHTML += `
+        <tr>
+            <td>${formatLogTime(log.createdAt)}</td>
+            <td>${log.email || ""}</td>
+            <td>${log.uid || ""}</td>
+            <td>${log.role || ""}</td>
+            <td>${log.type || ""}</td>
+            <td>${log.amount || 0}</td>
+            <td>${log.balance ?? ""}</td>
+            <td>${log.remark || ""}</td>
+            <td>${log.operatorEmail || ""}</td>
+        </tr>`;
     });
-
-    await addDoc(
-        collection(db,"balance_logs"),
-        {
-            uid:uid,
-            type:"admin_adjust",
-            amount:amount,
-            balance:newBalance,
-            createdAt:serverTimestamp()
-        }
-    );
-
-    await loadUsers();
-
 }
-async function freezeUser(uid){
 
-    await updateDoc(
-        doc(db,"users",uid),
-        {
-            status:"Frozen"
-        }
-    );
+async function customChangeBalance(uid, action){
+    const input = document.getElementById(`amount_${uid}`);
+    const remarkInput = document.getElementById(`remark_${uid}`);
+    const value = Number(input.value);
+    const remark = remarkInput ? remarkInput.value.trim() : "";
+    if(!value || value <= 0){
+        alert("请输入正确数量");
+        return;
+    }
+    const amount = action === "add" ? value : -value;
+    await changeUserBalance(uid, amount, remark);
+    input.value = "";
+    if(remarkInput) remarkInput.value = "";
+}
 
+async function changeUserBalance(uid, amount, remark=""){
+    const userRef = doc(db, "users", uid);
+    const userSnap = await getDoc(userRef);
+    if(!userSnap.exists()){
+        alert("用户不存在");
+        return;
+    }
+    const data = userSnap.data();
+    const newBalance = Number(data.balance || 0) + Number(amount);
+    await updateDoc(userRef,{ balance:newBalance });
+    await addDoc(collection(db,"balance_logs"),{
+        uid:uid,
+        email:data.email || "",
+        role:data.role || "",
+        type:amount > 0 ? "add_balance" : "minus_balance",
+        amount:amount,
+        balance:newBalance,
+        remark:remark,
+        operatorUid:auth.currentUser ? auth.currentUser.uid : "",
+        operatorEmail:auth.currentUser ? auth.currentUser.email : "",
+        createdAt:serverTimestamp()
+    });
     await loadUsers();
+    await loadBalanceLogs();
+    alert("积分调整成功");
+}
 
+async function freezeUser(uid){
+    const userRef = doc(db,"users",uid);
+    const userSnap = await getDoc(userRef);
+    const data = userSnap.exists() ? userSnap.data() : {};
+    const remarkInput = document.getElementById(`remark_${uid}`);
+    const remark = remarkInput ? remarkInput.value.trim() : "";
+    await updateDoc(userRef,{ status:"Frozen" });
+    await addDoc(collection(db,"balance_logs"),{
+        uid:uid,
+        email:data.email || "",
+        role:data.role || "",
+        type:"freeze_user",
+        amount:0,
+        balance:data.balance || 0,
+        remark:remark,
+        operatorUid:auth.currentUser ? auth.currentUser.uid : "",
+        operatorEmail:auth.currentUser ? auth.currentUser.email : "",
+        createdAt:serverTimestamp()
+    });
+    if(remarkInput) remarkInput.value = "";
+    await loadUsers();
+    await loadBalanceLogs();
+    alert("账号已冻结");
 }
 
 async function unfreezeUser(uid){
-
-    await updateDoc(
-        doc(db,"users",uid),
-        {
-            status:"Active"
-        }
-    );
-
+    const userRef = doc(db,"users",uid);
+    const userSnap = await getDoc(userRef);
+    const data = userSnap.exists() ? userSnap.data() : {};
+    const remarkInput = document.getElementById(`remark_${uid}`);
+    const remark = remarkInput ? remarkInput.value.trim() : "";
+    await updateDoc(userRef,{ status:"Active" });
+    await addDoc(collection(db,"balance_logs"),{
+        uid:uid,
+        email:data.email || "",
+        role:data.role || "",
+        type:"unfreeze_user",
+        amount:0,
+        balance:data.balance || 0,
+        remark:remark,
+        operatorUid:auth.currentUser ? auth.currentUser.uid : "",
+        operatorEmail:auth.currentUser ? auth.currentUser.email : "",
+        createdAt:serverTimestamp()
+    });
+    if(remarkInput) remarkInput.value = "";
     await loadUsers();
-
+    await loadBalanceLogs();
+    alert("账号已解冻");
 }
 
-window.changeUserBalance =
-    changeUserBalance;
-
-window.freezeUser =
-    freezeUser;
-
-window.unfreezeUser =
-    unfreezeUser;  
-onAuthStateChanged(auth, async (user)=>{
-
-    if(user){
-
-        document.getElementById("loginSection").style.display="none";
-
-        document.getElementById("appPanel").style.display="flex";
-
-        document.getElementById("userName").innerText =
-    user.email;
-
-renderAgents();
-
-renderTasks();
-
-const userRef = doc(db, "users", user.uid);
-
-const userSnap = await getDoc(userRef);
-
-if(userSnap.exists()){
-
-    const userData =
-        userSnap.data();
-
-    document.getElementById(
-        "balanceText"
-    ).innerText =
-        userData.balance;
-
-    document.getElementById(
-    "roleText"
-).innerText =
-    "权限组：" +
-    userData.role;
-
-document.getElementById(
-    "settingEmail"
-).innerText =
-    user.email;
-
-document.getElementById(
-    "settingRole"
-).innerText =
-    userData.role;
-
-document.getElementById(
-    "settingBalance"
-).innerText =
-    userData.balance;
-
-await loadUsers();
-
-}
-
+async function changePassword(){
+    const oldPwd = document.getElementById("oldPassword").value;
+    const pwd = document.getElementById("newPassword").value;
+    const confirmPwd = document.getElementById("confirmPassword").value;
+    if(!oldPwd){alert("请输入当前密码");return;}
+    if(!pwd){alert("请输入新密码");return;}
+    if(pwd.length < 6){alert("密码至少6位");return;}
+    if(pwd !== confirmPwd){alert("两次密码输入不一致");return;}
+    try{
+        const user = auth.currentUser;
+        const credential = EmailAuthProvider.credential(user.email,oldPwd);
+        await reauthenticateWithCredential(user,credential);
+        await updatePassword(user,pwd);
+        alert("密码修改成功");
+        document.getElementById("oldPassword").value = "";
+        document.getElementById("newPassword").value = "";
+        document.getElementById("confirmPassword").value = "";
+    }catch(error){
+        alert("修改失败：" + error.message);
     }
+}
 
+window.changePassword = changePassword;
+window.customChangeBalance = customChangeBalance;
+window.changeUserBalance = changeUserBalance;
+window.freezeUser = freezeUser;
+window.unfreezeUser = unfreezeUser;
+
+onAuthStateChanged(auth, async (user)=>{
+    if(user){
+        document.getElementById("loginSection").style.display="none";
+        document.getElementById("appPanel").style.display="flex";
+        document.getElementById("userName").innerText = user.email;
+        renderAgents();
+        renderTasks();
+        const userRef = doc(db,"users",user.uid);
+        const userSnap = await getDoc(userRef);
+        if(userSnap.exists()){
+            const userData = userSnap.data();
+            currentUserData = userData;
+            document.getElementById("balanceText").innerText = userData.balance ?? 0;
+            document.getElementById("accountStatusText").innerText = userData.status || "Active";
+            document.getElementById("roleText").innerText = "权限组：" + userData.role;
+            document.getElementById("settingEmail").innerText = user.email;
+            document.getElementById("settingRole").innerText = userData.role;
+            document.getElementById("settingBalance").innerText = userData.balance ?? 0;
+            await loadUsers();
+            await loadBalanceLogs();
+        }else{
+            alert("Firestore users 中找不到当前账号资料");
+        }
+    }
 });
 </script>
 </body>
