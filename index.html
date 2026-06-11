@@ -550,7 +550,14 @@ button:disabled{
           <option value="valid">号码有效性检测（开发中）</option>
         </select>
 
-        <textarea id="numberInput" placeholder="一行一个号码&#10;+8613800000001&#10;+8613800000002&#10;+8613800000001"></textarea>
+        <div class="warn">
+          大批量号码请优先上传 TXT / CSV 文件；手动输入框只适合少量测试。系统会优先读取上传文件，没有上传文件时才读取下方文本框。
+        </div>
+
+        <input id="detectFile" type="file" accept=".txt,.csv,text/plain,text/csv" onchange="handleDetectFileSelected()">
+        <div id="detectFileHint" class="mini">未选择文件。支持 TXT / CSV，每行一个号码，也兼容逗号分隔。</div>
+
+        <textarea id="numberInput" placeholder="小批量测试备用：一行一个号码&#10;+8613800000001&#10;+8613800000002&#10;+8613800000001"></textarea>
 
         <button onclick="runDetection()">开始检测</button>
 
@@ -1661,6 +1668,8 @@ async function runDetection(){
 
   document.getElementById("detectResult").innerHTML = `
     <b>检测完成</b><br><br>
+    数据来源：${inputData.source}<br>
+    文件名称：${safeText(inputData.fileName)}<br>
     原始数量：${total}<br>
     去重后数量：${uniqueList.length}<br>
     重复数量：${duplicateCount}<br>
@@ -1668,6 +1677,8 @@ async function runDetection(){
   `;
 
   document.getElementById("dedupeTable").innerHTML = `
+    <tr><td>数据来源</td><td>${inputData.source}</td></tr>
+    <tr><td>文件名称</td><td>${safeText(inputData.fileName)}</td></tr>
     <tr><td>原始数量</td><td>${total}</td></tr>
     <tr><td>去重后数量</td><td>${uniqueList.length}</td></tr>
     <tr><td>重复数量</td><td>${duplicateCount}</td></tr>
@@ -1692,7 +1703,7 @@ async function runDetection(){
     type:"dedupe_cost",
     amount:-cost,
     balance:currentUserProfile.balance,
-    remark:`数据去重检测：${total} 条`
+    remark:`数据去重检测：${total} 条；来源：${inputData.source}；文件：${inputData.fileName}`
   });
 
   tasks.unshift({
