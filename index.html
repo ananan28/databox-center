@@ -492,14 +492,13 @@ button:disabled{
 <div id="appPanel" class="app">
   <aside class="sidebar">
     <div class="logo">🏛 财盛集团</div>
-    <ul class="menu">
-      <li class="active">📊 控制台</li>
-      <li>🔍 空号检测</li>
-      <li>⚡ 活跃检测</li>
-      <li>👥 社交检测</li>
-      <li>👑 管理中心</li>
-      <li>💳 查账中心</li>
-      <li>⚙️ 账户设置</li>
+    <ul class="menu" id="sideMenu">
+      <li class="active" onclick="showPage('dashboard', this)">📊 控制台</li>
+      <li onclick="showPage('detect', this)">🧪 检测中心</li>
+      <li onclick="showPage('users', this)">👥 用户管理</li>
+      <li onclick="showPage('billing', this)">💳 查账计费</li>
+      <li onclick="showPage('history', this)">🧾 检测历史</li>
+      <li onclick="showPage('settings', this)">⚙️ 系统设置</li>
     </ul>
   </aside>
 
@@ -518,7 +517,7 @@ button:disabled{
 
     <div class="grid">
 
-      <div class="card full" id="dashboardPanel">
+      <div class="card full page-card" data-page="dashboard" id="dashboardPanel">
         <h3>📊 系统仪表盘</h3>
         <div class="stat-grid">
           <div class="stat-box">用户总数<b id="dashUserCount">0</b></div>
@@ -528,7 +527,7 @@ button:disabled{
         </div>
       </div>
 
-      <div class="card">
+      <div class="card page-card" data-page="detect" id="uploadPanel">
         <h3>📤 上传号码文件</h3>
         <input type="file" id="fileInput" accept=".txt,.csv,.xlsx">
         <select>
@@ -540,7 +539,7 @@ button:disabled{
         <div class="warn">当前检测任务为演示流水，真实检测接口后续再接入。</div>
       </div>
 
-      <div class="card full" id="detectCenterPanel">
+      <div class="card full page-card" data-page="detect" id="detectCenterPanel">
         <h3>🧪 智能检测中心</h3>
 
         <select id="detectType">
@@ -558,7 +557,7 @@ button:disabled{
         <div id="detectResult" class="result-box">等待检测...</div>
       </div>
 
-      <div class="card full" id="dedupeResultPanel">
+      <div class="card full page-card" data-page="detect" id="dedupeResultPanel">
         <h3>📌 数据去重结果</h3>
         <div class="table-wrap">
           <table class="table">
@@ -577,7 +576,7 @@ button:disabled{
         </div>
       </div>
 
-      <div class="card full" id="pricingPanel">
+      <div class="card full page-card" data-page="billing" id="pricingPanel">
         <div class="section-title">
           <h3>💳 套餐价格管理</h3>
           <span class="muted" id="pricingHint">SuperAdmin 可修改，其他角色只读。</span>
@@ -586,7 +585,7 @@ button:disabled{
         <button id="savePricingBtn" class="small-btn green" onclick="savePricing()">保存套餐价格</button>
       </div>
 
-      <div class="card full" id="announcementPanel">
+      <div class="card full page-card" data-page="settings" id="announcementPanel">
         <div class="section-title">
           <h3>📢 系统公告中心</h3>
           <button id="saveAnnouncementBtn" class="small-btn blue" onclick="saveAnnouncement()">发布公告</button>
@@ -596,14 +595,14 @@ button:disabled{
         <div id="latestAnnouncement" class="announce-box">暂无公告</div>
       </div>
 
-      <div class="card">
+      <div class="card page-card" data-page="dashboard" id="accountPanel">
         <h3>💰 当前账户</h3>
         <p>账户余额：<b id="balanceText" style="color:var(--orange)">-</b> 积分</p>
         <p>账号状态：<b id="statusText" style="color:var(--green)">-</b></p>
         <p>实时状态：<b style="color:var(--blue)">Firebase 已接入</b></p>
       </div>
 
-      <div class="card full" id="initPanel">
+      <div class="card full page-card" data-page="users" id="initPanel">
         <div class="section-title">
           <h3>👥 账号资料初始化</h3>
           <span class="muted">GitHub Pages 前端无法安全创建 Auth 登录账号，V1.75 再接 Cloud Functions。</span>
@@ -625,7 +624,7 @@ button:disabled{
         </div>
       </div>
 
-      <div class="card full" id="userCenterPanel">
+      <div class="card full page-card" data-page="users" id="userCenterPanel">
         <div class="section-title">
           <h3>👥 用户管理中心</h3>
           <span class="muted" id="userViewHint">-</span>
@@ -656,7 +655,7 @@ button:disabled{
         </div>
       </div>
 
-      <div class="card full" id="logsPanel">
+      <div class="card full page-card" data-page="billing" id="logsPanel">
         <div class="section-title">
           <h3>💳 查账中心 / 积分操作记录</h3>
           <button class="small-btn green" onclick="loadLogs()">刷新记录</button>
@@ -685,7 +684,7 @@ button:disabled{
         </div>
       </div>
 
-      <div class="card full" id="v175Panel">
+      <div class="card full page-card" data-page="users" id="v175Panel">
         <div class="section-title">
           <h3>🚀 V1.75 账号管理预留入口</h3>
           <span class="muted">创建账号 / 删除账号 / 重置密码，需要 Firebase Cloud Functions + Admin SDK。</span>
@@ -714,7 +713,7 @@ button:disabled{
         </div>
       </div>
 
-      <div class="card full">
+      <div class="card full page-card" data-page="settings" id="settingPanel">
         <h3>⚙️ 账户设置</h3>
         <p>当前邮箱：<b id="settingEmail">-</b></p>
         <p>当前权限：<b id="settingRole">-</b></p>
@@ -729,7 +728,7 @@ button:disabled{
         <button onclick="changePassword()">修改密码</button>
       </div>
 
-      <div class="card full" id="transferPanel">
+      <div class="card full page-card" data-page="billing" id="transferPanel">
         <div class="section-title">
           <h3>🔁 账号积分互转</h3>
           <span class="muted">SuperAdmin 可在任意账号之间转积分；GM 可在管理范围内操作。</span>
@@ -743,7 +742,7 @@ button:disabled{
         </div>
       </div>
 
-      <div class="card full" id="historyPanel">
+      <div class="card full page-card" data-page="history" id="historyPanel">
         <div class="section-title">
           <h3>🧾 检测历史记录</h3>
           <button class="small-btn green" onclick="loadDetectionHistory()">刷新历史</button>
@@ -768,7 +767,7 @@ button:disabled{
         </div>
       </div>
 
-      <div class="card full">
+      <div class="card full page-card" data-page="history" id="taskFlowPanel">
         <h3>📋 任务流水</h3>
         <div class="table-wrap">
           <table class="table">
@@ -1870,6 +1869,29 @@ function v175Notice(name){
   alert(`${name} 是 V1.75 功能。\n\n需要先部署 Firebase Cloud Functions + Firebase Admin SDK，不能只靠 GitHub Pages 前端完成。`);
 }
 
+function showPage(pageName, menuItem){
+  document.querySelectorAll(".page-card").forEach(card=>{
+    if(card.dataset.page === pageName){
+      card.style.display = "block";
+    }else{
+      card.style.display = "none";
+    }
+  });
+
+  document.querySelectorAll("#sideMenu li").forEach(li=>{
+    li.classList.remove("active");
+  });
+
+  if(menuItem){
+    menuItem.classList.add("active");
+  }else{
+    const first = document.querySelector(`#sideMenu li[onclick*="${pageName}"]`);
+    if(first) first.classList.add("active");
+  }
+
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
 window.initUserProfile = initUserProfile;
 window.customChangeBalance = customChangeBalance;
 window.changeUserBalance = changeUserBalance;
@@ -1888,6 +1910,7 @@ window.loadDetectionHistory = loadDetectionHistory;
 window.clearUserSearch = clearUserSearch;
 window.loadUsers = loadUsers;
 window.transferBalance = transferBalance;
+window.showPage = showPage;
 
 onAuthStateChanged(auth, async (user)=>{
   if(!user) return;
@@ -1897,6 +1920,7 @@ onAuthStateChanged(auth, async (user)=>{
 
   document.getElementById("loginSection").style.display = "none";
   document.getElementById("appPanel").style.display = "flex";
+  showPage("dashboard");
 
   document.getElementById("userName").innerText = user.email;
   document.getElementById("roleText").innerText = "权限组：" + (currentUserProfile.role || "-");
