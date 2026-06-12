@@ -1,1837 +1,3096 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>财盛集团 - 博亿研发中心 V2.8 企业权限终版</title>
-
-<!--
-  财盛集团 - 博亿研发中心
-  V2.8 企业权限终版 - 最终融合版 index.html
-
-  已融合规则：
-  1. SuperAdmin / GM / Agent / User 四级角色
-  2. SuperAdmin 最高权限，管理全平台
-  3. GM 为联合管理层，可相互管理所有 GM 名下 Agent 与 Agent 用户
-  4. GM 不能管理 SuperAdmin，不能修改最高平台规则，除非 SuperAdmin 授权
-  5. Agent 只能管理自己创建或邀请的下线 User
-  6. 自然注册 User 归 GM 管理，不归 Agent 管理
-  7. 自然注册用户分配 GM 的规则由 SuperAdmin 设置
-  8. Agent 创建新 User 的最低初始积分由 SuperAdmin 实时设置
-  9. Agent 给下线分配积分 / 余额必须从 Agent 自己账户扣除
-  10. Agent 可回收下线积分 / 余额
-  11. 积分 / 余额转账与回收支持手续费
-  12. 手续费费率、最低手续费、最高手续费、承担方由 SuperAdmin 实时设置
-  13. 手续费最终进入 Platform Wallet
-  14. 手续费产生独立流水
-  15. 所有资金 / 积分操作必须输入交易密码
-  16. 所有人包括 SuperAdmin 都必须输入交易密码
-  17. 交易密码默认 123456，但首次必须修改后才能进行资金操作
-  18. 交易密码完全保密，不显示明文
-  19. 登录密码不保存明文，不显示明文
-  20. SuperAdmin 可重置登录密码、重置交易密码、查看密码状态
-  21. 不允许任何角色查看明文密码
-  22. 无权限菜单隐藏
-  23. 无权限页面二次拦截
-  24. 账号 Active / Frozen / Deleted 状态控制
-  25. 所有关键操作写入系统日志
-  26. 当前为纯前端本地演示版，后续可替换为 Firebase / Firestore
--->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>财盛集团 - 博亿研发中心 V2.8</title>
 
 <style>
 :root{
-  --bg:#020617;
-  --panel:#0f172a;
-  --panel2:#111c31;
-  --card:rgba(15,23,42,.92);
-  --card2:rgba(30,41,59,.78);
-  --border:rgba(148,163,184,.2);
-  --line:rgba(148,163,184,.14);
-  --text:#e5e7eb;
-  --muted:#94a3b8;
-  --muted2:#64748b;
+  --bg:#f8fafc;
+  --card:#ffffff;
+  --border:#e2e8f0;
+  --text:#0f172a;
+  --muted:#64748b;
   --blue:#2563eb;
-  --sky:#38bdf8;
-  --green:#22c55e;
+  --green:#16a34a;
+  --orange:#ea580c;
   --red:#ef4444;
-  --orange:#f97316;
-  --purple:#a855f7;
-  --yellow:#eab308;
-  --radius:18px;
-  --sidebar:292px;
-  --topbar:76px;
-  --shadow:0 22px 60px rgba(0,0,0,.34);
-  --font:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",Arial,sans-serif;
+  --cyan:#06b6d4;
+  --purple:#7c3aed;
 }
+
 *{box-sizing:border-box}
-html,body{margin:0;min-height:100%;font-family:var(--font);color:var(--text);background:
-radial-gradient(circle at 12% 6%,rgba(56,189,248,.18),transparent 30%),
-radial-gradient(circle at 82% 16%,rgba(168,85,247,.17),transparent 28%),
-linear-gradient(140deg,#020617 0%,#07111f 48%,#0f172a 100%)}
-button,input,select,textarea{font-family:inherit}
-button{cursor:pointer}
-.hidden{display:none!important}
-.toast{position:fixed;top:18px;right:18px;z-index:9999;width:min(460px,calc(100vw - 36px));display:grid;gap:10px}
-.toast-item{background:rgba(15,23,42,.96);border:1px solid var(--border);border-radius:16px;padding:13px 15px;box-shadow:var(--shadow);line-height:1.65}
-.login-wrap{min-height:100vh;display:grid;place-items:center;padding:24px;position:relative;overflow:hidden}
-.login-card{width:min(470px,100%);background:rgba(15,23,42,.82);border:1px solid rgba(148,163,184,.24);border-radius:28px;box-shadow:var(--shadow);padding:32px;backdrop-filter:blur(20px)}
-.brand{display:flex;align-items:center;gap:14px;margin-bottom:24px}
-.logo{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;background:linear-gradient(135deg,#1d4ed8,#38bdf8);font-weight:950;box-shadow:0 0 34px rgba(56,189,248,.38)}
-.brand-title{font-weight:950;font-size:21px}
-.brand-sub{color:var(--muted);font-size:13px;margin-top:4px}
-.login-title{font-size:30px;font-weight:950;margin:4px 0 8px}
-.desc{color:var(--muted);line-height:1.7;font-size:13px}
-.form{display:grid;gap:13px;margin-top:20px}
-.field{display:grid;gap:7px}
-label{color:#cbd5e1;font-size:13px;font-weight:800}
-.input,.select,.textarea{width:100%;min-height:45px;background:rgba(2,6,23,.62);border:1px solid rgba(148,163,184,.22);border-radius:14px;color:var(--text);outline:none;padding:12px 13px}
-.textarea{min-height:110px;resize:vertical}
-.input:focus,.select:focus,.textarea:focus{border-color:rgba(56,189,248,.68);box-shadow:0 0 0 4px rgba(56,189,248,.1)}
-.btn{border:0;border-radius:14px;padding:11px 15px;min-height:43px;color:#fff;font-weight:900;background:#334155}
-.btn:hover{opacity:.96;transform:translateY(-1px)}
-.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
-.primary{background:linear-gradient(135deg,#2563eb,#38bdf8);box-shadow:0 0 25px rgba(56,189,248,.24)}
-.green{background:linear-gradient(135deg,#16a34a,#22c55e)}
-.red{background:linear-gradient(135deg,#dc2626,#ef4444)}
-.orange{background:linear-gradient(135deg,#ea580c,#f97316)}
-.purple{background:linear-gradient(135deg,#7c3aed,#a855f7)}
-.ghost{background:rgba(15,23,42,.75);border:1px solid rgba(148,163,184,.18)}
-.line{background:transparent;border:1px solid rgba(148,163,184,.24)}
-.demo{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
-.demo button{text-align:left;background:rgba(15,23,42,.6);border:1px solid rgba(148,163,184,.16);border-radius:14px;color:#cbd5e1;padding:10px;font-size:12px}
-.layout{min-height:100vh;display:grid;grid-template-columns:var(--sidebar) 1fr}
-.sidebar{position:sticky;top:0;align-self:start;min-height:100vh;max-height:100vh;overflow:auto;background:rgba(2,6,23,.7);border-right:1px solid rgba(148,163,184,.16);backdrop-filter:blur(22px);padding:18px}
-.side-brand{display:flex;align-items:center;gap:12px;padding:8px 8px 18px;border-bottom:1px solid var(--line);margin-bottom:16px}
-.side-logo{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(135deg,#1d4ed8,#38bdf8);font-weight:950}
-.side-title{font-weight:950}
-.side-sub{font-size:12px;color:var(--muted);margin-top:3px}
-.nav-group{margin-bottom:14px}
-.nav-heading{color:var(--muted2);font-weight:950;text-transform:uppercase;letter-spacing:.12em;font-size:12px;padding:12px 10px 8px}
-.nav-item{width:100%;display:flex;align-items:center;gap:10px;border:1px solid transparent;background:transparent;color:#cbd5e1;border-radius:13px;min-height:42px;padding:10px 12px;margin-bottom:5px;text-align:left;font-weight:850}
-.nav-item:hover,.nav-item.active{background:rgba(37,99,235,.19);border-color:rgba(56,189,248,.28);color:#fff}
-.main{min-width:0}
-.topbar{position:sticky;top:0;z-index:50;min-height:var(--topbar);background:rgba(7,17,31,.76);border-bottom:1px solid rgba(148,163,184,.15);backdrop-filter:blur(18px);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px}
-.page-title{font-size:22px;font-weight:950}
-.page-subtitle{font-size:13px;color:var(--muted);margin-top:4px}
-.top-actions{display:flex;gap:10px;align-items:center;justify-content:flex-end;flex-wrap:wrap}
-.pill{display:inline-flex;align-items:center;gap:7px;border:1px solid rgba(148,163,184,.18);background:rgba(15,23,42,.7);border-radius:999px;padding:8px 12px;font-size:13px;font-weight:800;color:#cbd5e1}
-.content{padding:24px}
-.page{display:none}
-.page.active{display:block}
-.grid{display:grid;gap:16px}
-.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
-.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
-.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
-.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:0 16px 44px rgba(0,0,0,.18);backdrop-filter:blur(16px)}
-.card-title{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:16px;font-weight:950;margin-bottom:10px}
-.stat{min-height:126px;display:grid;align-content:space-between}
-.stat-label{font-size:13px;color:var(--muted);font-weight:850}
-.stat-value{font-size:30px;font-weight:950;letter-spacing:-.04em}
-.stat-note{font-size:12px;color:var(--muted2)}
-.badge{display:inline-flex;align-items:center;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:900;background:rgba(15,23,42,.72);border:1px solid rgba(148,163,184,.2);color:#cbd5e1}
-.b-blue{color:#7dd3fc;border-color:rgba(56,189,248,.35);background:rgba(14,165,233,.1)}
-.b-green{color:#86efac;border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.1)}
-.b-red{color:#fca5a5;border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.1)}
-.b-orange{color:#fdba74;border-color:rgba(249,115,22,.35);background:rgba(249,115,22,.1)}
-.b-purple{color:#d8b4fe;border-color:rgba(168,85,247,.35);background:rgba(168,85,247,.1)}
-.table-wrap{overflow:auto;border-radius:16px;border:1px solid rgba(148,163,184,.15)}
-table{width:100%;min-width:900px;border-collapse:collapse;background:rgba(15,23,42,.55)}
-th,td{padding:12px 13px;text-align:left;border-bottom:1px solid rgba(148,163,184,.12);font-size:13px;color:#cbd5e1;vertical-align:middle}
-th{color:#e5e7eb;text-transform:uppercase;letter-spacing:.05em;font-size:12px;background:rgba(30,41,59,.62)}
-tr:last-child td{border-bottom:0}
-.toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
-.toolbar-left,.toolbar-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.mini{border:0;border-radius:10px;padding:8px 10px;color:#fff;background:#334155;font-weight:900;font-size:12px}
-.m-blue{background:#2563eb}.m-green{background:#16a34a}.m-red{background:#dc2626}.m-orange{background:#ea580c}.m-purple{background:#7c3aed}
-.alert{padding:13px 14px;border-radius:14px;border:1px solid rgba(148,163,184,.18);background:rgba(15,23,42,.66);color:#cbd5e1;line-height:1.7}
-.a-blue{border-color:rgba(56,189,248,.3);background:rgba(14,165,233,.1)}
-.a-red{border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.1)}
-.a-orange{border-color:rgba(249,115,22,.3);background:rgba(249,115,22,.1)}
-.divider{height:1px;background:rgba(148,163,184,.15);margin:12px 0}
-.kv{display:flex;justify-content:space-between;gap:12px;border-bottom:1px dashed rgba(148,163,184,.16);padding:9px 0;color:#cbd5e1}
-.kv b{color:#fff}
-.switch-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-.switch-card{display:flex;align-items:center;justify-content:space-between;gap:10px;background:rgba(2,6,23,.48);border:1px solid rgba(148,163,184,.15);border-radius:14px;padding:10px}
-.switch-card span{font-size:12px;font-weight:850;color:#cbd5e1}
-.switch{width:44px;height:24px;border:0;border-radius:999px;background:#334155;position:relative;flex:0 0 auto}
-.switch:after{content:"";position:absolute;left:3px;top:3px;width:18px;height:18px;border-radius:999px;background:#fff;transition:.16s}
-.switch.on{background:#2563eb}.switch.on:after{transform:translateX(20px)}
-.modal-bg{position:fixed;inset:0;z-index:1000;background:rgba(2,6,23,.75);backdrop-filter:blur(12px);display:none;place-items:center;padding:20px}
-.modal-bg.show{display:grid}
-.modal{width:min(930px,100%);max-height:90vh;overflow:auto;background:rgba(15,23,42,.97);border:1px solid rgba(148,163,184,.24);border-radius:24px;box-shadow:var(--shadow);padding:20px}
-.modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:16px}
-.modal-title{font-size:20px;font-weight:950}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.form-row3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
-.tab{border:1px solid rgba(148,163,184,.18);background:rgba(15,23,42,.65);color:#cbd5e1;border-radius:999px;padding:9px 12px;font-weight:900}
-.tab.active{background:rgba(37,99,235,.5);color:#fff;border-color:rgba(56,189,248,.3)}
-.mobile-menu{display:none}
-@media(max-width:1120px){.g4{grid-template-columns:repeat(2,1fr)}.g3,.switch-grid{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:830px){
-.layout{grid-template-columns:1fr}.sidebar{position:fixed;z-index:500;inset:0 auto 0 0;width:min(320px,86vw);transform:translateX(-106%);transition:.18s}.sidebar.show{transform:translateX(0)}
-.mobile-menu{display:inline-flex}.topbar{align-items:flex-start;flex-direction:column}.content{padding:16px}.g2,.g3,.g4,.form-row,.form-row3,.switch-grid,.demo{grid-template-columns:1fr}
+
+body{
+  margin:0;
+  padding:0;
+  font-family:"Microsoft YaHei","PingFang SC",Arial,sans-serif;
+  background:
+    linear-gradient(rgba(8,15,35,.55),rgba(8,15,35,.70)),
+    url("./wealth-bg.jpg");
+  background-size:cover;
+  background-position:center;
+  background-repeat:no-repeat;
+  background-attachment:fixed;
+  color:var(--text);
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+
+.login-card{
+  position:absolute;
+  top:90px;
+  left:80px;
+  width:420px;
+  padding:40px;
+  border-radius:24px;
+  background:rgba(12,25,60,.45);
+  backdrop-filter:blur(25px);
+  -webkit-backdrop-filter:blur(25px);
+  border:1px solid rgba(255,255,255,.15);
+  box-shadow:
+    0 20px 50px rgba(0,0,0,.45),
+    0 0 40px rgba(37,99,235,.25);
+  color:#fff;
+  overflow:hidden;
+}
+
+.login-card::before{
+  content:"";
+  position:absolute;
+  inset:-1px;
+  background:linear-gradient(120deg,rgba(96,165,250,.25),transparent,rgba(34,211,238,.18));
+  pointer-events:none;
+}
+
+.login-card h2,
+.login-card p,
+.login-card input,
+.login-card button{
+  position:relative;
+  z-index:1;
+}
+
+input,select,textarea{
+  width:100%;
+  min-height:48px;
+  margin:10px 0;
+  padding:0 16px;
+  border:1px solid #cbd5e1;
+  border-radius:12px;
+  outline:none;
+  background:#fff;
+  color:#0f172a;
+  font-size:14px;
+}
+
+textarea{
+  padding:12px 16px;
+  resize:vertical;
+  min-height:72px;
+}
+
+.login-card input{
+  color:#fff;
+  background:rgba(255,255,255,.12);
+  border:none;
+}
+
+.login-card input::placeholder{
+  color:#cbd5e1;
+}
+
+input::placeholder,textarea::placeholder{
+  color:#64748b;
+}
+
+button{
+  width:100%;
+  height:54px;
+  border:none;
+  border-radius:12px;
+  background:linear-gradient(135deg,#2563eb,#06b6d4);
+  color:#fff;
+  font-size:16px;
+  font-weight:700;
+  letter-spacing:1px;
+  cursor:pointer;
+  transition:all .3s ease;
+  box-shadow:
+    0 0 15px rgba(37,99,235,.6),
+    0 0 30px rgba(6,182,212,.4);
+}
+
+button:hover{
+  transform:translateY(-2px);
+  background:linear-gradient(135deg,#3b82f6,#22d3ee);
+  box-shadow:
+    0 0 25px rgba(37,99,235,.9),
+    0 0 50px rgba(6,182,212,.8);
+}
+
+button:active{transform:scale(.98)}
+
+button:disabled{
+  cursor:not-allowed;
+  opacity:.55;
+  box-shadow:none;
+  transform:none;
+}
+
+.app{
+  display:none;
+  min-height:100vh;
+}
+
+.sidebar{
+  width:240px;
+  background:rgba(255,255,255,.96);
+  border-right:1px solid var(--border);
+  padding:20px 0;
+  backdrop-filter:blur(10px);
+}
+
+.logo{
+  text-align:center;
+  font-size:20px;
+  font-weight:bold;
+  color:var(--blue);
+  padding-bottom:20px;
+  border-bottom:1px solid var(--border);
+}
+
+.menu{
+  list-style:none;
+  margin:0;
+  padding:15px 0;
+}
+
+.menu li{
+  padding:13px 25px;
+  color:var(--muted);
+  cursor:pointer;
+  border-left:3px solid transparent;
+}
+
+.menu li.active,.menu li:hover{
+  background:#f1f5f9;
+  color:var(--text);
+  border-left-color:var(--blue);
+}
+
+.main{
+  flex:1;
+  padding:28px;
+}
+
+.top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  border-bottom:1px solid rgba(255,255,255,.65);
+  padding-bottom:18px;
+  margin-bottom:20px;
+  color:#fff;
+}
+
+.top h2{
+  color:#f97316;
+  text-shadow:0 2px 8px rgba(0,0,0,.35);
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:20px;
+}
+
+.card{
+  background:rgba(255,255,255,.97);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:22px;
+  box-shadow:0 8px 20px rgba(0,0,0,.06);
+}
+
+.card.full{grid-column:1/3}
+
+.badge{
+  display:inline-block;
+  padding:4px 8px;
+  border-radius:6px;
+  background:#eff6ff;
+  color:var(--blue);
+  font-size:12px;
+  font-weight:bold;
+}
+
+.notice{
+  background:#fff7ed;
+  border:1px solid #fed7aa;
+  color:#9a3412;
+  padding:12px;
+  border-radius:8px;
+  margin-bottom:18px;
+  font-size:13px;
+}
+
+.table-wrap{
+  width:100%;
+  overflow:auto;
+}
+
+.table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:15px;
+  background:#fff;
+  font-size:13px;
+}
+
+.table th,.table td{
+  padding:12px;
+  border-bottom:1px solid var(--border);
+  text-align:left;
+  vertical-align:middle;
+}
+
+.table th{
+  background:#f8fafc;
+  color:var(--muted);
+  white-space:nowrap;
+}
+
+.small-btn{
+  width:auto;
+  height:36px;
+  padding:7px 12px;
+  margin:2px;
+  font-size:12px;
+  letter-spacing:0;
+  box-shadow:none;
+}
+
+.green{background:var(--green)}
+.orange{background:var(--orange)}
+.red{background:var(--red)}
+.gray{background:#64748b}
+.blue{background:var(--blue)}
+.purple{background:var(--purple)}
+
+.muted{
+  color:var(--muted);
+  font-size:12px;
+}
+
+.danger-text{
+  color:var(--red);
+  font-weight:bold;
+}
+
+.ok-text{
+  color:var(--green);
+  font-weight:bold;
+}
+
+.warn-text{
+  color:var(--orange);
+  font-weight:bold;
+}
+
+.inline-input{
+  width:95px;
+  height:34px;
+  min-height:34px;
+  margin:0 5px 0 0;
+  padding:0 8px;
+}
+
+.note-input{
+  width:160px;
+  height:34px;
+  min-height:34px;
+  margin:0 5px 0 0;
+  padding:0 8px;
+}
+
+.form-row{
+  display:grid;
+  grid-template-columns:1.2fr 1.4fr 150px 120px 1.4fr auto;
+  gap:10px;
+  align-items:center;
+}
+
+.log-table{
+  font-size:12px;
+}
+
+.log-table td{
+  word-break:break-word;
+}
+
+.role-pill{
+  font-weight:700;
+}
+
+.hidden{
+  display:none!important;
+}
+
+.section-title{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.mini{
+  font-size:12px;
+  color:#64748b;
+  line-height:1.7;
+}
+
+.warn{
+  background:#fff7ed;
+  color:#9a3412;
+  border:1px solid #fed7aa;
+  border-radius:8px;
+  padding:10px;
+  margin-top:8px;
+  font-size:12px;
+}
+
+.v175-box{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:12px;
+}
+
+.v175-item{
+  border:1px dashed #cbd5e1;
+  border-radius:12px;
+  padding:14px;
+  background:#f8fafc;
+}
+
+
+.stat-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:12px;
+}
+.stat-box{
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:16px;
+  background:#f8fafc;
+}
+.stat-box b{
+  display:block;
+  font-size:24px;
+  margin-top:8px;
+  color:var(--blue);
+}
+.price-grid{
+  display:grid;
+  grid-template-columns:1.4fr 110px 110px 1.7fr 90px;
+  gap:10px;
+  align-items:center;
+  margin-bottom:10px;
+}
+.search-bar{
+  display:flex;
+  gap:10px;
+  margin:12px 0 14px;
+  flex-wrap:wrap;
+}
+.search-bar input{
+  flex:1;
+  min-width:240px;
+  margin:0;
+}
+.announce-box{
+  background:#f8fafc;
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:12px;
+  margin-top:10px;
+}
+.result-box{
+  background:#ecfeff;
+  border:1px solid #67e8f9;
+  color:#155e75;
+  border-radius:10px;
+  padding:12px;
+  margin-top:12px;
+  line-height:1.7;
+}
+.transfer-row{
+  display:grid;
+  grid-template-columns:1fr 1fr 140px 1.5fr auto;
+  gap:10px;
+  align-items:center;
+}
+@media(max-width:900px){
+  .stat-grid{grid-template-columns:1fr}
+  .price-grid{grid-template-columns:1fr}
+  .transfer-row{grid-template-columns:1fr}
+}
+
+
+
+.module-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:12px;
+}
+.module-box{
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:14px;
+  background:#f8fafc;
+}
+.module-box b{display:block;color:var(--blue);font-size:18px;margin-top:6px}
+.tag{display:inline-block;padding:4px 8px;border-radius:999px;background:#eef2ff;color:#4338ca;font-size:12px;margin:2px}
+.switch-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:8px 0}
+.file-card{border:1px dashed #cbd5e1;border-radius:12px;padding:12px;background:#fff;margin-top:10px}
+
+
+/* V2.8 权限 / 手续费 / 平台规则 */
+.permission-grid,.fee-grid,.rule-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:12px;
+}
+.permission-box,.fee-box,.rule-box{
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:14px;
+  background:#f8fafc;
+}
+.permission-box label,.fee-box label,.rule-box label{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin:8px 0;
+  font-size:13px;
+}
+.permission-box input[type="checkbox"],.fee-box input[type="checkbox"],.rule-box input[type="checkbox"]{
+  width:auto;
+  min-height:auto;
+  margin:0;
+}
+.fee-preview{
+  background:#ecfeff;
+  border:1px solid #67e8f9;
+  border-radius:12px;
+  padding:12px;
+  line-height:1.8;
+  color:#155e75;
+}
+.wallet-box{
+  background:#f0fdf4;
+  border:1px solid #86efac;
+  border-radius:12px;
+  padding:14px;
+}
+@media(max-width:900px){.permission-grid,.fee-grid,.rule-grid{grid-template-columns:1fr}}
+
+@media(max-width:900px){.module-grid{grid-template-columns:1fr}}
+
+@media(max-width:900px){
+  .login-card{
+    left:20px;
+    right:20px;
+    width:auto;
+  }
+  .app{
+    flex-direction:column;
+  }
+  .sidebar{
+    width:100%;
+  }
+  .grid{
+    grid-template-columns:1fr;
+  }
+  .card.full{
+    grid-column:1;
+  }
+  .form-row{
+    grid-template-columns:1fr;
+  }
+  .main{
+    padding:18px;
+  }
+  .top{
+    align-items:flex-start;
+    gap:10px;
+  }
+  .top .small-btn{
+    width:auto;
+  }
+  .v175-box{
+    grid-template-columns:1fr;
+  }
 }
 </style>
 </head>
 
 <body>
-<div id="toast" class="toast"></div>
 
-<section id="loginSection" class="login-wrap">
-  <div class="login-card">
-    <div class="brand">
-      <div class="logo">CS</div>
-      <div>
-        <div class="brand-title">财盛集团 · 博亿研发中心</div>
-        <div class="brand-sub">V2.8 企业权限终版 · 最终融合版</div>
-      </div>
-    </div>
-    <div class="login-title">系统登录</div>
-    <div class="desc">权限、代理、GM、自然注册、积分、余额、手续费、交易密码、安全中心全部融合。</div>
-
-    <div class="form">
-      <div class="field">
-        <label>邮箱</label>
-        <input id="loginEmail" class="input" type="email" value="super@cs.com" />
-      </div>
-      <div class="field">
-        <label>登录密码</label>
-        <input id="loginPassword" class="input" type="password" value="123456" />
-      </div>
-      <button class="btn primary" onclick="login()">进入系统</button>
-    </div>
-
-    <div class="demo">
-      <button onclick="quickLogin('super@cs.com')">SuperAdmin<br>super@cs.com / 123456</button>
-      <button onclick="quickLogin('gm1@cs.com')">GM001<br>gm1@cs.com / 123456</button>
-      <button onclick="quickLogin('agent1@cs.com')">Agent001<br>agent1@cs.com / 123456</button>
-      <button onclick="quickLogin('user1@cs.com')">User001<br>user1@cs.com / 123456</button>
-    </div>
-  </div>
-</section>
-
-<section id="appSection" class="hidden">
-  <div class="layout">
-    <aside id="sidebar" class="sidebar">
-      <div class="side-brand">
-        <div class="side-logo">CS</div>
-        <div>
-          <div class="side-title">财盛集团</div>
-          <div class="side-sub">博亿研发中心 V2.8</div>
-        </div>
-      </div>
-      <div id="navContainer"></div>
-    </aside>
-
-    <main class="main">
-      <div class="topbar">
-        <div>
-          <button class="btn line mobile-menu" onclick="toggleSidebar()">☰ 菜单</button>
-          <div id="pageTitle" class="page-title">控制台</div>
-          <div id="pageSubtitle" class="page-subtitle">企业权限终版总览</div>
-        </div>
-        <div class="top-actions">
-          <div id="currentUserPill" class="pill">未登录</div>
-          <button class="btn ghost" onclick="goPage('profile')">我的账户</button>
-          <button class="btn red" onclick="logout()">退出</button>
-        </div>
-      </div>
-
-      <div class="content">
-
-        <section id="page-dashboard" class="page active">
-          <div id="dashboardStats" class="grid g4"></div>
-
-          <div class="grid g2" style="margin-top:16px">
-            <div class="card">
-              <div class="card-title">V2.8 核心权限规则 <span class="badge b-blue">RBAC + Ownership</span></div>
-              <div class="alert a-blue">
-                SuperAdmin 管理全平台；GM 为联合管理层，可相互管理代理层；Agent 只能管理自己创建或邀请的下线；自然注册 User 归 GM 管理；User 只能管理自己账号。
-              </div>
-            </div>
-            <div class="card">
-              <div class="card-title">资金安全规则 <span class="badge b-red">交易密码必填</span></div>
-              <div class="alert a-red">
-                所有积分 / 余额转账、回收、人工调整都必须输入交易密码。默认交易密码为 123456，但首次必须修改后才允许使用。SuperAdmin 也不能跳过。
-              </div>
-            </div>
-          </div>
-
-          <div class="grid g2" style="margin-top:16px">
-            <div class="card">
-              <div class="card-title">手续费规则</div>
-              <div id="feeSummary"></div>
-            </div>
-            <div class="card">
-              <div class="card-title">系统规则</div>
-              <div id="systemRuleSummary"></div>
-            </div>
-          </div>
-
-          <div class="card" style="margin-top:16px">
-            <div class="card-title">最近日志 <button class="mini m-blue" onclick="goPage('logs')">查看全部</button></div>
-            <div class="table-wrap">
-              <table>
-                <thead><tr><th>时间</th><th>操作人</th><th>角色</th><th>类型</th><th>内容</th></tr></thead>
-                <tbody id="recentLogsTable"></tbody>
-              </table>
-            </div>
-          </div>
-        </section>
-
-        <section id="page-users" class="page">
-          <div class="toolbar">
-            <div class="toolbar-left">
-              <span class="badge b-blue">用户中心</span>
-              <span class="badge">按角色和归属过滤</span>
-            </div>
-            <div class="toolbar-right">
-              <button class="btn primary" onclick="openCreateUserModal()">创建账号</button>
-            </div>
-          </div>
-          <div class="card">
-            <div class="card-title">账号列表</div>
-            <div class="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>ID</th><th>名称</th><th>邮箱</th><th>角色</th><th>来源</th><th>归属</th><th>状态</th><th>余额</th><th>积分</th><th>密码状态</th><th>操作</th>
-                  </tr>
-                </thead>
-                <tbody id="usersTable"></tbody>
-              </table>
-            </div>
-          </div>
-        </section>
-
-        <section id="page-permissions" class="page">
-          <div class="grid g2">
-            <div class="card">
-              <div class="card-title">角色权限模板</div>
-              <div class="tabs">
-                <button class="tab active" onclick="renderRoleTemplate('SuperAdmin',this)">SuperAdmin</button>
-                <button class="tab" onclick="renderRoleTemplate('GM',this)">GM</button>
-                <button class="tab" onclick="renderRoleTemplate('Agent',this)">Agent</button>
-                <button class="tab" onclick="renderRoleTemplate('User',this)">User</button>
-              </div>
-              <div id="roleTemplateView" class="switch-grid"></div>
-            </div>
-
-            <div class="card">
-              <div class="card-title">单账号独立权限</div>
-              <div class="field">
-                <label>选择账号</label>
-                <select id="permissionUserSelect" class="select" onchange="renderAccountPermissions()"></select>
-              </div>
-              <div id="accountPermissionSwitches" class="switch-grid" style="margin-top:14px"></div>
-              <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
-                <button class="btn primary" onclick="saveAccountPermissions()">保存权限</button>
-                <button class="btn ghost" onclick="resetAccountPermissions()">恢复角色模板</button>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section id="page-wallet" class="page">
-          <div class="grid g4">
-            <div class="card stat">
-              <div class="stat-label">我的余额</div><div id="myBalance" class="stat-value">0</div><div class="stat-note">当前登录账号</div>
-            </div>
-            <div class="card stat">
-              <div class="stat-label">我的积分</div><div id="myPoints" class="stat-value">0</div><div class="stat-note">当前登录账号</div>
-            </div>
-            <div class="card stat">
-              <div class="stat-label">平台手续费余额</div><div id="platformBalance" class="stat-value">0</div><div class="stat-note">Platform Wallet</div>
-            </div>
-            <div class="card stat">
-              <div class="stat-label">平台手续费积分</div><div id="platformPoints" class="stat-value">0</div><div class="stat-note">Platform Wallet</div>
-            </div>
-          </div>
-
-          <div class="card" style="margin-top:16px">
-            <div class="card-title">积分 / 余额转账与回收 <span class="badge b-red">必须交易密码</span></div>
-            <div class="form-row3">
-              <div class="field">
-                <label>目标账号</label>
-                <select id="walletTarget" class="select" onchange="previewWallet()"></select>
-              </div>
-              <div class="field">
-                <label>资产类型</label>
-                <select id="walletAsset" class="select" onchange="previewWallet()">
-                  <option value="points">积分</option>
-                  <option value="balance">余额</option>
-                </select>
-              </div>
-              <div class="field">
-                <label>操作类型</label>
-                <select id="walletAction" class="select" onchange="previewWallet()">
-                  <option value="transfer">转账给对方</option>
-                  <option value="recycle">从对方回收</option>
-                </select>
-              </div>
-            </div>
-            <div class="form-row" style="margin-top:14px">
-              <div class="field">
-                <label>数量</label>
-                <input id="walletAmount" class="input" type="number" value="100" min="0" step="0.01" oninput="previewWallet()" />
-              </div>
-              <div class="field">
-                <label>交易密码</label>
-                <input id="walletTradePassword" class="input" type="password" placeholder="请输入交易密码" />
-              </div>
-            </div>
-            <div id="walletPreview" class="alert a-blue" style="margin-top:14px"></div>
-            <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
-              <button class="btn primary" onclick="executeWallet()">确认执行</button>
-              <button class="btn ghost" onclick="previewWallet()">重新计算</button>
-            </div>
-          </div>
-
-          <div class="card" style="margin-top:16px">
-            <div class="card-title">资金流水</div>
-            <div class="table-wrap">
-              <table>
-                <thead><tr><th>时间</th><th>业务</th><th>发送方</th><th>接收方</th><th>资产</th><th>数量</th><th>手续费</th><th>到账</th></tr></thead>
-                <tbody id="walletLogsTable"></tbody>
-              </table>
-            </div>
-          </div>
-        </section>
-
-        <section id="page-fees" class="page">
-          <div class="grid g2">
-            <div class="card">
-              <div class="card-title">手续费管理中心 <span class="badge b-red">SuperAdmin</span></div>
-              <div class="form-row">
-                <div class="field"><label>积分转账手续费 %</label><input id="feePointTransfer" class="input" type="number" step="0.01"></div>
-                <div class="field"><label>积分回收手续费 %</label><input id="feePointRecycle" class="input" type="number" step="0.01"></div>
-              </div>
-              <div class="form-row" style="margin-top:14px">
-                <div class="field"><label>余额转账手续费 %</label><input id="feeBalanceTransfer" class="input" type="number" step="0.01"></div>
-                <div class="field"><label>余额回收手续费 %</label><input id="feeBalanceRecycle" class="input" type="number" step="0.01"></div>
-              </div>
-              <div class="form-row" style="margin-top:14px">
-                <div class="field"><label>最低手续费</label><input id="feeMin" class="input" type="number" step="0.01"></div>
-                <div class="field"><label>最高手续费</label><input id="feeMax" class="input" type="number" step="0.01"></div>
-              </div>
-              <div class="form-row" style="margin-top:14px">
-                <div class="field">
-                  <label>手续费承担方</label>
-                  <select id="feePayer" class="select">
-                    <option value="sender">发送方承担</option>
-                    <option value="receiver">接收方承担</option>
-                    <option value="shared">双方分摊</option>
-                    <option value="platform">平台承担</option>
-                  </select>
-                </div>
-                <div class="field">
-                  <label>手续费开关</label>
-                  <select id="feeEnabled" class="select">
-                    <option value="true">启用</option>
-                    <option value="false">关闭</option>
-                  </select>
-                </div>
-              </div>
-              <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
-                <button class="btn primary" onclick="saveFeeSettings()">保存并实时生效</button>
-                <button class="btn ghost" onclick="loadFeeSettingsForm()">恢复当前配置</button>
-              </div>
-            </div>
-
-            <div class="card">
-              <div class="card-title">手续费预览</div>
-              <div class="form-row">
-                <div class="field">
-                  <label>业务</label>
-                  <select id="feePreviewBiz" class="select" onchange="renderFeePreview()">
-                    <option value="pointTransfer">积分转账</option>
-                    <option value="pointRecycle">积分回收</option>
-                    <option value="balanceTransfer">余额转账</option>
-                    <option value="balanceRecycle">余额回收</option>
-                  </select>
-                </div>
-                <div class="field">
-                  <label>数量</label>
-                  <input id="feePreviewAmount" class="input" type="number" value="100" oninput="renderFeePreview()">
-                </div>
-              </div>
-              <div id="feePreviewResult" class="alert a-blue" style="margin-top:14px"></div>
-            </div>
-          </div>
-
-          <div class="card" style="margin-top:16px">
-            <div class="card-title">手续费流水</div>
-            <div class="table-wrap">
-              <table>
-                <thead><tr><th>时间</th><th>业务</th><th>承担方</th><th>发送方</th><th>接收方</th><th>数量</th><th>费率</th><th>手续费</th></tr></thead>
-                <tbody id="feeLogsTable"></tbody>
-              </table>
-            </div>
-          </div>
-        </section>
-
-        <section id="page-rules" class="page">
-          <div class="grid g2">
-            <div class="card">
-              <div class="card-title">新用户创建规则 <span class="badge b-red">SuperAdmin</span></div>
-              <div class="field">
-                <label>Agent 创建 User 最低初始积分</label>
-                <input id="ruleAgentMinInitialPoints" class="input" type="number" min="0" step="1">
-              </div>
-              <div class="field" style="margin-top:14px">
-                <label>是否启用最低积分限制</label>
-                <select id="ruleMinInitialPointsEnabled" class="select">
-                  <option value="true">启用</option>
-                  <option value="false">关闭</option>
-                </select>
-              </div>
-              <div class="divider"></div>
-              <button class="btn primary" onclick="saveSystemRules()">保存规则</button>
-            </div>
-
-            <div class="card">
-              <div class="card-title">自然注册归属规则</div>
-              <div class="field">
-                <label>自然注册用户分配方式</label>
-                <select id="ruleDirectAssignMode" class="select">
-                  <option value="defaultGM">指定默认 GM</option>
-                  <option value="roundRobinGM">轮询分配 GM</option>
-                  <option value="randomGM">随机分配 GM</option>
-                </select>
-              </div>
-              <div class="field" style="margin-top:14px">
-                <label>默认 GM</label>
-                <select id="ruleDefaultGM" class="select"></select>
-              </div>
-              <div class="divider"></div>
-              <button class="btn primary" onclick="saveSystemRules()">保存规则</button>
-            </div>
-          </div>
-
-          <div class="card" style="margin-top:16px">
-            <div class="card-title">规则说明</div>
-            <div class="alert a-orange">
-              自然注册 User 不归 Agent 管理，系统会按 SuperAdmin 设置分配给 GM。Agent 创建或邀请的 User 才归 Agent 管理。
-            </div>
-          </div>
-        </section>
-
-        <section id="page-security" class="page">
-          <div class="grid g2">
-            <div class="card">
-              <div class="card-title">超级安全中心 <span class="badge b-red">不显示明文密码</span></div>
-              <div class="alert a-red">
-                SuperAdmin 可以重置用户登录密码、重置交易密码、查看密码状态，但不能查看任何人的明文密码。系统不保存明文密码。
-              </div>
-              <div class="divider"></div>
-              <div class="field">
-                <label>选择账号</label>
-                <select id="securityUserSelect" class="select" onchange="renderSecurityStatus()"></select>
-              </div>
-              <div id="securityStatusBox" class="alert a-blue" style="margin-top:14px"></div>
-              <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
-                <button class="btn orange" onclick="resetLoginPassword()">重置登录密码</button>
-                <button class="btn red" onclick="resetTradePassword()">重置交易密码</button>
-              </div>
-            </div>
-
-            <div class="card">
-              <div class="card-title">交易密码规则</div>
-              <div class="kv"><span>默认交易密码</span><b>123456</b></div>
-              <div class="kv"><span>首次是否可直接使用</span><b>不可使用</b></div>
-              <div class="kv"><span>必须先修改</span><b>是</b></div>
-              <div class="kv"><span>SuperAdmin 是否需要</span><b>需要</b></div>
-              <div class="kv"><span>是否显示明文</span><b>永不显示</b></div>
-            </div>
-          </div>
-        </section>
-
-        <section id="page-profile" class="page">
-          <div class="grid g2">
-            <div class="card">
-              <div class="card-title">我的账户 <span class="badge b-green">所有角色</span></div>
-              <div class="form">
-                <div class="field"><label>显示名称</label><input id="profileName" class="input"></div>
-                <div class="field"><label>手机号</label><input id="profilePhone" class="input"></div>
-                <div class="field"><label>头像地址</label><input id="profileAvatar" class="input"></div>
-                <button class="btn primary" onclick="saveProfile()">保存资料</button>
-              </div>
-              <div class="alert a-blue" style="margin-top:14px">User 可以修改自己的账号资料和密码，但不能定义平台、不能改角色、不能改权限、不能改余额积分。</div>
-            </div>
-
-            <div class="card">
-              <div class="card-title">修改登录密码</div>
-              <div class="form">
-                <div class="field"><label>旧登录密码</label><input id="oldLoginPassword" class="input" type="password"></div>
-                <div class="field"><label>新登录密码</label><input id="newLoginPassword" class="input" type="password"></div>
-                <div class="field"><label>确认新登录密码</label><input id="confirmLoginPassword" class="input" type="password"></div>
-                <button class="btn primary" onclick="changeLoginPassword()">修改登录密码</button>
-              </div>
-            </div>
-          </div>
-
-          <div class="grid g2" style="margin-top:16px">
-            <div class="card">
-              <div class="card-title">修改交易密码</div>
-              <div class="form">
-                <div class="field"><label>旧交易密码</label><input id="oldTradePassword" class="input" type="password"></div>
-                <div class="field"><label>新交易密码</label><input id="newTradePassword" class="input" type="password"></div>
-                <div class="field"><label>确认新交易密码</label><input id="confirmTradePassword" class="input" type="password"></div>
-                <button class="btn primary" onclick="changeTradePassword()">修改交易密码</button>
-              </div>
-            </div>
-
-            <div class="card">
-              <div class="card-title">我的安全状态</div>
-              <div id="mySecurityBox"></div>
-            </div>
-          </div>
-        </section>
-
-        <section id="page-tasks" class="page">
-          <div class="grid g2">
-            <div class="card">
-              <div class="card-title">创建检测任务</div>
-              <div class="form">
-                <div class="field">
-                  <label>检测类型</label>
-                  <select id="taskType" class="select">
-                    <option>WhatsApp检测</option>
-                    <option>Telegram检测</option>
-                    <option>Signal检测</option>
-                    <option>运营商检测</option>
-                    <option>空号检测</option>
-                  </select>
-                </div>
-                <div class="field"><label>号码内容</label><textarea id="taskNumbers" class="textarea" placeholder="每行一个号码"></textarea></div>
-                <button class="btn primary" onclick="createTask()">创建任务</button>
-              </div>
-            </div>
-            <div class="card">
-              <div class="card-title">任务规则</div>
-              <div class="kv"><span>SuperAdmin</span><b>全部任务</b></div>
-              <div class="kv"><span>GM</span><b>所有 GM / Agent 范围任务</b></div>
-              <div class="kv"><span>Agent</span><b>自己下线任务</b></div>
-              <div class="kv"><span>User</span><b>自己任务</b></div>
-            </div>
-          </div>
-          <div class="card" style="margin-top:16px">
-            <div class="card-title">任务列表</div>
-            <div class="table-wrap">
-              <table>
-                <thead><tr><th>时间</th><th>创建人</th><th>类型</th><th>数量</th><th>状态</th><th>操作</th></tr></thead>
-                <tbody id="tasksTable"></tbody>
-              </table>
-            </div>
-          </div>
-        </section>
-
-        <section id="page-api" class="page">
-          <div class="grid g3">
-            <div class="card"><div class="card-title">WhatsApp接口</div><div class="desc">预留注册检测、头像检测、批量检测。</div></div>
-            <div class="card"><div class="card-title">Telegram接口</div><div class="desc">预留注册检测、用户名检测、头像检测。</div></div>
-            <div class="card"><div class="card-title">运营商接口</div><div class="desc">预留 Mobile / VoIP / Landline / Carrier。</div></div>
-          </div>
-        </section>
-
-        <section id="page-packages" class="page">
-          <div class="grid g3" id="packagesGrid"></div>
-        </section>
-
-        <section id="page-orders" class="page">
-          <div class="card"><div class="card-title">订单中心</div><div class="table-wrap"><table><thead><tr><th>时间</th><th>用户</th><th>类型</th><th>金额</th><th>积分</th><th>状态</th></tr></thead><tbody id="ordersTable"></tbody></table></div></div>
-        </section>
-
-        <section id="page-ledger" class="page">
-          <div class="card"><div class="card-title">查账中心</div><div class="table-wrap"><table><thead><tr><th>时间</th><th>账号</th><th>类型</th><th>变动前</th><th>变动后</th><th>说明</th></tr></thead><tbody id="ledgerTable"></tbody></table></div></div>
-        </section>
-
-        <section id="page-logs" class="page">
-          <div class="card"><div class="card-title">系统日志</div><div class="table-wrap"><table><thead><tr><th>时间</th><th>操作人</th><th>角色</th><th>类型</th><th>内容</th></tr></thead><tbody id="logsTable"></tbody></table></div></div>
-        </section>
-
-      </div>
-    </main>
-  </div>
-</section>
-
-<div id="modalBg" class="modal-bg">
-  <div class="modal">
-    <div class="modal-head">
-      <div>
-        <div id="modalTitle" class="modal-title">弹窗</div>
-        <div id="modalSub" class="desc">V2.8 操作窗口</div>
-      </div>
-      <button class="btn ghost" onclick="closeModal()">关闭</button>
-    </div>
-    <div id="modalBody"></div>
-  </div>
+<div id="loginSection" class="login-card">
+  <h2 style="color:#60a5fa;margin:0 0 8px">财盛集团</h2>
+  <p style="color:#cbd5e1;font-size:14px;">博亿研发中心 · V2.8 商业正式版</p>
+  <input id="email" type="email" placeholder="授权账号 / Email">
+  <input id="password" type="password" placeholder="密码">
+  <button onclick="login()">安全登录</button>
+  <p style="font-size:12px;color:#cbd5e1;line-height:1.7">企业级商业系统 · 仅限授权账号访问<br>未授权访问与异常操作将被记录</p>
 </div>
 
-<script>
-const STORAGE_KEY = "CS_BOYI_V28_FINAL_FUSED";
-const ROLE_SUPER = "SuperAdmin";
-const ROLE_GM = "GM";
-const ROLE_AGENT = "Agent";
-const ROLE_USER = "User";
-const STATUS_ACTIVE = "Active";
-const STATUS_FROZEN = "Frozen";
-const STATUS_DELETED = "Deleted";
-const PLATFORM_ID = "PLATFORM_WALLET";
+<div id="appPanel" class="app">
+  <aside class="sidebar">
+    <div class="logo">🏛 财盛集团</div>
+    <ul class="menu" id="sideMenu">
+      <li class="active" onclick="showPage('dashboard', this)">📊 控制台</li>
+      <li onclick="showPage('detect', this)">🧪 检测中心</li>
+      <li onclick="showPage('users', this)">👥 用户管理</li>
+      <li onclick="showPage('billing', this)">💳 查账计费</li>
+      <li onclick="showPage('history', this)">🧾 检测历史</li>
+      <li onclick="showPage('data', this)">📈 数据中心</li>
+      <li onclick="showPage('ticket', this)">🎧 工单客服</li>
+      <li onclick="showPage('api', this)">🔌 API中心</li>
+      <li onclick="showPage('risk', this)">🛡️ 风控中心</li>
+      <li onclick="showPage('help', this)">📚 帮助中心</li>
+      <li data-permission="canManageFees" onclick="showPage('fees', this)">💸 手续费中心</li>
+      <li data-permission="canSetCreateUserCost" onclick="showPage('rules', this)">🧮 平台规则</li>
+      <li data-permission="canManagePermissions" onclick="showPage('permissions', this)">🔐 权限中心</li>
+      <li onclick="showPage('settings', this)">⚙️ 系统设置</li>
+    </ul>
+  </aside>
 
-const permissionList = [
-  "canViewDashboard",
-  "canViewUsers","canCreateUser","canEditUser","canDeleteUser","canFreezeUser",
-  "canViewPermissions","canEditPermissions",
-  "canViewFinance","canEditBalance","canEditPoints","canViewLedger","canViewOrders",
-  "canViewFees","canEditFees",
-  "canViewRules","canEditRules",
-  "canViewSecurity","canResetPassword",
-  "canViewTasks","canCreateTask","canExportResult",
-  "canViewApi","canEditApi",
-  "canViewPackages","canEditPackages",
-  "canViewLogs",
-  "canManageOwnProfile","canChangeOwnPassword","canChangeOwnTradePassword",
-  "canTransferToDownline","canRecycleFromDownline",
-  "feeExempt"
-];
+  <main class="main">
+    <div class="top">
+      <div>
+        <h2 style="margin:0">欢迎回来，<span id="userName">-</span></h2>
+        <span id="roleText" class="badge">权限组：-</span>
+      </div>
+      <button class="small-btn red" onclick="logout()">退出登录</button>
+    </div>
 
-const permissionLabels = {
-  canViewDashboard:"查看控制台",
-  canViewUsers:"查看用户中心",
-  canCreateUser:"创建用户",
-  canEditUser:"编辑用户",
-  canDeleteUser:"删除用户",
-  canFreezeUser:"冻结用户",
-  canViewPermissions:"查看权限中心",
-  canEditPermissions:"修改权限",
-  canViewFinance:"查看财务",
-  canEditBalance:"修改余额",
-  canEditPoints:"修改积分",
-  canViewLedger:"查看查账",
-  canViewOrders:"查看订单",
-  canViewFees:"查看手续费",
-  canEditFees:"修改手续费",
-  canViewRules:"查看系统规则",
-  canEditRules:"修改系统规则",
-  canViewSecurity:"查看安全中心",
-  canResetPassword:"重置密码",
-  canViewTasks:"查看任务",
-  canCreateTask:"创建任务",
-  canExportResult:"导出结果",
-  canViewApi:"查看接口",
-  canEditApi:"修改接口",
-  canViewPackages:"查看套餐",
-  canEditPackages:"修改套餐",
-  canViewLogs:"查看日志",
-  canManageOwnProfile:"管理自己资料",
-  canChangeOwnPassword:"修改登录密码",
-  canChangeOwnTradePassword:"修改交易密码",
-  canTransferToDownline:"转账给下级",
-  canRecycleFromDownline:"从下级回收",
-  feeExempt:"免手续费"
+    <div class="notice" id="permissionNotice">
+      权限结构：SuperAdmin 最高权限；GM 二级管理员；Agent 子账号；User 普通用户。
+    </div>
+
+    <div class="grid">
+
+      <div class="card full page-card" data-page="dashboard" id="dashboardPanel">
+        <h3>📊 系统仪表盘</h3>
+        <div class="stat-grid">
+          <div class="stat-box">用户总数<b id="dashUserCount">0</b></div>
+          <div class="stat-box">今日检测<b id="dashTodayTasks">0</b></div>
+          <div class="stat-box">总检测订单<b id="dashTaskCount">0</b></div>
+          <div class="stat-box">当前余额<b id="dashBalance">0</b></div>
+        </div>
+      </div>
+
+      <div class="card full page-card" data-page="dashboard" id="dashboardExtraPanel">
+        <h3>🏢 企业运营总览</h3>
+        <div class="module-grid">
+          <div class="module-box">今日收入<b id="dashTodayIncome">0</b><span class="muted">积分消耗折算</span></div>
+          <div class="module-box">本月检测<b id="dashMonthTasks">0</b><span class="muted">自动统计历史记录</span></div>
+          <div class="module-box">系统状态<b id="dashSystemStatus">正常</b><span class="muted">可在系统中心维护</span></div>
+        </div>
+      </div>
+
+      <div class="card page-card" data-page="detect" id="uploadPanel">
+        <h3>📤 上传号码文件</h3>
+        <input type="file" id="fileInput" accept=".txt,.csv,.xlsx">
+        <select>
+          <option>WhatsApp 头像检测</option>
+          <option>空号检测</option>
+          <option>活跃检测</option>
+        </select>
+        <button onclick="createTask()">创建检测任务</button>
+        <div class="warn">当前检测任务为商业流程占位模块，真实检测接口后续接入后自动切换为正式任务流水。</div>
+      </div>
+
+      <div class="card full page-card" data-page="detect" id="detectCenterPanel">
+        <h3>🧪 智能检测中心</h3>
+
+        <select id="detectType">
+          <option value="dedupe">数据去重检测</option>
+          <option value="wa">WhatsApp 注册检测（开发中）</option>
+          <option value="avatar">WhatsApp 头像检测（开发中）</option>
+          <option value="carrier">运营商识别（开发中）</option>
+          <option value="valid">号码有效性检测（开发中）</option>
+        </select>
+
+        <div class="warn">
+          大批量号码请优先上传 TXT / CSV 文件；手动输入框只适合少量测试。系统会优先读取上传文件，没有上传文件时才读取下方文本框。
+        </div>
+
+        <input id="detectFile" type="file" accept=".txt,.csv,text/plain,text/csv" onchange="handleDetectFileSelected()">
+        <div id="detectFileHint" class="mini">未选择文件。支持 TXT / CSV，每行一个号码，也兼容逗号分隔。</div>
+
+        <textarea id="numberInput" placeholder="小批量测试备用：一行一个号码&#10;+8613800000001&#10;+8613800000002&#10;+8613800000001"></textarea>
+
+        <button onclick="runDetection()">开始检测</button>
+
+        <div id="detectResult" class="result-box">等待检测...</div>
+      </div>
+
+      <div class="card full page-card" data-page="detect" id="dedupeResultPanel">
+        <h3>📌 数据去重结果</h3>
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>统计项</th>
+                <th>结果</th>
+              </tr>
+            </thead>
+            <tbody id="dedupeTable">
+              <tr><td>原始数量</td><td>0</td></tr>
+              <tr><td>去重后数量</td><td>0</td></tr>
+              <tr><td>重复数量</td><td>0</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card full page-card" data-page="billing" id="pricingPanel">
+        <div class="section-title">
+          <h3>💳 套餐价格管理</h3>
+          <span class="muted" id="pricingHint">SuperAdmin 可修改，其他角色只读。</span>
+        </div>
+        <div id="pricingRows"></div>
+        <button id="savePricingBtn" class="small-btn green" onclick="savePricing()">保存套餐价格</button>
+      </div>
+
+      <div class="card full page-card" data-page="settings" id="announcementPanel">
+        <div class="section-title">
+          <h3>📢 系统公告中心</h3>
+          <button id="saveAnnouncementBtn" class="small-btn blue" onclick="saveAnnouncement()">发布公告</button>
+        </div>
+        <input type="hidden" id="editingAnnouncementId" value="">
+        <input id="announcementTitle" placeholder="公告标题，例如：系统维护通知">
+        <textarea id="announcementContent" placeholder="公告内容"></textarea>
+        <div class="search-bar" id="announcementOptions">
+          <select id="announcementStatus">
+            <option value="Active">显示中</option>
+            <option value="Closed">已关闭</option>
+          </select>
+          <select id="announcementPinned">
+            <option value="false">普通公告</option>
+            <option value="true">📌 置顶公告</option>
+          </select>
+          <button id="cancelEditAnnouncementBtn" class="small-btn gray" style="display:none" onclick="cancelEditAnnouncement()">取消编辑</button>
+        </div>
+        <div class="mini">SuperAdmin / GM 可发布、编辑、删除、置顶、关闭公告。Agent / User 只能查看并关闭自己的通知。</div>
+        <div id="latestAnnouncement" class="announce-box">暂无公告</div>
+      </div>
+
+      <div class="card page-card" data-page="dashboard" id="accountPanel">
+        <h3>💰 当前账户</h3>
+        <p>账户余额：<b id="balanceText" style="color:var(--orange)">-</b> 积分</p>
+        <p>账号状态：<b id="statusText" style="color:var(--green)">-</b></p>
+        <p>实时状态：<b style="color:var(--blue)">Firebase 已接入</b></p>
+      </div>
+
+      <div class="card full page-card" data-page="users" id="initPanel">
+        <div class="section-title">
+          <h3>👥 账号资料初始化</h3>
+          <span class="muted">商业正式版安全规则：前端负责初始化资料，真正创建 Auth 账号后续由 Cloud Functions + Admin SDK 执行。</span>
+        </div>
+
+        <div class="mini">
+          现在流程：先到 Firebase Authentication 手动创建邮箱和密码，再复制 Auth 用户 UID 到这里初始化 Firestore 用户资料。
+          <br>
+          SuperAdmin 可初始化 SuperAdmin / GM / Agent / User；GM 只能初始化 Agent / User。
+        </div>
+
+        <div class="form-row">
+          <input id="newUid" placeholder="Auth 用户 UID">
+          <input id="newEmail" type="email" placeholder="邮箱">
+          <select id="newRole"></select>
+          <input id="newBalance" type="number" placeholder="初始积分" value="0">
+          <input id="newNote" placeholder="账号备注，例如：GM02负责美国">
+          <button class="small-btn green" onclick="initUserProfile()">初始化资料</button>
+        </div>
+      </div>
+
+      <div class="card full page-card" data-page="users" id="userCenterPanel">
+        <div class="section-title">
+          <h3>👥 用户管理中心</h3>
+          <span class="muted" id="userViewHint">-</span>
+        </div>
+
+        <div class="search-bar">
+          <input id="userSearch" placeholder="搜索邮箱 / UID / 角色 / 状态 / 备注" oninput="loadUsers()">
+          <button class="small-btn gray" onclick="clearUserSearch()">清空搜索</button>
+        </div>
+
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>邮箱</th>
+                <th>UID</th>
+                <th>角色</th>
+                <th>余额</th>
+                <th>状态</th>
+                <th>账号备注</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="usersBody">
+              <tr><td colspan="7" style="text-align:center;color:#64748b">暂无用户数据</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card full page-card" data-page="users" id="tagPanel">
+        <h3>🏷️ 用户标签 / 备注历史</h3>
+        <div class="transfer-row">
+          <input id="tagTargetUid" placeholder="目标用户 UID">
+          <input id="tagValue" placeholder="标签，例如：VIP / 美国客户 / 大客户 / 风险客户">
+          <input id="tagNote" placeholder="备注历史，例如：准备充值5000积分">
+          <button class="small-btn blue" onclick="saveUserTagNote()">保存标签备注</button>
+        </div>
+        <div id="tagResult" class="warn">保存后会写入 users/{uid} 的 tags 与 noteHistory 字段。</div>
+      </div>
+
+      <div class="card full page-card" data-page="billing" id="logsPanel">
+        <div class="section-title">
+          <h3>💳 查账中心 / 积分操作记录</h3>
+          <button class="small-btn green" onclick="loadLogs()">刷新记录</button>
+        </div>
+
+        <div class="mini" id="logViewHint">-</div>
+
+        <div class="table-wrap">
+          <table class="table log-table">
+            <thead>
+              <tr>
+                <th>时间</th>
+                <th>操作人</th>
+                <th>目标账号</th>
+                <th>目标角色</th>
+                <th>类型</th>
+                <th>变动</th>
+                <th>变动后余额</th>
+                <th>备注</th>
+              </tr>
+            </thead>
+            <tbody id="logsBody">
+              <tr><td colspan="8" style="text-align:center;color:#64748b">暂无记录</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card full page-card" data-page="users" id="v175Panel">
+        <div class="section-title">
+          <h3>🔐 商业账号管理后端能力</h3>
+          <span class="muted">创建账号 / 删除账号 / 重置密码属于高权限后端能力，需要 Firebase Cloud Functions + Admin SDK。</span>
+        </div>
+
+        <div class="v175-box">
+          <div class="v175-item">
+            <h4>创建账号</h4>
+            <p class="mini">计划函数：createUserByAdmin()</p>
+            <button class="small-btn blue" onclick="v175Notice('创建账号')">后端能力</button>
+          </div>
+          <div class="v175-item">
+            <h4>删除账号</h4>
+            <p class="mini">计划函数：deleteUserByAdmin()</p>
+            <button class="small-btn red" onclick="v175Notice('删除账号')">后端能力</button>
+          </div>
+          <div class="v175-item">
+            <h4>重置密码</h4>
+            <p class="mini">计划函数：resetPasswordByAdmin()</p>
+            <button class="small-btn purple" onclick="v175Notice('重置密码')">后端能力</button>
+          </div>
+        </div>
+
+        <div class="warn">
+          这三个功能不能只靠前端完成。商业正式版必须由 Cloud Functions + Admin SDK 执行，并配合 Firestore Rules 防止越权。
+        </div>
+      </div>
+
+      <div class="card full page-card" data-page="fees" id="feeCenterPanel">
+        <div class="section-title">
+          <h3>💸 V2.8 手续费管理中心</h3>
+          <button class="small-btn green" onclick="saveFeeConfig()">保存手续费规则</button>
+        </div>
+        <div class="notice">只有 SuperAdmin 或被授权账号可进入。支持积分转账、积分回收、余额转账、余额回收分别设置费率、承担方、最低/最高手续费、开关、阶梯费率。</div>
+        <div class="fee-grid">
+          <div class="fee-box">
+            <h4>积分转账</h4>
+            <label><input id="fee_transferPoints_enabled" type="checkbox"> 启用手续费</label>
+            <input id="fee_transferPoints_rate" type="number" step="0.0001" placeholder="费率 %，例如 0.1">
+            <input id="fee_transferPoints_min" type="number" step="0.0001" placeholder="最低手续费">
+            <input id="fee_transferPoints_max" type="number" step="0.0001" placeholder="最高手续费，0代表不限">
+            <select id="fee_transferPoints_mode"><option value="receiver">接收方承担</option><option value="sender">发送方承担</option><option value="shared">双方分摊</option><option value="platform">平台承担</option></select>
+            <textarea id="fee_transferPoints_ladder" placeholder="阶梯费率，每行：起始,结束,费率%&#10;1,999,1&#10;1000,9999,0.5&#10;10000,,0.1"></textarea>
+          </div>
+          <div class="fee-box">
+            <h4>积分回收</h4>
+            <label><input id="fee_recyclePoints_enabled" type="checkbox"> 启用手续费</label>
+            <input id="fee_recyclePoints_rate" type="number" step="0.0001" placeholder="费率 %">
+            <input id="fee_recyclePoints_min" type="number" step="0.0001" placeholder="最低手续费">
+            <input id="fee_recyclePoints_max" type="number" step="0.0001" placeholder="最高手续费，0代表不限">
+            <select id="fee_recyclePoints_mode"><option value="receiver">接收方承担</option><option value="sender">发送方承担</option><option value="shared">双方分摊</option><option value="platform">平台承担</option></select>
+            <textarea id="fee_recyclePoints_ladder" placeholder="阶梯费率，可留空"></textarea>
+          </div>
+          <div class="fee-box">
+            <h4>余额转账</h4>
+            <label><input id="fee_transferBalance_enabled" type="checkbox"> 启用手续费</label>
+            <input id="fee_transferBalance_rate" type="number" step="0.0001" placeholder="费率 %">
+            <input id="fee_transferBalance_min" type="number" step="0.0001" placeholder="最低手续费">
+            <input id="fee_transferBalance_max" type="number" step="0.0001" placeholder="最高手续费，0代表不限">
+            <select id="fee_transferBalance_mode"><option value="receiver">接收方承担</option><option value="sender">发送方承担</option><option value="shared">双方分摊</option><option value="platform">平台承担</option></select>
+            <textarea id="fee_transferBalance_ladder" placeholder="阶梯费率，可留空"></textarea>
+          </div>
+          <div class="fee-box">
+            <h4>余额回收</h4>
+            <label><input id="fee_recycleBalance_enabled" type="checkbox"> 启用手续费</label>
+            <input id="fee_recycleBalance_rate" type="number" step="0.0001" placeholder="费率 %">
+            <input id="fee_recycleBalance_min" type="number" step="0.0001" placeholder="最低手续费">
+            <input id="fee_recycleBalance_max" type="number" step="0.0001" placeholder="最高手续费，0代表不限">
+            <select id="fee_recycleBalance_mode"><option value="receiver">接收方承担</option><option value="sender">发送方承担</option><option value="shared">双方分摊</option><option value="platform">平台承担</option></select>
+            <textarea id="fee_recycleBalance_ladder" placeholder="阶梯费率，可留空"></textarea>
+          </div>
+        </div>
+        <hr style="border:none;border-top:1px solid #e2e8f0;margin:18px 0">
+        <h4>实时预览</h4>
+        <div class="transfer-row">
+          <select id="feePreviewType"><option value="transferPoints">积分转账</option><option value="recyclePoints">积分回收</option><option value="transferBalance">余额转账</option><option value="recycleBalance">余额回收</option></select>
+          <input id="feePreviewAmount" type="number" value="1000" placeholder="输入金额/积分">
+          <button class="small-btn blue" onclick="previewFeeConfig()">计算预览</button>
+          <div id="feePreviewResult" class="fee-preview">等待计算...</div>
+        </div>
+        <h4>平台手续费钱包</h4>
+        <div id="platformWalletBox" class="wallet-box">PlatformWallet：等待加载...</div>
+        <h4>手续费流水</h4>
+        <div class="table-wrap"><table class="table"><thead><tr><th>时间</th><th>业务</th><th>承担方</th><th>发送方</th><th>接收方</th><th>本金</th><th>手续费</th><th>到账</th></tr></thead><tbody id="feeLogsBody"><tr><td colspan="8" style="text-align:center;color:#64748b">暂无手续费流水</td></tr></tbody></table></div>
+      </div>
+
+      <div class="card full page-card" data-page="rules" id="platformRulesPanel">
+        <div class="section-title">
+          <h3>🧮 V2.8 平台规则管理中心</h3>
+          <button class="small-btn green" onclick="savePlatformRules()">保存平台规则</button>
+        </div>
+        <div class="notice">这里把原本固定的“代理创建新用户扣 10 积分”改成 SuperAdmin 可实时控制，10 只是默认值，不再写死。</div>
+        <div class="rule-grid">
+          <div class="rule-box">
+            <h4>账号创建成本</h4>
+            <label><input id="rule_createCostEnabled" type="checkbox"> 启用创建账号扣费</label>
+            <label><input id="rule_costToPlatformWallet" type="checkbox"> 扣费进入 PlatformWallet</label>
+            <input id="rule_agentCreateUserCost" type="number" step="0.0001" placeholder="Agent 创建 User 成本，默认 10">
+            <input id="rule_gmCreateUserCost" type="number" step="0.0001" placeholder="GM 创建 User 成本">
+            <input id="rule_gmCreateAgentCost" type="number" step="0.0001" placeholder="GM 创建 Agent 成本">
+            <input id="rule_superCreateAnyCost" type="number" step="0.0001" placeholder="SuperAdmin 创建账号成本，建议 0">
+          </div>
+          <div class="rule-box">
+            <h4>创建成本预览</h4>
+            <select id="createCostPreviewCreator"><option>Agent</option><option>GM</option><option>SuperAdmin</option></select>
+            <select id="createCostPreviewTarget"><option>User</option><option>Agent</option><option>GM</option><option>SuperAdmin</option></select>
+            <button class="small-btn blue" onclick="previewCreateCost()">预览成本</button>
+            <div id="createCostPreviewResult" class="fee-preview">等待计算...</div>
+          </div>
+        </div>
+        <h4>创建账号成本流水</h4>
+        <div class="table-wrap"><table class="table"><thead><tr><th>时间</th><th>创建者</th><th>新账号</th><th>角色</th><th>成本</th><th>创建前</th><th>创建后</th><th>状态</th></tr></thead><tbody id="createCostLogsBody"><tr><td colspan="8" style="text-align:center;color:#64748b">暂无创建成本流水</td></tr></tbody></table></div>
+      </div>
+
+      <div class="card full page-card" data-page="permissions" id="permissionCenterPanel">
+        <div class="section-title">
+          <h3>🔐 V2.8 单账号权限管理中心</h3>
+          <button class="small-btn green" onclick="saveAccountPermissions()">保存账号权限</button>
+        </div>
+        <div class="notice">SuperAdmin 可给任意账号单独开启/关闭功能权限。GM 若要管理权限，也必须先被 SuperAdmin 授权。</div>
+        <div class="transfer-row">
+          <input id="permTargetUid" placeholder="目标账号 UID">
+          <button class="small-btn blue" onclick="loadAccountPermissions()">读取权限</button>
+          <button class="small-btn gray" onclick="fillPermissionTargetFromCurrent()">填入当前账号</button>
+        </div>
+        <div class="permission-grid" id="permissionCheckboxes"></div>
+      </div>
+
+      <div class="card full page-card" data-page="settings" id="settingPanel">
+        <h3>⚙️ 账户设置</h3>
+        <p>当前邮箱：<b id="settingEmail">-</b></p>
+        <p>当前权限：<b id="settingRole">-</b></p>
+        <p>当前余额：<b id="settingBalance">-</b> 积分</p>
+
+        <hr style="border:none;border-top:1px solid #e2e8f0;margin:18px 0">
+
+        <h4>修改密码</h4>
+        <input id="oldPassword" type="password" placeholder="请输入当前密码">
+        <input id="newPassword" type="password" placeholder="请输入新密码，至少6位">
+        <input id="confirmPassword" type="password" placeholder="再次输入新密码">
+        <button onclick="changePassword()">修改密码</button>
+      </div>
+
+      <div class="card full page-card" data-page="billing" id="transferPanel">
+        <div class="section-title">
+          <h3>🔁 账号积分互转</h3>
+          <span class="muted">SuperAdmin 可在任意账号之间转积分；GM 可在管理范围内操作。</span>
+        </div>
+        <div class="transfer-row">
+          <input id="transferFromUid" placeholder="转出账号 UID">
+          <input id="transferToUid" placeholder="接收账号 UID">
+          <input id="transferAmount" type="number" placeholder="积分数量">
+          <input id="transferNote" placeholder="转账备注，非必填">
+          <button class="small-btn green" onclick="transferBalance()">确认转账</button>
+        </div>
+      </div>
+
+      <div class="card full page-card" data-page="billing" id="rechargePanel">
+        <div class="section-title">
+          <h3>💵 充值申请 / 审核中心</h3>
+          <button class="small-btn green" onclick="submitRechargeRequest()">提交充值申请</button>
+        </div>
+        <div class="transfer-row">
+          <input id="rechargeAmount" type="number" placeholder="充值积分数量">
+          <input id="rechargeNote" placeholder="充值备注 / 支付方式 / 流水号">
+          <input id="rechargeUserEmail" placeholder="申请账号邮箱，默认当前账号">
+          <button class="small-btn blue" onclick="loadRechargeRequests()">刷新申请</button>
+        </div>
+        <div class="table-wrap">
+          <table class="table"><thead><tr><th>时间</th><th>申请账号</th><th>数量</th><th>状态</th><th>备注</th><th>操作</th></tr></thead><tbody id="rechargeBody"><tr><td colspan="6" style="text-align:center;color:#64748b">暂无充值申请</td></tr></tbody></table>
+        </div>
+      </div>
+
+      <div class="card full page-card" data-page="billing" id="batchBalancePanel">
+        <h3>➕ 批量加积分</h3>
+        <textarea id="batchBalanceText" placeholder="一行一个：UID,积分,备注&#10;用户UID1,100,手动充值&#10;用户UID2,50,补偿积分"></textarea>
+        <button class="small-btn green" onclick="batchAddBalance()">执行批量加积分</button>
+        <div class="warn">仅 SuperAdmin / GM 可用。前端版适合少量管理操作，大规模批量建议后续用 Cloud Functions。</div>
+      </div>
+
+      <div class="card full page-card" data-page="billing" id="priceLogPanel">
+        <div class="section-title"><h3>🧾 价格修改日志</h3><button class="small-btn green" onclick="loadPriceLogs()">刷新</button></div>
+        <div class="table-wrap"><table class="table"><thead><tr><th>时间</th><th>操作人</th><th>类型</th><th>备注</th></tr></thead><tbody id="priceLogsBody"><tr><td colspan="4" style="text-align:center;color:#64748b">暂无价格日志</td></tr></tbody></table></div>
+      </div>
+
+      <div class="card full page-card" data-page="history" id="historyPanel">
+        <div class="section-title">
+          <h3>🧾 检测历史记录</h3>
+          <button class="small-btn green" onclick="loadDetectionHistory()">刷新历史</button>
+        </div>
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>时间</th>
+                <th>用户</th>
+                <th>类型</th>
+                <th>原始数量</th>
+                <th>去重后</th>
+                <th>重复</th>
+                <th>消耗积分</th>
+              </tr>
+            </thead>
+            <tbody id="historyBody">
+              <tr><td colspan="7" style="text-align:center;color:#64748b">暂无检测历史</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card full page-card" data-page="history" id="taskFlowPanel">
+        <h3>📋 任务流水</h3>
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>批次单号</th>
+                <th>类型</th>
+                <th>总数</th>
+                <th>成功数</th>
+                <th>有头像</th>
+                <th>无头像</th>
+                <th>状态</th>
+                <th>导出</th>
+              </tr>
+            </thead>
+            <tbody id="taskTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card full page-card" data-page="data" id="dataCenterPanel">
+        <h3>📈 数据统计中心</h3>
+        <div class="module-grid">
+          <div class="module-box">今日检测量<b id="dataTodayCount">0</b></div>
+          <div class="module-box">本月检测量<b id="dataMonthCount">0</b></div>
+          <div class="module-box">总检测量<b id="dataTotalCount">0</b></div>
+        </div>
+        <div class="table-wrap"><table class="table"><thead><tr><th>排行榜</th><th>账号</th><th>数值</th></tr></thead><tbody id="rankingBody"><tr><td>消费排行</td><td>-</td><td>0</td></tr><tr><td>检测排行</td><td>-</td><td>0</td></tr><tr><td>GM业绩排行</td><td>-</td><td>0</td></tr></tbody></table></div>
+      </div>
+
+      <div class="card full page-card" data-page="ticket" id="ticketPanel">
+        <div class="section-title"><h3>🎧 工单客服中心</h3><button class="small-btn green" onclick="submitTicket()">提交工单</button></div>
+        <input id="ticketTitle" placeholder="工单标题">
+        <textarea id="ticketContent" placeholder="请描述问题 / 建议 / 充值说明"></textarea>
+        <div class="table-wrap"><table class="table"><thead><tr><th>时间</th><th>提交人</th><th>标题</th><th>状态</th><th>操作</th></tr></thead><tbody id="ticketBody"><tr><td colspan="5" style="text-align:center;color:#64748b">暂无工单</td></tr></tbody></table></div>
+      </div>
+
+      <div class="card full page-card" data-page="api" id="apiPanel">
+        <div class="section-title"><h3>🔌 API接口商配置中心</h3><button class="small-btn green" onclick="saveApiProvider()">保存接口商</button></div>
+        <div class="form-row">
+          <input id="apiName" placeholder="接口名称，例如 WhatsApp-A">
+          <input id="apiType" placeholder="接口类型，例如 wa/avatar/carrier">
+          <input id="apiCost" type="number" step="0.0001" placeholder="接口成本">
+          <select id="apiStatus"><option>启用</option><option>停用</option><option>备用</option></select>
+          <input id="apiRemark" placeholder="备注 / 成功率 / 联系人">
+          <button class="small-btn blue" onclick="loadApiProviders()">刷新</button>
+        </div>
+        <div class="table-wrap"><table class="table"><thead><tr><th>名称</th><th>类型</th><th>成本</th><th>状态</th><th>备注</th></tr></thead><tbody id="apiBody"><tr><td colspan="5" style="text-align:center;color:#64748b">暂无接口商</td></tr></tbody></table></div>
+      </div>
+
+      <div class="card full page-card" data-page="risk" id="riskPanel">
+        <div class="section-title"><h3>🛡️ 风控与操作日志</h3><button class="small-btn green" onclick="loadRiskLogs()">刷新日志</button></div>
+        <div class="module-grid">
+          <div class="module-box">最后登录<b id="lastLoginText">-</b></div>
+          <div class="module-box">风险操作<b>删除 / 转积分 / 改价格</b></div>
+          <div class="module-box">异常登录<b>前端预留</b></div>
+        </div>
+        <div class="table-wrap"><table class="table"><thead><tr><th>时间</th><th>账号</th><th>操作</th><th>备注</th></tr></thead><tbody id="riskBody"><tr><td colspan="4" style="text-align:center;color:#64748b">暂无风险日志</td></tr></tbody></table></div>
+      </div>
+
+      <div class="card full page-card" data-page="help" id="helpPanel">
+        <h3>📚 帮助中心 / 下载中心</h3>
+        <div class="module-grid">
+          <div class="module-box">号码文件模板<b>TXT / CSV</b><button class="small-btn blue" onclick="downloadTemplate()">下载模板</button></div>
+          <div class="module-box">常见问题<b>检测 / 充值 / 权限</b><button class="small-btn gray" onclick="alert('帮助中心内容可在后续版本接入 Firestore 可编辑文档')">查看说明</button></div>
+          <div class="module-box">接口文档<b>API预留</b><button class="small-btn gray" onclick="alert('API接口文档后续接入')">查看文档</button></div>
+        </div>
+      </div>
+
+      <div class="card full page-card" data-page="settings" id="globalConfigPanel">
+        <div class="section-title"><h3>🧩 全局配置中心</h3><button class="small-btn green" onclick="saveGlobalConfig()">保存配置</button></div>
+        <div class="form-row">
+          <input id="cfgPlatformName" placeholder="平台名称" value="财盛集团 - 博亿研发中心">
+          <input id="cfgLogoText" placeholder="Logo文字" value="🏛 财盛集团">
+          <input id="cfgSupport" placeholder="客服联系方式">
+          <select id="cfgMaintenance"><option value="off">系统正常</option><option value="on">维护模式</option></select>
+          <select id="cfgNoticeSwitch"><option value="on">公告开启</option><option value="off">公告关闭</option></select>
+          <button class="small-btn blue" onclick="loadGlobalConfig()">刷新</button>
+        </div>
+        <div class="warn">系统维护开关、客服配置、Logo文字都保存到 Firestore settings/global。</div>
+      </div>
+
+      <div class="card full page-card" data-page="settings" id="fileManagePanel">
+        <h3>🗂️ 文件管理中心</h3>
+        <div class="file-card">Logo、帮助文档、公告附件：当前页面提供入口展示；正式上传保存建议后续接 Firebase Storage。</div>
+        <input type="file" id="managedFile" accept=".png,.jpg,.jpeg,.pdf,.doc,.docx,.txt,.csv">
+        <button class="small-btn blue" onclick="previewManagedFile()">选择文件预览</button>
+        <div id="managedFileHint" class="mini">暂无文件</div>
+      </div>
+
+
+    </div>
+  </main>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  updatePassword,
+  EmailAuthProvider,
+  reauthenticateWithCredential
+} from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc,
+  collection,
+  getDocs,
+  updateDoc,
+  deleteDoc,
+  addDoc,
+  serverTimestamp,
+  runTransaction
+} from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
+
+/* Firebase 配置：已保留你当前项目 databox-web-1c4df */
+const firebaseConfig = {
+  apiKey: "AIzaSyDzPXn93JxnOrDwZ1cW_0lFdF5IkvMagaw",
+  authDomain: "databox-web-1c4df.firebaseapp.com",
+  projectId: "databox-web-1c4df",
+  storageBucket: "databox-web-1c4df.firebasestorage.app",
+  messagingSenderId: "358550995038",
+  appId: "1:358550995038:web:ee2d0de6f6cf8f52e2b4cf"
 };
 
-function allPerm(value){
-  const obj = {};
-  permissionList.forEach(k => obj[k] = value);
-  return obj;
-}
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-const roleTemplates = {
-  SuperAdmin: allPerm(true),
-  GM: {
-    ...allPerm(false),
-    canViewDashboard:true,
-    canViewUsers:true, canCreateUser:true, canEditUser:true, canDeleteUser:true, canFreezeUser:true,
-    canViewFinance:true, canViewLedger:true, canViewOrders:true,
-    canViewTasks:true, canCreateTask:true, canExportResult:true,
-    canViewPackages:true,
-    canViewLogs:true,
-    canManageOwnProfile:true, canChangeOwnPassword:true, canChangeOwnTradePassword:true,
-    canTransferToDownline:true, canRecycleFromDownline:true
-  },
-  Agent: {
-    ...allPerm(false),
-    canViewDashboard:true,
-    canViewUsers:true, canCreateUser:true, canEditUser:true,
-    canViewFinance:true, canViewLedger:true, canViewOrders:true,
-    canViewTasks:true, canCreateTask:true, canExportResult:true,
-    canViewPackages:true,
-    canManageOwnProfile:true, canChangeOwnPassword:true, canChangeOwnTradePassword:true,
-    canTransferToDownline:true, canRecycleFromDownline:true
-  },
-  User: {
-    ...allPerm(false),
-    canViewDashboard:true,
-    canViewFinance:true, canViewLedger:true, canViewOrders:true,
-    canViewTasks:true, canCreateTask:true, canExportResult:true,
-    canViewPackages:true,
-    canManageOwnProfile:true, canChangeOwnPassword:true, canChangeOwnTradePassword:true
-  }
+let currentUserProfile = null;
+let tasks = [];
+let pricingConfig = {
+  dedupe:{name:"数据去重检测", price:0.01, status:"已上线", desc:"批量号码去重，按原始号码数量计费"},
+  wa:{name:"WhatsApp 注册检测", price:0.05, status:"开发中", desc:"预留接口，后续接入真实检测"},
+  avatar:{name:"WhatsApp 头像检测", price:0.08, status:"开发中", desc:"预留接口，后续接入真实检测"},
+  carrier:{name:"运营商识别", price:0.03, status:"开发中", desc:"识别运营商类型"},
+  valid:{name:"号码有效性检测", price:0.02, status:"开发中", desc:"号码格式和有效性检测"}
 };
 
-const navGroups = [
-  {title:"总览",items:[
-    {page:"dashboard",icon:"📊",label:"控制台",perm:"canViewDashboard",sub:"企业权限终版总览"}
-  ]},
-  {title:"账户",items:[
-    {page:"profile",icon:"👤",label:"我的账户",perm:"canManageOwnProfile",sub:"资料、登录密码、交易密码"}
-  ]},
-  {title:"管理",items:[
-    {page:"users",icon:"👥",label:"用户中心",perm:"canViewUsers",sub:"账号、GM、Agent、User"},
-    {page:"permissions",icon:"🔐",label:"权限中心",perm:"canViewPermissions",sub:"角色权限与独立权限"},
-    {page:"rules",icon:"⚙️",label:"系统规则",perm:"canViewRules",sub:"新用户积分与自然注册归属"},
-    {page:"security",icon:"🛡️",label:"超级安全中心",perm:"canViewSecurity",sub:"重置密码与密码状态"}
-  ]},
-  {title:"财务",items:[
-    {page:"wallet",icon:"💳",label:"余额积分中心",perm:"canViewFinance",sub:"转账、回收、钱包"},
-    {page:"fees",icon:"🧾",label:"手续费中心",perm:"canViewFees",sub:"费率、承担方、流水"},
-    {page:"ledger",icon:"📒",label:"查账中心",perm:"canViewLedger",sub:"余额积分变动"},
-    {page:"orders",icon:"🧾",label:"订单中心",perm:"canViewOrders",sub:"套餐、充值、扣费"}
-  ]},
-  {title:"业务",items:[
-    {page:"tasks",icon:"📡",label:"检测任务",perm:"canViewTasks",sub:"号码检测任务"},
-    {page:"api",icon:"🔌",label:"接口中心",perm:"canViewApi",sub:"接口供应商配置"},
-    {page:"packages",icon:"🎁",label:"套餐中心",perm:"canViewPackages",sub:"积分套餐"}
-  ]},
-  {title:"审计",items:[
-    {page:"logs",icon:"📜",label:"系统日志",perm:"canViewLogs",sub:"操作审计"}
-  ]}
+/* ================= V2.8 企业权限 / 手续费 / 创建成本引擎 ================= */
+const V28_PERMISSION_KEYS = [
+  ["canViewDashboard","查看控制台"],
+  ["canUseDetect","使用检测中心"],
+  ["canViewUsers","查看用户管理"],
+  ["canManageUsers","管理账号资料"],
+  ["canCreateUser","创建 User"],
+  ["canCreateAgent","创建 Agent"],
+  ["canCreateGM","创建 GM"],
+  ["canAdjustBalance","加减积分"],
+  ["canTransferPoints","积分转账"],
+  ["canRecyclePoints","积分回收"],
+  ["canViewBilling","查看查账计费"],
+  ["canViewAllLogs","查看全部流水"],
+  ["canManageFees","管理手续费"],
+  ["canViewFeeLogs","查看手续费流水"],
+  ["canSetCreateUserCost","设置创建账号成本"],
+  ["canManagePermissions","管理单账号权限"],
+  ["canManageAnnouncements","管理公告"],
+  ["canManageApi","管理接口商"],
+  ["canManageSystem","管理系统配置"],
+  ["feeExempt","免手续费"]
 ];
 
-let state = loadState();
-let currentUserId = localStorage.getItem("CS_BOYI_CURRENT_USER") || "";
-let currentPage = "dashboard";
-let tempAccountPerms = {};
+const defaultFeeConfig = {
+  transferPoints:{enabled:true, rate:0.1, min:0, max:0, mode:"receiver", ladder:[]},
+  recyclePoints:{enabled:true, rate:0.1, min:0, max:0, mode:"receiver", ladder:[]},
+  transferBalance:{enabled:false, rate:0, min:0, max:0, mode:"receiver", ladder:[]},
+  recycleBalance:{enabled:false, rate:0, min:0, max:0, mode:"receiver", ladder:[]}
+};
 
-function defaultState(){
-  const now = nowText();
-  const users = [
-    createUserSeed("SUPER001","平台所有者","super@cs.com",ROLE_SUPER,"Platform","Platform","ROOT",1000000,1000000),
-    createUserSeed("GM001","GM一号","gm1@cs.com",ROLE_GM,"GM","Platform","SUPER001",20000,50000),
-    createUserSeed("GM002","GM二号","gm2@cs.com",ROLE_GM,"GM","Platform","SUPER001",15000,40000),
-    createUserSeed("AGENT001","Agent一号","agent1@cs.com",ROLE_AGENT,"Agent","GM001","GM001",5000,10000),
-    createUserSeed("AGENT002","Agent二号","agent2@cs.com",ROLE_AGENT,"Agent","GM002","GM002",4000,9000),
-    createUserSeed("USER001","代理用户一号","user1@cs.com",ROLE_USER,"Agent","AGENT001","AGENT001",100,300),
-    createUserSeed("USER002","自然注册用户一号","direct1@cs.com",ROLE_USER,"Direct","GM001","SELF",80,200)
-  ];
-  return {
-    users,
-    platformWallet:{balance:0,points:0},
-    feeSettings:{
-      enabled:true,
-      pointTransferRate:0.1,
-      pointRecycleRate:0.1,
-      balanceTransferRate:0.1,
-      balanceRecycleRate:0.1,
-      minFee:0,
-      maxFee:999999,
-      payer:"receiver"
-    },
-    systemRules:{
-      agentMinInitialUserPoints:10,
-      minInitialPointsEnabled:true,
-      directAssignMode:"defaultGM",
-      defaultGM:"GM001",
-      roundRobinIndex:0
-    },
-    walletLogs:[],
-    feeLogs:[],
-    ledger:[],
-    logs:[{time:now,actor:"SYSTEM",role:"System",type:"INIT",content:"V2.8 最终融合版初始化完成"}],
-    tasks:[],
-    orders:[
-      {time:now,user:"USER001",type:"套餐订单",amount:100,points:1000,status:"已完成"},
-      {time:now,user:"USER002",type:"检测扣费",amount:0,points:-20,status:"已完成"}
-    ],
-    packages:[
-      {name:"体验套餐",price:99,points:1000,enabled:true},
-      {name:"标准套餐",price:499,points:6000,enabled:true},
-      {name:"企业套餐",price:1999,points:30000,enabled:true}
-    ]
-  };
-}
+const defaultPlatformRules = {
+  createCostEnabled:true,
+  costToPlatformWallet:true,
+  agentCreateUserCost:10,
+  gmCreateUserCost:0,
+  gmCreateAgentCost:0,
+  superCreateAnyCost:0
+};
 
-function createUserSeed(id,name,email,role,ownerType,ownerId,createdBy,balance,points){
-  return {
-    id,name,email,role,ownerType,ownerId,createdBy,balance,points,
-    status:STATUS_ACTIVE,
-    phone:"",
-    avatar:"",
-    registerType:ownerType === "Direct" ? "Direct" : ownerType,
-    loginPasswordHash:hashPassword("123456"),
-    loginPasswordStatus:"initial",
-    loginPasswordChanged:false,
-    loginPasswordUpdatedAt:"",
-    tradePasswordHash:hashPassword("123456"),
-    tradePasswordStatus:"initial",
-    tradePasswordChanged:false,
-    tradePasswordUpdatedAt:"",
-    tradePasswordFailCount:0,
-    tradePasswordLockedUntil:0,
-    permissions:{...roleTemplates[role]},
-    createdAt:nowText()
-  };
-}
+let feeConfig = structuredClone(defaultFeeConfig);
+let platformRules = {...defaultPlatformRules};
 
-function loadState(){
-  const raw = localStorage.getItem(STORAGE_KEY);
-  if(!raw){
-    const s = defaultState();
-    localStorage.setItem(STORAGE_KEY,JSON.stringify(s));
-    return s;
+function defaultPermissionsByRole(role){
+  const base = Object.fromEntries(V28_PERMISSION_KEYS.map(([key])=>[key,false]));
+  if(role === "SuperAdmin"){
+    Object.keys(base).forEach(k=>base[k]=true);
+    return base;
   }
-  try{
-    const parsed = JSON.parse(raw);
-    return mergeState(parsed);
-  }catch(e){
-    const s = defaultState();
-    localStorage.setItem(STORAGE_KEY,JSON.stringify(s));
-    return s;
+  if(role === "GM"){
+    return {...base,canViewDashboard:true,canUseDetect:true,canViewUsers:true,canManageUsers:true,canCreateUser:true,canCreateAgent:true,canAdjustBalance:true,canTransferPoints:true,canRecyclePoints:true,canViewBilling:true,canManageAnnouncements:true};
   }
+  if(role === "Agent"){
+    return {...base,canViewDashboard:true,canUseDetect:true,canViewUsers:true,canCreateUser:true,canTransferPoints:true,canViewBilling:true};
+  }
+  return {...base,canViewDashboard:true,canUseDetect:true};
 }
 
-function mergeState(s){
-  const d = defaultState();
-  s.feeSettings = {...d.feeSettings,...(s.feeSettings||{})};
-  s.systemRules = {...d.systemRules,...(s.systemRules||{})};
-  s.platformWallet = {...d.platformWallet,...(s.platformWallet||{})};
-  s.walletLogs = s.walletLogs || [];
-  s.feeLogs = s.feeLogs || [];
-  s.ledger = s.ledger || [];
-  s.logs = s.logs || [];
-  s.tasks = s.tasks || [];
-  s.orders = s.orders || [];
-  s.packages = s.packages || d.packages;
-  s.users = (s.users || d.users).map(u => ({
-    ...u,
-    status:u.status || STATUS_ACTIVE,
-    permissions:{...roleTemplates[u.role],...(u.permissions||{})},
-    loginPasswordHash:u.loginPasswordHash || hashPassword("123456"),
-    tradePasswordHash:u.tradePasswordHash || hashPassword("123456"),
-    loginPasswordStatus:u.loginPasswordStatus || (u.loginPasswordChanged ? "changed" : "initial"),
-    tradePasswordStatus:u.tradePasswordStatus || (u.tradePasswordChanged ? "changed" : "initial"),
-    loginPasswordChanged:!!u.loginPasswordChanged,
-    tradePasswordChanged:!!u.tradePasswordChanged,
-    tradePasswordFailCount:u.tradePasswordFailCount || 0,
-    tradePasswordLockedUntil:u.tradePasswordLockedUntil || 0
-  }));
-  return s;
-}
-
-function saveState(){
-  localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
-}
-
-function hashPassword(v){
-  return "hash_" + btoa(unescape(encodeURIComponent(String(v)))).split("").reverse().join("");
-}
-
-function checkPassword(input,hash){
-  return hashPassword(input) === hash;
-}
-
-function nowText(){
-  const d = new Date();
-  return d.toLocaleString("zh-CN",{hour12:false});
-}
-
-function money(v){
-  const n = Number(v || 0);
-  return Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/\.?0+$/,"");
-}
-
-function toast(msg){
-  const box = document.getElementById("toast");
-  const div = document.createElement("div");
-  div.className = "toast-item";
-  div.innerHTML = msg;
-  box.appendChild(div);
-  setTimeout(()=>div.remove(),3500);
-}
-
-function getUser(id=currentUserId){
-  return state.users.find(u => u.id === id);
+function normalizePermissions(profile){
+  if(!profile) return {};
+  return {...defaultPermissionsByRole(profile.role), ...(profile.permissions || {}), feeExempt:Boolean(profile.feeExempt || profile.permissions?.feeExempt)};
 }
 
 function hasPerm(key){
-  const u = getUser();
-  if(!u) return false;
-  return !!(u.permissions && u.permissions[key]);
+  if(currentUserProfile?.role === "SuperAdmin") return true;
+  return Boolean(normalizePermissions(currentUserProfile)[key]);
 }
 
-function assertPerm(key){
-  if(!hasPerm(key)){
-    toast("无权限访问该功能");
-    goPage("dashboard");
-    return false;
+
+function shortUid(uid){
+  if(!uid) return "";
+  return uid.length > 12 ? uid.substring(0,10) + "..." : uid;
+}
+
+function safeText(value){
+  if(value === undefined || value === null || value === "") return "-";
+  return String(value)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+function nowTextFromTimestamp(ts){
+  if(!ts) return "-";
+  try{
+    const d = ts.toDate ? ts.toDate() : new Date(ts);
+    return d.toLocaleString("zh-CN");
+  }catch(e){
+    return "-";
   }
-  return true;
 }
 
-function addLog(type,content,actorId=currentUserId){
-  const u = getUser(actorId);
-  state.logs.unshift({
-    time:nowText(),
-    actor:u ? `${u.name}(${u.id})` : "SYSTEM",
-    role:u ? u.role : "System",
-    type,
-    content
+function allowedCreateRoles(role){
+  const p = normalizePermissions(currentUserProfile);
+  if(role === "SuperAdmin") return ["User","Agent","GM","SuperAdmin"];
+  const list = [];
+  if(p.canCreateUser) list.push("User");
+  if((role === "GM" || role === "SuperAdmin") && p.canCreateAgent) list.push("Agent");
+  if(role === "SuperAdmin" && p.canCreateGM) list.push("GM");
+  return list;
+}
+
+function isChildAccount(data, uid){
+  if(!auth.currentUser || !data) return false;
+  return data.parentUid === auth.currentUser.uid || data.parentAgentUid === auth.currentUser.uid || data.parentGmUid === auth.currentUser.uid || data.createdByUid === auth.currentUser.uid || uid === auth.currentUser.uid;
+}
+
+function canSeeTarget(currentRole, targetRole, targetUid, targetData={}){
+  if(currentRole === "SuperAdmin") return true;
+  if(currentRole === "GM") return targetRole !== "SuperAdmin";
+  if(currentRole === "Agent") return targetUid === auth.currentUser?.uid || isChildAccount(targetData,targetUid);
+  return auth.currentUser && targetUid === auth.currentUser.uid;
+}
+
+function canManageTarget(currentRole, targetRole, targetUid, targetData={}){
+  if(!auth.currentUser) return false;
+  const p = normalizePermissions(currentUserProfile);
+  if(currentRole === "SuperAdmin") return true;
+  if(!p.canManageUsers && !p.canAdjustBalance) return false;
+  if(currentRole === "GM") return (targetRole === "Agent" || targetRole === "User");
+  if(currentRole === "Agent") return targetRole === "User" && isChildAccount(targetData,targetUid);
+  return false;
+}
+
+function canInitializeRole(currentRole, newRole){
+  return allowedCreateRoles(currentRole).includes(newRole);
+}
+
+function noteWithReminder(rawNote, actionName){
+  const note = (rawNote || "").trim();
+  if(note) return note;
+
+  const ok = confirm(`${actionName} 当前没有填写备注。\n\n备注不是必填，但建议填写，方便以后查账。\n\n是否继续操作？`);
+  if(!ok) return null;
+
+  return "未填写备注";
+}
+
+function fillRoleOptions(){
+  const select = document.getElementById("newRole");
+  select.innerHTML = "";
+
+  allowedCreateRoles(currentUserProfile?.role).forEach(role=>{
+    const opt = document.createElement("option");
+    opt.value = role;
+    opt.textContent = role;
+    select.appendChild(opt);
   });
-  saveState();
-}
 
-function login(){
-  const email = document.getElementById("loginEmail").value.trim();
-  const pass = document.getElementById("loginPassword").value;
-  const u = state.users.find(x => x.email.toLowerCase() === email.toLowerCase());
-  if(!u){toast("账号不存在");return;}
-  if(u.status === STATUS_FROZEN){toast("账号已被冻结，禁止登录");return;}
-  if(u.status === STATUS_DELETED){toast("账号已被删除，禁止登录");return;}
-  if(!checkPassword(pass,u.loginPasswordHash)){toast("登录密码错误");return;}
-  currentUserId = u.id;
-  localStorage.setItem("CS_BOYI_CURRENT_USER",currentUserId);
-  addLog("LOGIN","登录系统");
-  document.getElementById("loginSection").classList.add("hidden");
-  document.getElementById("appSection").classList.remove("hidden");
-  currentPage = "dashboard";
-  renderAll();
-  toast("登录成功：" + u.name);
-}
-
-function quickLogin(email){
-  document.getElementById("loginEmail").value = email;
-  document.getElementById("loginPassword").value = "123456";
-  login();
-}
-
-function logout(){
-  addLog("LOGOUT","退出系统");
-  currentUserId = "";
-  localStorage.removeItem("CS_BOYI_CURRENT_USER");
-  document.getElementById("appSection").classList.add("hidden");
-  document.getElementById("loginSection").classList.remove("hidden");
-}
-
-function initSession(){
-  const u = getUser();
-  if(u && u.status === STATUS_ACTIVE){
-    document.getElementById("loginSection").classList.add("hidden");
-    document.getElementById("appSection").classList.remove("hidden");
-    renderAll();
-  }
-}
-
-function renderAll(){
-  renderNav();
-  renderCurrentUserPill();
-  renderDashboard();
-  renderUsers();
-  renderPermissionPage();
-  renderWalletPage();
-  loadFeeSettingsForm();
-  renderFeePreview();
-  loadSystemRulesForm();
-  renderSecurityPage();
-  renderProfile();
-  renderTasks();
-  renderPackages();
-  renderOrders();
-  renderLedger();
-  renderLogs();
-  setActivePage(currentPage);
-}
-
-function renderNav(){
-  const box = document.getElementById("navContainer");
-  box.innerHTML = "";
-  navGroups.forEach(group => {
-    const visibleItems = group.items.filter(item => hasPerm(item.perm));
-    if(!visibleItems.length) return;
-    const wrap = document.createElement("div");
-    wrap.className = "nav-group";
-    wrap.innerHTML = `<div class="nav-heading">${group.title}</div>`;
-    visibleItems.forEach(item => {
-      const btn = document.createElement("button");
-      btn.className = "nav-item";
-      btn.dataset.page = item.page;
-      btn.onclick = () => goPage(item.page);
-      btn.innerHTML = `<span>${item.icon}</span><span>${item.label}</span>`;
-      wrap.appendChild(btn);
-    });
-    box.appendChild(wrap);
-  });
-}
-
-function goPage(page){
-  currentPage = page;
-  setActivePage(page);
-  document.getElementById("sidebar").classList.remove("show");
-}
-
-function setActivePage(page){
-  const item = navGroups.flatMap(g=>g.items).find(x => x.page === page);
-  if(item && !hasPerm(item.perm)){
-    toast("无权限进入：" + item.label);
-    page = "dashboard";
-    currentPage = "dashboard";
-  }
-  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
-  const pageEl = document.getElementById("page-" + page);
-  if(pageEl) pageEl.classList.add("active");
-  document.querySelectorAll(".nav-item").forEach(btn => btn.classList.toggle("active", btn.dataset.page === page));
-  const meta = navGroups.flatMap(g=>g.items).find(x => x.page === page);
-  document.getElementById("pageTitle").textContent = meta ? meta.label : "控制台";
-  document.getElementById("pageSubtitle").textContent = meta ? meta.sub : "";
-}
-
-function toggleSidebar(){document.getElementById("sidebar").classList.toggle("show");}
-
-function renderCurrentUserPill(){
-  const u = getUser();
-  document.getElementById("currentUserPill").innerHTML = u ? `${u.name} · ${u.role} · ${u.id}` : "未登录";
-}
-
-function visibleUsers(){
-  const u = getUser();
-  if(!u) return [];
-  if(u.role === ROLE_SUPER) return state.users;
-  if(u.role === ROLE_GM){
-    return state.users.filter(x => x.role !== ROLE_SUPER);
-  }
-  if(u.role === ROLE_AGENT){
-    return state.users.filter(x => x.id === u.id || (x.role === ROLE_USER && x.ownerType === "Agent" && x.ownerId === u.id));
-  }
-  return state.users.filter(x => x.id === u.id);
-}
-
-function manageableUsers(){
-  const u = getUser();
-  if(!u) return [];
-  if(u.role === ROLE_SUPER) return state.users.filter(x => x.id !== u.id);
-  if(u.role === ROLE_GM) return state.users.filter(x => x.role === ROLE_AGENT || x.role === ROLE_USER);
-  if(u.role === ROLE_AGENT) return state.users.filter(x => x.role === ROLE_USER && x.ownerType === "Agent" && x.ownerId === u.id);
-  return [];
-}
-
-function renderDashboard(){
-  const vu = visibleUsers();
-  const me = getUser();
-  const directUsers = state.users.filter(u => u.role === ROLE_USER && u.ownerType === "Direct");
-  const agentUsers = state.users.filter(u => u.role === ROLE_USER && u.ownerType === "Agent");
-  const stats = [
-    ["可见账号",vu.length,"按当前角色过滤"],
-    ["GM数量",state.users.filter(u=>u.role===ROLE_GM).length,"GM 可互管代理"],
-    ["Agent数量",state.users.filter(u=>u.role===ROLE_AGENT).length,"代理层"],
-    ["User数量",state.users.filter(u=>u.role===ROLE_USER).length,"自然 + 代理"],
-    ["自然注册",directUsers.length,"归 GM 管理"],
-    ["代理用户",agentUsers.length,"归 Agent 管理"],
-    ["我的余额",money(me?.balance),"当前账号"],
-    ["我的积分",money(me?.points),"当前账号"]
-  ];
-  document.getElementById("dashboardStats").innerHTML = stats.map(s=>`
-    <div class="card stat"><div class="stat-label">${s[0]}</div><div class="stat-value">${s[1]}</div><div class="stat-note">${s[2]}</div></div>
-  `).join("");
-  renderFeeSummary();
-  renderSystemRuleSummary();
-  document.getElementById("recentLogsTable").innerHTML = state.logs.slice(0,8).map(l=>`<tr><td>${l.time}</td><td>${l.actor}</td><td>${l.role}</td><td>${l.type}</td><td>${l.content}</td></tr>`).join("");
-}
-
-function renderFeeSummary(){
-  const f = state.feeSettings;
-  const payerMap = {sender:"发送方承担",receiver:"接收方承担",shared:"双方分摊",platform:"平台承担"};
-  document.getElementById("feeSummary").innerHTML = `
-    <div class="kv"><span>手续费开关</span><b>${f.enabled ? "启用" : "关闭"}</b></div>
-    <div class="kv"><span>承担方</span><b>${payerMap[f.payer]}</b></div>
-    <div class="kv"><span>积分转账</span><b>${f.pointTransferRate}%</b></div>
-    <div class="kv"><span>积分回收</span><b>${f.pointRecycleRate}%</b></div>
-    <div class="kv"><span>余额转账</span><b>${f.balanceTransferRate}%</b></div>
-    <div class="kv"><span>余额回收</span><b>${f.balanceRecycleRate}%</b></div>`;
-}
-
-function renderSystemRuleSummary(){
-  const r = state.systemRules;
-  document.getElementById("systemRuleSummary").innerHTML = `
-    <div class="kv"><span>Agent创建User最低积分</span><b>${r.minInitialPointsEnabled ? r.agentMinInitialUserPoints : "不限制"}</b></div>
-    <div class="kv"><span>自然注册分配方式</span><b>${r.directAssignMode}</b></div>
-    <div class="kv"><span>默认GM</span><b>${r.defaultGM}</b></div>
-    <div class="kv"><span>交易密码默认</span><b>123456，必须修改后使用</b></div>`;
-}
-
-function renderUsers(){
-  if(!document.getElementById("usersTable")) return;
-  const rows = visibleUsers();
-  document.getElementById("usersTable").innerHTML = rows.map(u => {
-    const statusBadge = u.status === STATUS_ACTIVE ? "b-green" : u.status === STATUS_FROZEN ? "b-orange" : "b-red";
-    return `<tr>
-      <td>${u.id}</td>
-      <td>${u.name}</td>
-      <td>${u.email}</td>
-      <td><span class="badge b-blue">${u.role}</span></td>
-      <td>${u.ownerType}</td>
-      <td>${u.ownerId || "-"}</td>
-      <td><span class="badge ${statusBadge}">${u.status}</span></td>
-      <td>${money(u.balance)}</td>
-      <td>${money(u.points)}</td>
-      <td>登录:${u.loginPasswordStatus}<br>交易:${u.tradePasswordStatus}</td>
-      <td>${userActionButtons(u)}</td>
-    </tr>`;
-  }).join("");
-}
-
-function userActionButtons(u){
-  const me = getUser();
-  if(!me || u.id === me.id) return `<button class="mini" onclick="goPage('profile')">自己</button>`;
-  let html = "";
-  if(hasPerm("canEditUser")) html += `<button class="mini m-blue" onclick="openEditUserModal('${u.id}')">编辑</button> `;
-  if(hasPerm("canFreezeUser") && u.role !== ROLE_SUPER){
-    html += `<button class="mini m-orange" onclick="toggleFreeze('${u.id}')">${u.status===STATUS_FROZEN?"解冻":"冻结"}</button> `;
-  }
-  if(hasPerm("canDeleteUser") && u.role !== ROLE_SUPER){
-    html += `<button class="mini m-red" onclick="softDeleteUser('${u.id}')">删除</button>`;
-  }
-  return html || "-";
-}
-
-function openCreateUserModal(){
-  if(!assertPerm("canCreateUser")) return;
-  const me = getUser();
-  let roleOptions = "";
-  if(me.role === ROLE_SUPER) roleOptions = `<option value="GM">GM</option><option value="Agent">Agent</option><option value="User">User</option>`;
-  if(me.role === ROLE_GM) roleOptions = `<option value="Agent">Agent</option><option value="User">User</option>`;
-  if(me.role === ROLE_AGENT) roleOptions = `<option value="User">User</option>`;
-
-  document.getElementById("modalTitle").textContent = "创建账号";
-  document.getElementById("modalSub").textContent = "Agent 创建 User 的最低初始积分由 SuperAdmin 控制";
-  document.getElementById("modalBody").innerHTML = `
-    <div class="form-row">
-      <div class="field"><label>名称</label><input id="newName" class="input"></div>
-      <div class="field"><label>邮箱</label><input id="newEmail" class="input" type="email"></div>
-    </div>
-    <div class="form-row" style="margin-top:14px">
-      <div class="field"><label>角色</label><select id="newRole" class="select" onchange="updateCreateOwnerHint()">${roleOptions}</select></div>
-      <div class="field"><label>初始登录密码</label><input id="newPassword" class="input" value="123456"></div>
-    </div>
-    <div class="form-row" style="margin-top:14px">
-      <div class="field"><label>初始余额</label><input id="newBalance" class="input" type="number" value="0" min="0"></div>
-      <div class="field"><label>初始积分</label><input id="newPoints" class="input" type="number" value="${state.systemRules.agentMinInitialUserPoints}" min="0"></div>
-    </div>
-    <div id="createOwnerHint" class="alert a-blue" style="margin-top:14px"></div>
-    <div style="margin-top:14px"><button class="btn primary" onclick="createAccount()">确认创建</button></div>`;
-  openModal();
-  updateCreateOwnerHint();
-}
-
-function updateCreateOwnerHint(){
-  const me = getUser();
-  const role = document.getElementById("newRole")?.value;
-  let text = "";
-  if(role === ROLE_USER && me.role === ROLE_AGENT){
-    text = `该 User 将归属当前 Agent：${me.id}。最低初始积分：${state.systemRules.minInitialPointsEnabled ? state.systemRules.agentMinInitialUserPoints : "不限制"}。初始积分和余额从 Agent 自己账户扣除。`;
-  }else if(role === ROLE_USER && me.role === ROLE_GM){
-    text = `该 User 将作为 GM 直属自然/人工用户，归属当前 GM：${me.id}。`;
-  }else if(role === ROLE_AGENT && me.role === ROLE_GM){
-    text = `该 Agent 将归属当前 GM：${me.id}。但 GM 层之间可互相管理代理。`;
-  }else if(role === ROLE_GM){
-    text = `该 GM 由 SuperAdmin 创建。`;
+  if(select.innerHTML === ""){
+    document.getElementById("initPanel").classList.add("hidden");
   }else{
-    text = `SuperAdmin 创建账号，可指定平台级初始资产。`;
+    document.getElementById("initPanel").classList.remove("hidden");
   }
-  document.getElementById("createOwnerHint").textContent = text;
 }
 
-function createAccount(){
-  const me = getUser();
-  const name = document.getElementById("newName").value.trim();
+function permissionNoticeText(role){
+  if(role === "SuperAdmin"){
+    return "当前权限：SuperAdmin 最高权限。可查看和管理全部账号，可初始化 SuperAdmin / GM / Agent / User 资料，可查看全部查账记录。";
+  }
+  if(role === "GM"){
+    return "当前权限：GM 二级管理员。可查看 GM / Agent / User；不可查看 SuperAdmin；只能管理 Agent / User；不能管理同级 GM。";
+  }
+  if(role === "Agent"){
+    return "当前权限：Agent。当前版本只显示自己的资料和自己的查账记录。";
+  }
+  return "当前权限：User。无后台管理权限，只显示自己的资料和自己的查账记录。";
+}
+
+window.login = async function login(){
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value.trim();
+
+  if(!email || !password){
+    alert("请输入邮箱和密码");
+    return;
+  }
+
+  try{
+    await signInWithEmailAndPassword(auth,email,password);
+  }catch(error){
+    alert("登录失败：" + error.message);
+  }
+};
+
+window.logout = async function logout(){
+  await signOut(auth);
+  location.reload();
+};
+
+async function loadCurrentUserProfile(user){
+  const userRef = doc(db,"users",user.uid);
+  const userSnap = await getDoc(userRef);
+
+  if(!userSnap.exists()){
+    alert("登录成功，但 Firestore users 里没有这个 UID 的资料。请先初始化用户资料。");
+    await signOut(auth);
+    return null;
+  }
+
+  const data = userSnap.data();
+  const profile = {
+    uid:user.uid,
+    email:user.email,
+    ...data
+  };
+
+  if(profile.status === "Frozen"){
+    alert("此账号已被冻结，请联系管理员。");
+    await signOut(auth);
+    return null;
+  }
+
+  return profile;
+}
+
+async function loadUsers(){
+  const usersBody = document.getElementById("usersBody");
+  usersBody.innerHTML = "";
+
+  const querySnapshot = await getDocs(collection(db,"users"));
+  let visibleCount = 0;
+
+  querySnapshot.forEach((userDoc)=>{
+    const data = userDoc.data();
+    const targetUid = userDoc.id;
+    const targetRole = data.role || "User";
+
+    if(!canSeeTarget(currentUserProfile.role, targetRole, targetUid, data)) return;
+
+    const searchTerm = (document.getElementById("userSearch")?.value || "").trim().toLowerCase();
+    if(searchTerm){
+      const haystack = `${data.email || ""} ${targetUid} ${targetRole} ${data.status || ""} ${data.note || ""}`.toLowerCase();
+      if(!haystack.includes(searchTerm)) return;
+    }
+
+    visibleCount++;
+
+    const manageable = canManageTarget(currentUserProfile.role, targetRole, targetUid, data);
+    const roleColor =
+      targetRole === "SuperAdmin" ? "danger-text" :
+      targetRole === "GM" ? "ok-text" :
+      targetRole === "Agent" ? "warn-text" :
+      "role-pill";
+
+    let actionHtml = `<span class="muted">无管理权限</span>`;
+
+    if(manageable){
+      actionHtml = `
+        <input id="amount_${targetUid}" class="inline-input" type="number" placeholder="数量">
+        <input id="opnote_${targetUid}" class="note-input" placeholder="操作备注，非必填">
+        <button class="small-btn green" onclick="customChangeBalance('${targetUid}','add')">增加</button>
+        <button class="small-btn orange" onclick="customChangeBalance('${targetUid}','minus')">扣除</button>
+        <button class="small-btn red" onclick="freezeUser('${targetUid}')">冻结</button>
+        <button class="small-btn green" onclick="unfreezeUser('${targetUid}')">解冻</button>
+        <br>
+        <input id="accountnote_${targetUid}" class="note-input" style="width:260px;margin-top:6px" placeholder="账号备注" value="${safeText(data.note || "")}">
+        <button class="small-btn blue" onclick="saveAccountNote('${targetUid}')">保存备注</button>
+      `;
+    }
+
+    usersBody.innerHTML += `
+      <tr>
+        <td>${safeText(data.email || "")}</td>
+        <td title="${safeText(targetUid)}">${safeText(shortUid(targetUid))}</td>
+        <td><span class="${roleColor}">${safeText(targetRole)}</span></td>
+        <td><b style="color:var(--orange)">${Number(data.balance || 0)}</b></td>
+        <td>${data.status === "Frozen" ? '<span class="danger-text">Frozen</span>' : '<span class="ok-text">Active</span>'}</td>
+        <td>${safeText(data.note || "-")}</td>
+        <td>${actionHtml}</td>
+      </tr>
+    `;
+  });
+
+  if(visibleCount === 0){
+    usersBody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#64748b">暂无可查看用户</td></tr>`;
+  }
+
+  document.getElementById("userViewHint").innerText =
+    currentUserProfile.role === "SuperAdmin" ? "SuperAdmin：可查看和管理全部账号。" :
+    currentUserProfile.role === "GM" ? "GM：已隐藏 SuperAdmin，只能管理 Agent / User，不能管理同级 GM。" :
+    "当前账号：仅可查看自己的账号资料。";
+}
+
+async function initUserProfile(){
+  if(!currentUserProfile) return;
+
+  const uid = document.getElementById("newUid").value.trim();
   const email = document.getElementById("newEmail").value.trim();
   const role = document.getElementById("newRole").value;
-  const password = document.getElementById("newPassword").value || "123456";
   const balance = Number(document.getElementById("newBalance").value || 0);
-  const points = Number(document.getElementById("newPoints").value || 0);
+  const note = document.getElementById("newNote").value.trim();
 
-  if(!name || !email){toast("请输入名称和邮箱");return;}
-  if(state.users.some(u=>u.email.toLowerCase()===email.toLowerCase())){toast("邮箱已存在");return;}
+  if(!uid || !email){
+    alert("请输入 Auth 用户 UID 和邮箱");
+    return;
+  }
 
-  if(me.role === ROLE_AGENT && role !== ROLE_USER){toast("Agent 只能创建 User");return;}
-  if(me.role === ROLE_AGENT){
-    if(state.systemRules.minInitialPointsEnabled && points < Number(state.systemRules.agentMinInitialUserPoints)){
-      toast("创建失败：初始积分低于 SuperAdmin 设置的最低值");
-      return;
+  if(!canInitializeRole(currentUserProfile.role, role)){
+    alert("权限不足：你不能初始化 " + role + " 资料");
+    return;
+  }
+
+  const cost = getCreateAccountCost(currentUserProfile.role, role);
+  let beforeCreatorBalance = Number(currentUserProfile.balance || 0);
+  let afterCreatorBalance = beforeCreatorBalance;
+
+  await runTransaction(db, async (transaction)=>{
+    const newUserRef = doc(db,"users",uid);
+    const creatorRef = doc(db,"users",auth.currentUser.uid);
+    const walletRef = doc(db,"system_wallets","PlatformWallet");
+
+    const existsSnap = await transaction.get(newUserRef);
+    if(existsSnap.exists()) throw new Error("这个 UID 已经初始化过资料");
+
+    const creatorSnap = await transaction.get(creatorRef);
+    if(!creatorSnap.exists()) throw new Error("创建者资料不存在");
+    const creatorData = creatorSnap.data();
+    beforeCreatorBalance = Number(creatorData.balance || 0);
+
+    if(cost > 0 && beforeCreatorBalance < cost) throw new Error(`创建失败：当前创建 ${role} 需要 ${cost} 积分，创建者余额不足`);
+
+    afterCreatorBalance = Number((beforeCreatorBalance - cost).toFixed(4));
+    if(cost > 0) transaction.update(creatorRef,{balance:afterCreatorBalance});
+
+    transaction.set(newUserRef,{
+      email,
+      balance,
+      role,
+      status:"Active",
+      note,
+      parentUid:auth.currentUser.uid,
+      parentEmail:currentUserProfile.email || auth.currentUser.email,
+      parentRole:currentUserProfile.role,
+      parentAgentUid:currentUserProfile.role === "Agent" ? auth.currentUser.uid : (currentUserProfile.parentAgentUid || ""),
+      parentGmUid:currentUserProfile.role === "GM" ? auth.currentUser.uid : (currentUserProfile.parentGmUid || ""),
+      permissions:defaultPermissionsByRole(role),
+      feeExempt:false,
+      createdByUid:auth.currentUser.uid,
+      createdByEmail:currentUserProfile.email || auth.currentUser.email,
+      createdByRole:currentUserProfile.role,
+      createdAt:serverTimestamp()
+    });
+
+    if(cost > 0 && platformRules.costToPlatformWallet){
+      const walletSnap = await transaction.get(walletRef);
+      const walletData = walletSnap.exists() ? walletSnap.data() : {};
+      transaction.set(walletRef,{
+        points:Number((Number(walletData.points || 0) + cost).toFixed(4)),
+        balance:Number(walletData.balance || 0),
+        totalCreateCostIncome:Number((Number(walletData.totalCreateCostIncome || 0) + cost).toFixed(4)),
+        updatedAt:serverTimestamp()
+      },{merge:true});
     }
-    if(me.points < points){toast("创建失败：Agent 积分不足");return;}
-    if(me.balance < balance){toast("创建失败：Agent 余额不足");return;}
-  }
-
-  const prefix = role === ROLE_GM ? "GM" : role === ROLE_AGENT ? "AGENT" : "USER";
-  const id = nextId(prefix);
-  let ownerType = "Platform";
-  let ownerId = "Platform";
-  if(role === ROLE_USER && me.role === ROLE_AGENT){ownerType = "Agent"; ownerId = me.id;}
-  else if(role === ROLE_USER && me.role === ROLE_GM){ownerType = "Direct"; ownerId = me.id;}
-  else if(role === ROLE_AGENT && me.role === ROLE_GM){ownerType = "GM"; ownerId = me.id;}
-  else if(role === ROLE_USER && me.role === ROLE_SUPER){ownerType = "Direct"; ownerId = state.systemRules.defaultGM || "GM001";}
-  else if(role === ROLE_AGENT && me.role === ROLE_SUPER){ownerType = "GM"; ownerId = state.systemRules.defaultGM || "GM001";}
-  else if(role === ROLE_GM){ownerType = "Platform"; ownerId = "Platform";}
-
-  const u = createUserSeed(id,name,email,role,ownerType,ownerId,me.id,balance,points);
-  u.loginPasswordHash = hashPassword(password);
-  u.loginPasswordStatus = "initial";
-  u.loginPasswordChanged = false;
-  u.tradePasswordHash = hashPassword("123456");
-  u.tradePasswordStatus = "initial";
-  u.tradePasswordChanged = false;
-
-  if(me.role === ROLE_AGENT){
-    const beforeP = me.points;
-    const beforeB = me.balance;
-    me.points -= points;
-    me.balance -= balance;
-    addLedger(me.id,"创建下线扣除积分",beforeP,me.points,`创建 ${id} 初始积分 ${points}`);
-    addLedger(me.id,"创建下线扣除余额",beforeB,me.balance,`创建 ${id} 初始余额 ${balance}`);
-  }
-
-  state.users.push(u);
-  addLog("CREATE_USER",`${me.id} 创建账号 ${id}(${role})，归属 ${ownerType}:${ownerId}`);
-  saveState();
-  closeModal();
-  renderAll();
-  toast("账号创建成功");
-}
-
-function nextId(prefix){
-  const nums = state.users
-    .filter(u=>u.id.startsWith(prefix))
-    .map(u=>Number(u.id.replace(prefix,""))||0);
-  const n = Math.max(0,...nums)+1;
-  return prefix + String(n).padStart(3,"0");
-}
-
-function openEditUserModal(id){
-  const u = state.users.find(x=>x.id===id);
-  if(!u) return;
-  document.getElementById("modalTitle").textContent = "编辑账号";
-  document.getElementById("modalSub").textContent = "不能直接查看或修改明文密码";
-  document.getElementById("modalBody").innerHTML = `
-    <div class="form-row">
-      <div class="field"><label>名称</label><input id="editName" class="input" value="${u.name}"></div>
-      <div class="field"><label>手机号</label><input id="editPhone" class="input" value="${u.phone||""}"></div>
-    </div>
-    <div class="form-row" style="margin-top:14px">
-      <div class="field"><label>状态</label><select id="editStatus" class="select">
-        <option ${u.status===STATUS_ACTIVE?"selected":""}>Active</option>
-        <option ${u.status===STATUS_FROZEN?"selected":""}>Frozen</option>
-        <option ${u.status===STATUS_DELETED?"selected":""}>Deleted</option>
-      </select></div>
-      <div class="field"><label>归属ID</label><input id="editOwnerId" class="input" value="${u.ownerId||""}"></div>
-    </div>
-    <div class="alert a-red" style="margin-top:14px">密码只可在超级安全中心重置，不显示明文。</div>
-    <div style="margin-top:14px"><button class="btn primary" onclick="saveEditUser('${id}')">保存</button></div>`;
-  openModal();
-}
-
-function saveEditUser(id){
-  const u = state.users.find(x=>x.id===id);
-  if(!u) return;
-  u.name = document.getElementById("editName").value.trim() || u.name;
-  u.phone = document.getElementById("editPhone").value.trim();
-  u.status = document.getElementById("editStatus").value;
-  u.ownerId = document.getElementById("editOwnerId").value.trim();
-  addLog("EDIT_USER",`编辑账号 ${u.id}`);
-  saveState();
-  closeModal();
-  renderAll();
-}
-
-function toggleFreeze(id){
-  const u = state.users.find(x=>x.id===id);
-  if(!u || u.role === ROLE_SUPER) return;
-  u.status = u.status === STATUS_FROZEN ? STATUS_ACTIVE : STATUS_FROZEN;
-  addLog("FREEZE_USER",`${u.status === STATUS_FROZEN ? "冻结" : "解冻"}账号 ${u.id}`);
-  saveState(); renderAll();
-}
-
-function softDeleteUser(id){
-  const u = state.users.find(x=>x.id===id);
-  if(!u || u.role === ROLE_SUPER) return;
-  u.status = STATUS_DELETED;
-  addLog("DELETE_USER",`软删除账号 ${u.id}`);
-  saveState(); renderAll();
-}
-
-function renderPermissionPage(){
-  const sel = document.getElementById("permissionUserSelect");
-  if(!sel) return;
-  sel.innerHTML = visibleUsers().map(u=>`<option value="${u.id}">${u.name} · ${u.id} · ${u.role}</option>`).join("");
-  renderRoleTemplate("SuperAdmin");
-  renderAccountPermissions();
-}
-
-function renderRoleTemplate(role,btn){
-  if(btn){document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));btn.classList.add("active");}
-  const box = document.getElementById("roleTemplateView");
-  if(!box) return;
-  const perms = roleTemplates[role];
-  box.innerHTML = permissionList.map(k=>`
-    <div class="switch-card"><span>${permissionLabels[k]}</span><button class="switch ${perms[k]?'on':''}" disabled></button></div>
-  `).join("");
-}
-
-function renderAccountPermissions(){
-  const sel = document.getElementById("permissionUserSelect");
-  const box = document.getElementById("accountPermissionSwitches");
-  if(!sel || !box) return;
-  const u = state.users.find(x=>x.id===sel.value);
-  if(!u){box.innerHTML="";return;}
-  tempAccountPerms = {...u.permissions};
-  box.innerHTML = permissionList.map(k=>`
-    <div class="switch-card">
-      <span>${permissionLabels[k]}</span>
-      <button class="switch ${tempAccountPerms[k]?'on':''}" onclick="toggleTempPerm('${k}',this)"></button>
-    </div>`).join("");
-}
-
-function toggleTempPerm(k,btn){
-  tempAccountPerms[k] = !tempAccountPerms[k];
-  btn.classList.toggle("on",tempAccountPerms[k]);
-}
-
-function saveAccountPermissions(){
-  if(!assertPerm("canEditPermissions")) return;
-  const id = document.getElementById("permissionUserSelect").value;
-  const u = state.users.find(x=>x.id===id);
-  if(!u) return;
-  u.permissions = {...tempAccountPerms};
-  addLog("EDIT_PERMISSION",`修改账号 ${u.id} 独立权限`);
-  saveState(); renderAll(); toast("权限已保存");
-}
-
-function resetAccountPermissions(){
-  if(!assertPerm("canEditPermissions")) return;
-  const id = document.getElementById("permissionUserSelect").value;
-  const u = state.users.find(x=>x.id===id);
-  if(!u) return;
-  u.permissions = {...roleTemplates[u.role]};
-  addLog("RESET_PERMISSION",`恢复账号 ${u.id} 为角色模板`);
-  saveState(); renderAll(); toast("已恢复角色模板");
-}
-
-function renderWalletPage(){
-  const me = getUser();
-  if(!me) return;
-  document.getElementById("myBalance").textContent = money(me.balance);
-  document.getElementById("myPoints").textContent = money(me.points);
-  document.getElementById("platformBalance").textContent = money(state.platformWallet.balance);
-  document.getElementById("platformPoints").textContent = money(state.platformWallet.points);
-
-  const target = document.getElementById("walletTarget");
-  const list = walletTargets();
-  target.innerHTML = list.map(u=>`<option value="${u.id}">${u.name} · ${u.id} · ${u.role}</option>`).join("");
-  previewWallet();
-  renderWalletLogs();
-}
-
-function walletTargets(){
-  const me = getUser();
-  if(!me) return [];
-  if(me.role === ROLE_SUPER) return state.users.filter(u=>u.id!==me.id);
-  if(me.role === ROLE_GM) return state.users.filter(u=>u.role===ROLE_AGENT || u.role===ROLE_USER);
-  if(me.role === ROLE_AGENT) return state.users.filter(u=>u.role===ROLE_USER && u.ownerType==="Agent" && u.ownerId===me.id);
-  return [];
-}
-
-function feeRateFor(asset,action){
-  const f = state.feeSettings;
-  if(asset === "points" && action === "transfer") return Number(f.pointTransferRate);
-  if(asset === "points" && action === "recycle") return Number(f.pointRecycleRate);
-  if(asset === "balance" && action === "transfer") return Number(f.balanceTransferRate);
-  if(asset === "balance" && action === "recycle") return Number(f.balanceRecycleRate);
-  return 0;
-}
-
-function calcFee(amount,asset,action){
-  const me = getUser();
-  if(me?.permissions?.feeExempt) return 0;
-  const f = state.feeSettings;
-  if(!f.enabled) return 0;
-  const rate = feeRateFor(asset,action);
-  let fee = Number(amount) * rate / 100;
-  fee = Math.max(Number(f.minFee||0),fee);
-  fee = Math.min(Number(f.maxFee||999999),fee);
-  return Number(fee.toFixed(6));
-}
-
-function previewSettlement(amount,asset,action){
-  const fee = calcFee(amount,asset,action);
-  const payer = state.feeSettings.payer;
-  let senderDebit = amount, receiverCredit = amount, platformFee = fee;
-  if(payer === "sender"){
-    senderDebit = amount + fee;
-    receiverCredit = amount;
-  }else if(payer === "receiver"){
-    senderDebit = amount;
-    receiverCredit = amount - fee;
-  }else if(payer === "shared"){
-    senderDebit = amount + fee/2;
-    receiverCredit = amount - fee/2;
-  }else if(payer === "platform"){
-    senderDebit = amount;
-    receiverCredit = amount;
-    platformFee = 0;
-  }
-  return {fee,senderDebit,receiverCredit,platformFee};
-}
-
-function previewWallet(){
-  const amount = Number(document.getElementById("walletAmount")?.value || 0);
-  const asset = document.getElementById("walletAsset")?.value || "points";
-  const action = document.getElementById("walletAction")?.value || "transfer";
-  const s = previewSettlement(amount,asset,action);
-  const payerMap = {sender:"发送方承担",receiver:"接收方承担",shared:"双方分摊",platform:"平台承担"};
-  document.getElementById("walletPreview").innerHTML = `
-    业务：${asset==="points"?"积分":"余额"}${action==="transfer"?"转账":"回收"}<br>
-    数量：${money(amount)}<br>
-    手续费：${money(s.fee)}<br>
-    承担方：${payerMap[state.feeSettings.payer]}<br>
-    发送方扣除：${money(s.senderDebit)}<br>
-    接收方到账：${money(s.receiverCredit)}<br>
-    平台手续费收入：${money(s.platformFee)}
-  `;
-}
-
-function executeWallet(){
-  const me = getUser();
-  const targetId = document.getElementById("walletTarget").value;
-  const target = state.users.find(u=>u.id===targetId);
-  const asset = document.getElementById("walletAsset").value;
-  const action = document.getElementById("walletAction").value;
-  const amount = Number(document.getElementById("walletAmount").value || 0);
-  const tradePass = document.getElementById("walletTradePassword").value;
-
-  if(!target){toast("请选择目标账号");return;}
-  if(amount <= 0){toast("数量必须大于0");return;}
-  if(action === "transfer" && !hasPerm("canTransferToDownline")){toast("无转账权限");return;}
-  if(action === "recycle" && !hasPerm("canRecycleFromDownline")){toast("无回收权限");return;}
-  if(!verifyTradePassword(me,tradePass)) return;
-
-  const s = previewSettlement(amount,asset,action);
-  let sender, receiver;
-  if(action === "transfer"){sender = me; receiver = target;}
-  else {sender = target; receiver = me;}
-
-  if(sender[asset] < s.senderDebit){toast("发送方余额/积分不足");return;}
-  if(receiver[asset] + s.receiverCredit < 0){toast("接收方资产不足");return;}
-
-  const senderBefore = sender[asset];
-  const receiverBefore = receiver[asset];
-
-  sender[asset] -= s.senderDebit;
-  receiver[asset] += s.receiverCredit;
-  if(asset === "points") state.platformWallet.points += s.platformFee;
-  else state.platformWallet.balance += s.platformFee;
-
-  const biz = `${asset==="points"?"积分":"余额"}${action==="transfer"?"转账":"回收"}`;
-  const log = {
-    time:nowText(),biz,
-    sender:sender.id,receiver:receiver.id,asset,
-    amount,fee:s.fee,net:s.receiverCredit,payer:state.feeSettings.payer,
-    rate:feeRateFor(asset,action)
-  };
-  state.walletLogs.unshift(log);
-  if(s.platformFee > 0){
-    state.feeLogs.unshift({...log,fee:s.platformFee});
-  }
-  addLedger(sender.id,biz,senderBefore,sender[asset],`发送给 ${receiver.id}`);
-  addLedger(receiver.id,biz,receiverBefore,receiver[asset],`来自 ${sender.id}`);
-  addLog("WALLET",`${me.id} 执行 ${biz}：${sender.id} -> ${receiver.id}，数量 ${amount}，手续费 ${s.fee}`);
-  saveState();
-  document.getElementById("walletTradePassword").value = "";
-  renderAll();
-  toast("操作成功");
-}
-
-function verifyTradePassword(u,input){
-  if(!u.tradePasswordChanged){
-    toast("交易密码仍为初始状态，请先到【我的账户】修改交易密码后再操作");
-    goPage("profile");
-    return false;
-  }
-  if(Date.now() < Number(u.tradePasswordLockedUntil||0)){
-    toast("交易密码已临时锁定，请稍后再试");
-    return false;
-  }
-  if(!checkPassword(input,u.tradePasswordHash)){
-    u.tradePasswordFailCount = Number(u.tradePasswordFailCount||0)+1;
-    if(u.tradePasswordFailCount >= 5){
-      u.tradePasswordLockedUntil = Date.now() + 30*60*1000;
-      addLog("TRADE_PASSWORD_LOCK",`${u.id} 交易密码连续错误，锁定30分钟`,u.id);
-      toast("交易密码错误次数过多，资金操作锁定30分钟");
-    }else{
-      addLog("TRADE_PASSWORD_FAIL",`${u.id} 输入交易密码错误`,u.id);
-      toast("交易密码错误");
-    }
-    saveState();
-    return false;
-  }
-  u.tradePasswordFailCount = 0;
-  u.tradePasswordLockedUntil = 0;
-  saveState();
-  return true;
-}
-
-function addLedger(userId,type,before,after,desc){
-  state.ledger.unshift({time:nowText(),user:userId,type,before,after,desc});
-}
-
-function renderWalletLogs(){
-  document.getElementById("walletLogsTable").innerHTML = state.walletLogs.map(l=>`
-    <tr><td>${l.time}</td><td>${l.biz}</td><td>${l.sender}</td><td>${l.receiver}</td><td>${l.asset}</td><td>${money(l.amount)}</td><td>${money(l.fee)}</td><td>${money(l.net)}</td></tr>
-  `).join("");
-  document.getElementById("feeLogsTable").innerHTML = state.feeLogs.map(l=>`
-    <tr><td>${l.time}</td><td>${l.biz}</td><td>${l.payer}</td><td>${l.sender}</td><td>${l.receiver}</td><td>${money(l.amount)}</td><td>${l.rate}%</td><td>${money(l.fee)}</td></tr>
-  `).join("");
-}
-
-function loadFeeSettingsForm(){
-  const f = state.feeSettings;
-  const ids = {
-    feePointTransfer:"pointTransferRate",
-    feePointRecycle:"pointRecycleRate",
-    feeBalanceTransfer:"balanceTransferRate",
-    feeBalanceRecycle:"balanceRecycleRate",
-    feeMin:"minFee",
-    feeMax:"maxFee"
-  };
-  Object.entries(ids).forEach(([id,key]) => {
-    const el = document.getElementById(id);
-    if(el) el.value = f[key];
   });
-  if(document.getElementById("feePayer")) document.getElementById("feePayer").value = f.payer;
-  if(document.getElementById("feeEnabled")) document.getElementById("feeEnabled").value = String(f.enabled);
+
+  currentUserProfile.balance = afterCreatorBalance;
+
+  if(cost > 0){
+    await addDoc(collection(db,"CreateAccountCostLogs"),{
+      creatorUid:auth.currentUser.uid,
+      creatorEmail:currentUserProfile.email || auth.currentUser.email,
+      creatorRole:currentUserProfile.role,
+      newUserUid:uid,
+      newUserEmail:email,
+      newUserRole:role,
+      costAmount:cost,
+      beforeBalance:beforeCreatorBalance,
+      afterBalance:afterCreatorBalance,
+      platformIncome:platformRules.costToPlatformWallet ? cost : 0,
+      status:"success",
+      remark:note || "创建账号成本",
+      createdAt:serverTimestamp()
+    });
+  }
+
+  await writeLog({
+    targetUid:uid,
+    targetEmail:email,
+    targetRole:role,
+    type:"init_profile",
+    amount:balance,
+    balance:balance,
+    remark: note ? `初始化账号资料：${note}` : "初始化账号资料"
+  });
+
+  document.getElementById("newUid").value = "";
+  document.getElementById("newEmail").value = "";
+  document.getElementById("newBalance").value = "0";
+  document.getElementById("newNote").value = "";
+
+  alert(`账号资料初始化成功${cost > 0 ? `，创建成本已扣除 ${cost} 积分` : ""}`);
+  document.getElementById("balanceText").innerText = currentUserProfile.balance ?? 0;
+  document.getElementById("settingBalance").innerText = currentUserProfile.balance ?? 0;
+  await loadUsers();
+  await loadLogs();
 }
 
-function saveFeeSettings(){
-  if(!assertPerm("canEditFees")) return;
-  state.feeSettings = {
-    enabled:document.getElementById("feeEnabled").value === "true",
-    pointTransferRate:Number(document.getElementById("feePointTransfer").value||0),
-    pointRecycleRate:Number(document.getElementById("feePointRecycle").value||0),
-    balanceTransferRate:Number(document.getElementById("feeBalanceTransfer").value||0),
-    balanceRecycleRate:Number(document.getElementById("feeBalanceRecycle").value||0),
-    minFee:Number(document.getElementById("feeMin").value||0),
-    maxFee:Number(document.getElementById("feeMax").value||999999),
-    payer:document.getElementById("feePayer").value
+async function saveAccountNote(uid){
+  const noteInput = document.getElementById(`accountnote_${uid}`);
+  const note = noteInput.value.trim();
+
+  const userRef = doc(db,"users",uid);
+  const userSnap = await getDoc(userRef);
+
+  if(!userSnap.exists()){
+    alert("用户不存在");
+    return;
+  }
+
+  const data = userSnap.data();
+
+  if(!canManageTarget(currentUserProfile.role, data.role || "User", uid)){
+    alert("权限不足：不能修改该账号备注");
+    return;
+  }
+
+  await updateDoc(userRef,{ note });
+
+  await writeLog({
+    targetUid:uid,
+    targetEmail:data.email || "",
+    targetRole:data.role || "User",
+    type:"update_note",
+    amount:0,
+    balance:Number(data.balance || 0),
+    remark: note ? `修改账号备注：${note}` : "清空账号备注"
+  });
+
+  alert("账号备注已保存");
+  await loadUsers();
+  await loadLogs();
+}
+
+async function customChangeBalance(uid, action){
+  const input = document.getElementById(`amount_${uid}`);
+  const noteInput = document.getElementById(`opnote_${uid}`);
+
+  const value = Number(input.value);
+  if(!value || value <= 0){
+    alert("请输入正确数量");
+    return;
+  }
+
+  const actionName = action === "add" ? "增加积分" : "扣除积分";
+  const remark = noteWithReminder(noteInput.value, actionName);
+  if(remark === null) return;
+
+  const amount = action === "add" ? value : -value;
+
+  await changeUserBalance(uid, amount, remark);
+
+  input.value = "";
+  noteInput.value = "";
+}
+
+async function changeUserBalance(uid, amount, remark){
+  const userRef = doc(db,"users",uid);
+  const userSnap = await getDoc(userRef);
+
+  if(!userSnap.exists()){
+    alert("用户不存在");
+    return;
+  }
+
+  const data = userSnap.data();
+
+  if(!canManageTarget(currentUserProfile.role, data.role || "User", uid)){
+    alert("权限不足：不能管理该账号");
+    return;
+  }
+
+  const newBalance = Number(data.balance || 0) + Number(amount);
+
+  await updateDoc(userRef,{
+    balance:newBalance
+  });
+
+  await writeLog({
+    targetUid:uid,
+    targetEmail:data.email || "",
+    targetRole:data.role || "User",
+    type:amount > 0 ? "add_balance" : "minus_balance",
+    amount,
+    balance:newBalance,
+    remark
+  });
+
+  alert("积分调整成功");
+  await loadUsers();
+  await refreshCurrentBalanceIfNeeded(uid,newBalance);
+  await loadLogs();
+}
+
+async function freezeUser(uid){
+  const raw = prompt("请输入冻结备注，可不填：");
+  if(raw === null) return;
+
+  const remark = noteWithReminder(raw, "冻结账号");
+  if(remark === null) return;
+
+  const userRef = doc(db,"users",uid);
+  const userSnap = await getDoc(userRef);
+
+  if(!userSnap.exists()){
+    alert("用户不存在");
+    return;
+  }
+
+  const data = userSnap.data();
+
+  if(!canManageTarget(currentUserProfile.role, data.role || "User", uid)){
+    alert("权限不足：不能冻结该账号");
+    return;
+  }
+
+  await updateDoc(userRef,{
+    status:"Frozen"
+  });
+
+  await writeLog({
+    targetUid:uid,
+    targetEmail:data.email || "",
+    targetRole:data.role || "User",
+    type:"freeze_user",
+    amount:0,
+    balance:Number(data.balance || 0),
+    remark
+  });
+
+  alert("账号已冻结");
+  await loadUsers();
+  await loadLogs();
+}
+
+async function unfreezeUser(uid){
+  const raw = prompt("请输入解冻备注，可不填：");
+  if(raw === null) return;
+
+  const remark = noteWithReminder(raw, "解冻账号");
+  if(remark === null) return;
+
+  const userRef = doc(db,"users",uid);
+  const userSnap = await getDoc(userRef);
+
+  if(!userSnap.exists()){
+    alert("用户不存在");
+    return;
+  }
+
+  const data = userSnap.data();
+
+  if(!canManageTarget(currentUserProfile.role, data.role || "User", uid)){
+    alert("权限不足：不能解冻该账号");
+    return;
+  }
+
+  await updateDoc(userRef,{
+    status:"Active"
+  });
+
+  await writeLog({
+    targetUid:uid,
+    targetEmail:data.email || "",
+    targetRole:data.role || "User",
+    type:"unfreeze_user",
+    amount:0,
+    balance:Number(data.balance || 0),
+    remark
+  });
+
+  alert("账号已解冻");
+  await loadUsers();
+  await loadLogs();
+}
+
+async function writeLog({targetUid,targetEmail,targetRole,type,amount,balance,remark}){
+  const logData = {
+    /* 你原规划字段 */
+    operatorUid:auth.currentUser.uid,
+    operatorEmail:currentUserProfile.email || auth.currentUser.email,
+
+    targetUid,
+    targetEmail,
+    targetRole,
+
+    amount:Number(amount || 0),
+    balance:Number(balance || 0),
+    type,
+    remark:remark || "未填写备注",
+    createdAt:serverTimestamp(),
+
+    /* 兼容旧版页面字段 */
+    actorUid:auth.currentUser.uid,
+    actorEmail:currentUserProfile.email || auth.currentUser.email,
+    actorRole:currentUserProfile.role,
+    note:remark || "未填写备注"
   };
-  addLog("FEE_SETTING","SuperAdmin 修改手续费规则");
-  saveState(); renderAll(); toast("手续费规则已实时生效");
+
+  await addDoc(collection(db,"balance_logs"),logData);
 }
 
-function renderFeePreview(){
-  const amount = Number(document.getElementById("feePreviewAmount")?.value || 0);
-  const biz = document.getElementById("feePreviewBiz")?.value || "pointTransfer";
-  const asset = biz.includes("point") ? "points" : "balance";
-  const action = biz.includes("Transfer") ? "transfer" : "recycle";
-  const s = previewSettlement(amount,asset,action);
-  const payerMap = {sender:"发送方承担",receiver:"接收方承担",shared:"双方分摊",platform:"平台承担"};
-  const el = document.getElementById("feePreviewResult");
-  if(el) el.innerHTML = `数量 ${money(amount)}，手续费 ${money(s.fee)}，模式：${payerMap[state.feeSettings.payer]}<br>发送方扣 ${money(s.senderDebit)}，接收方到 ${money(s.receiverCredit)}，平台收入 ${money(s.platformFee)}`;
-}
-
-function loadSystemRulesForm(){
-  const r = state.systemRules;
-  if(document.getElementById("ruleAgentMinInitialPoints")) document.getElementById("ruleAgentMinInitialPoints").value = r.agentMinInitialUserPoints;
-  if(document.getElementById("ruleMinInitialPointsEnabled")) document.getElementById("ruleMinInitialPointsEnabled").value = String(r.minInitialPointsEnabled);
-  if(document.getElementById("ruleDirectAssignMode")) document.getElementById("ruleDirectAssignMode").value = r.directAssignMode;
-  const gmSel = document.getElementById("ruleDefaultGM");
-  if(gmSel){
-    gmSel.innerHTML = state.users.filter(u=>u.role===ROLE_GM).map(u=>`<option value="${u.id}">${u.name} · ${u.id}</option>`).join("");
-    gmSel.value = r.defaultGM;
+async function refreshCurrentBalanceIfNeeded(uid,newBalance){
+  if(auth.currentUser && auth.currentUser.uid === uid){
+    document.getElementById("balanceText").innerText = newBalance;
+    document.getElementById("settingBalance").innerText = newBalance;
   }
 }
 
-function saveSystemRules(){
-  if(!assertPerm("canEditRules")) return;
-  state.systemRules.agentMinInitialUserPoints = Number(document.getElementById("ruleAgentMinInitialPoints").value||0);
-  state.systemRules.minInitialPointsEnabled = document.getElementById("ruleMinInitialPointsEnabled").value === "true";
-  state.systemRules.directAssignMode = document.getElementById("ruleDirectAssignMode").value;
-  state.systemRules.defaultGM = document.getElementById("ruleDefaultGM").value;
-  addLog("SYSTEM_RULE","修改新用户创建和自然注册归属规则");
-  saveState(); renderAll(); toast("系统规则已保存");
-}
+async function loadLogs(){
+  const logsBody = document.getElementById("logsBody");
+  logsBody.innerHTML = "";
 
-function renderSecurityPage(){
-  const sel = document.getElementById("securityUserSelect");
-  if(!sel) return;
-  sel.innerHTML = visibleUsers().map(u=>`<option value="${u.id}">${u.name} · ${u.id} · ${u.role}</option>`).join("");
-  renderSecurityStatus();
-}
+  const querySnapshot = await getDocs(collection(db,"balance_logs"));
+  let logs = [];
 
-function renderSecurityStatus(){
-  const id = document.getElementById("securityUserSelect")?.value;
-  const u = state.users.find(x=>x.id===id);
-  const box = document.getElementById("securityStatusBox");
-  if(!u || !box) return;
-  box.innerHTML = `
-    账号：${u.name} (${u.id})<br>
-    登录密码状态：${u.loginPasswordStatus}<br>
-    交易密码状态：${u.tradePasswordStatus}<br>
-    交易密码是否已修改：${u.tradePasswordChanged ? "是" : "否，需要修改后才能资金操作"}<br>
-    最后修改登录密码：${u.loginPasswordUpdatedAt || "-"}<br>
-    最后修改交易密码：${u.tradePasswordUpdatedAt || "-"}<br>
-    明文密码：永不显示
-  `;
-}
+  querySnapshot.forEach(docSnap=>{
+    const data = docSnap.data();
 
-function resetLoginPassword(){
-  if(!assertPerm("canResetPassword")) return;
-  const id = document.getElementById("securityUserSelect").value;
-  const u = state.users.find(x=>x.id===id);
-  if(!u) return;
-  u.loginPasswordHash = hashPassword("123456");
-  u.loginPasswordStatus = "reset_need_change";
-  u.loginPasswordChanged = false;
-  u.loginPasswordUpdatedAt = nowText();
-  addLog("RESET_LOGIN_PASSWORD",`重置 ${u.id} 登录密码为初始状态，不显示明文`);
-  saveState(); renderAll(); toast("登录密码已重置为初始状态");
-}
+    if(currentUserProfile.role === "SuperAdmin"){
+      logs.push(data);
+    }else{
+      const uid = auth.currentUser.uid;
 
-function resetTradePassword(){
-  if(!assertPerm("canResetPassword")) return;
-  const id = document.getElementById("securityUserSelect").value;
-  const u = state.users.find(x=>x.id===id);
-  if(!u) return;
-  u.tradePasswordHash = hashPassword("123456");
-  u.tradePasswordStatus = "reset_need_change";
-  u.tradePasswordChanged = false;
-  u.tradePasswordUpdatedAt = nowText();
-  u.tradePasswordFailCount = 0;
-  u.tradePasswordLockedUntil = 0;
-  addLog("RESET_TRADE_PASSWORD",`重置 ${u.id} 交易密码为初始状态，必须修改后使用`);
-  saveState(); renderAll(); toast("交易密码已重置，用户必须修改后才能资金操作");
-}
+      /*
+        GM 当前前端版：显示自己操作的记录，或自己账号相关记录。
+        后续如果要严格显示“GM 管理范围记录”，需要给 Agent/User 增加 parentGmUid 字段。
+      */
+      if(data.operatorUid === uid || data.actorUid === uid || data.targetUid === uid){
+        logs.push(data);
+      }
+    }
+  });
 
-function renderProfile(){
-  const u = getUser();
-  if(!u) return;
-  if(document.getElementById("profileName")) document.getElementById("profileName").value = u.name || "";
-  if(document.getElementById("profilePhone")) document.getElementById("profilePhone").value = u.phone || "";
-  if(document.getElementById("profileAvatar")) document.getElementById("profileAvatar").value = u.avatar || "";
-  const box = document.getElementById("mySecurityBox");
-  if(box){
-    box.innerHTML = `
-      <div class="kv"><span>登录密码状态</span><b>${u.loginPasswordStatus}</b></div>
-      <div class="kv"><span>交易密码状态</span><b>${u.tradePasswordStatus}</b></div>
-      <div class="kv"><span>交易密码已修改</span><b>${u.tradePasswordChanged ? "是" : "否，资金操作前必须修改"}</b></div>
-      <div class="kv"><span>连续错误次数</span><b>${u.tradePasswordFailCount || 0}</b></div>
-      <div class="kv"><span>明文密码</span><b>永不显示</b></div>
-    `;
+  logs.sort((a,b)=>{
+    const at = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+    const bt = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+    return bt - at;
+  });
+
+  logs = logs.slice(0,100);
+
+  if(logs.length === 0){
+    logsBody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#64748b">暂无记录</td></tr>`;
+  }else{
+    logs.forEach(log=>{
+      const operatorEmail = log.operatorEmail || log.actorEmail || "-";
+      const operatorRole = log.operatorRole || log.actorRole || "";
+      const remark = log.remark || log.note || "-";
+      const amountNum = Number(log.amount || 0);
+      const amountText = amountNum > 0 ? `+${amountNum}` : `${amountNum}`;
+      const amountColor = amountNum > 0 ? "ok-text" : amountNum < 0 ? "danger-text" : "muted";
+
+      logsBody.innerHTML += `
+        <tr>
+          <td>${safeText(nowTextFromTimestamp(log.createdAt))}</td>
+          <td>${safeText(operatorEmail)}<br><span class="muted">${safeText(operatorRole)}</span></td>
+          <td>${safeText(log.targetEmail || "-")}<br><span class="muted" title="${safeText(log.targetUid || "")}">${safeText(shortUid(log.targetUid || ""))}</span></td>
+          <td>${safeText(log.targetRole || "-")}</td>
+          <td>${safeText(log.type || "-")}</td>
+          <td><span class="${amountColor}">${safeText(amountText)}</span></td>
+          <td>${safeText(log.balance ?? "-")}</td>
+          <td>${safeText(remark)}</td>
+        </tr>
+      `;
+    });
   }
+
+  document.getElementById("logViewHint").innerText =
+    currentUserProfile.role === "SuperAdmin" ? "SuperAdmin：显示全部账号的积分、冻结、解冻、备注、初始化记录。" :
+    "当前权限：显示与你自己相关的记录。GM 管理范围记录后续可加 parentGmUid 后进一步细分。";
 }
 
-function saveProfile(){
-  const u = getUser();
-  u.name = document.getElementById("profileName").value.trim() || u.name;
-  u.phone = document.getElementById("profilePhone").value.trim();
-  u.avatar = document.getElementById("profileAvatar").value.trim();
-  addLog("PROFILE","修改自己的资料");
-  saveState(); renderAll(); toast("资料已保存");
-}
+async function changePassword(){
+  const oldPwd = document.getElementById("oldPassword").value;
+  const pwd = document.getElementById("newPassword").value;
+  const confirmPwd = document.getElementById("confirmPassword").value;
 
-function changeLoginPassword(){
-  const u = getUser();
-  const oldp = document.getElementById("oldLoginPassword").value;
-  const newp = document.getElementById("newLoginPassword").value;
-  const conf = document.getElementById("confirmLoginPassword").value;
-  if(!checkPassword(oldp,u.loginPasswordHash)){toast("旧登录密码错误");return;}
-  if(newp.length < 6){toast("新密码至少6位");return;}
-  if(newp !== conf){toast("两次新密码不一致");return;}
-  u.loginPasswordHash = hashPassword(newp);
-  u.loginPasswordChanged = true;
-  u.loginPasswordStatus = "changed";
-  u.loginPasswordUpdatedAt = nowText();
-  addLog("CHANGE_LOGIN_PASSWORD","修改自己的登录密码");
-  saveState(); renderAll(); toast("登录密码修改成功");
-}
+  if(!oldPwd){
+    alert("请输入当前密码");
+    return;
+  }
 
-function changeTradePassword(){
-  const u = getUser();
-  const oldp = document.getElementById("oldTradePassword").value;
-  const newp = document.getElementById("newTradePassword").value;
-  const conf = document.getElementById("confirmTradePassword").value;
-  if(!checkPassword(oldp,u.tradePasswordHash)){toast("旧交易密码错误");return;}
-  if(newp.length < 6){toast("新交易密码至少6位");return;}
-  if(newp === "123456"){toast("新交易密码不能继续使用默认密码123456");return;}
-  if(newp !== conf){toast("两次新交易密码不一致");return;}
-  u.tradePasswordHash = hashPassword(newp);
-  u.tradePasswordChanged = true;
-  u.tradePasswordStatus = "changed";
-  u.tradePasswordUpdatedAt = nowText();
-  u.tradePasswordFailCount = 0;
-  u.tradePasswordLockedUntil = 0;
-  addLog("CHANGE_TRADE_PASSWORD","修改自己的交易密码");
-  saveState(); renderAll(); toast("交易密码修改成功，现在可以进行资金操作");
+  if(!pwd){
+    alert("请输入新密码");
+    return;
+  }
+
+  if(pwd.length < 6){
+    alert("密码至少6位");
+    return;
+  }
+
+  if(pwd !== confirmPwd){
+    alert("两次密码输入不一致");
+    return;
+  }
+
+  try{
+    const user = auth.currentUser;
+    const credential = EmailAuthProvider.credential(user.email, oldPwd);
+
+    await reauthenticateWithCredential(user, credential);
+    await updatePassword(user, pwd);
+
+    alert("密码修改成功");
+
+    document.getElementById("oldPassword").value = "";
+    document.getElementById("newPassword").value = "";
+    document.getElementById("confirmPassword").value = "";
+  }catch(error){
+    alert("修改失败：" + error.message);
+  }
 }
 
 function createTask(){
-  if(!assertPerm("canCreateTask")) return;
-  const nums = document.getElementById("taskNumbers").value.split(/\n+/).map(x=>x.trim()).filter(Boolean);
-  if(!nums.length){toast("请输入号码");return;}
-  state.tasks.unshift({time:nowText(),creator:currentUserId,type:document.getElementById("taskType").value,count:nums.length,status:"已创建"});
-  addLog("CREATE_TASK",`创建检测任务，数量 ${nums.length}`);
-  saveState(); renderTasks(); toast("任务已创建");
-}
+  const taskId = "WS" + Date.now();
 
-function visibleTasks(){
-  const me = getUser();
-  if(me.role === ROLE_SUPER || me.role === ROLE_GM) return state.tasks;
-  if(me.role === ROLE_AGENT){
-    const ids = visibleUsers().map(u=>u.id);
-    return state.tasks.filter(t=>ids.includes(t.creator));
-  }
-  return state.tasks.filter(t=>t.creator===me.id);
+  tasks.unshift({
+    id:taskId,
+    type:"WhatsApp头像检测",
+    total:100000,
+    success:84320,
+    avatar:41200,
+    noAvatar:43120,
+    status:"流程完成"
+  });
+
+  renderTasks();
 }
 
 function renderTasks(){
-  const el = document.getElementById("tasksTable");
-  if(!el) return;
-  el.innerHTML = visibleTasks().map(t=>`<tr><td>${t.time}</td><td>${t.creator}</td><td>${t.type}</td><td>${t.count}</td><td>${t.status}</td><td><button class="mini m-blue">查看</button></td></tr>`).join("");
+  const tbody = document.getElementById("taskTable");
+  tbody.innerHTML = "";
+
+  if(tasks.length === 0){
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#64748b">暂无任务流水</td></tr>`;
+    return;
+  }
+
+  tasks.forEach(t=>{
+    tbody.innerHTML += `
+      <tr>
+        <td><b>${safeText(t.id)}</b></td>
+        <td>${safeText(t.type)}</td>
+        <td>${safeText(t.total)}</td>
+        <td style="color:#16a34a;font-weight:bold">${safeText(t.success)}</td>
+        <td>🟢 ${safeText(t.avatar)}</td>
+        <td>⚪ ${safeText(t.noAvatar)}</td>
+        <td><span class="badge">${safeText(t.status)}</span></td>
+        <td><button class="small-btn green" onclick="downloadTask('${safeText(t.id)}')">下载</button></td>
+      </tr>
+    `;
+  });
 }
 
-function renderPackages(){
-  const box = document.getElementById("packagesGrid");
+function downloadTask(taskId){
+  const text =
+`批次单号：${taskId}
+检测类型：WhatsApp头像检测
+总导入数量：100000
+成功数量：84320
+有头像数量：41200
+无头像数量：43120
+状态：流程数据，后续接入真实检测接口后生成正式报告。`;
+
+  const blob = new Blob([text], {
+    type:"text/plain;charset=utf-8"
+  });
+
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = `Databox_Report_${taskId}.txt`;
+  link.click();
+}
+
+
+function getPrice(type){
+  const item = pricingConfig[type];
+  if(!item) return 0;
+  return Number(item.price || 0);
+}
+
+function renderPricing(){
+  const box = document.getElementById("pricingRows");
+  const isSuper = currentUserProfile?.role === "SuperAdmin";
+
+  const keys = ["dedupe","wa","avatar","carrier","valid"];
+  box.innerHTML = keys.map(key=>{
+    const item = pricingConfig[key] || {};
+    const disabled = isSuper ? "" : "disabled";
+    return `
+      <div class="price-grid">
+        <input id="price_name_${key}" value="${safeText(item.name || key)}" ${disabled}>
+        <input id="price_value_${key}" type="number" step="0.0001" value="${Number(item.price || 0)}" ${disabled}>
+        <select id="price_status_${key}" ${disabled}>
+          <option value="已上线" ${item.status === "已上线" ? "selected" : ""}>已上线</option>
+          <option value="开发中" ${item.status === "开发中" ? "selected" : ""}>开发中</option>
+          <option value="关闭" ${item.status === "关闭" ? "selected" : ""}>关闭</option>
+        </select>
+        <input id="price_desc_${key}" value="${safeText(item.desc || "")}" ${disabled}>
+        <span class="muted">积分/条</span>
+      </div>
+    `;
+  }).join("");
+
+  document.getElementById("savePricingBtn").style.display = isSuper ? "inline-block" : "none";
+  document.getElementById("pricingHint").innerText = isSuper ?
+    "SuperAdmin：可随时修改套餐名称、价格、状态和说明。" :
+    "当前账号只能查看套餐价格，不能修改。";
+}
+
+async function loadPricing(){
+  const snap = await getDoc(doc(db,"settings","pricing"));
+  if(snap.exists()){
+    pricingConfig = {...pricingConfig, ...snap.data()};
+  }else if(currentUserProfile?.role === "SuperAdmin"){
+    await setDoc(doc(db,"settings","pricing"), pricingConfig);
+  }
+  renderPricing();
+}
+
+async function savePricing(){
+  if(currentUserProfile?.role !== "SuperAdmin"){
+    alert("权限不足：只有 SuperAdmin 可以修改套餐价格");
+    return;
+  }
+
+  const keys = ["dedupe","wa","avatar","carrier","valid"];
+  const next = {};
+  keys.forEach(key=>{
+    next[key] = {
+      name:document.getElementById(`price_name_${key}`).value.trim() || key,
+      price:Number(document.getElementById(`price_value_${key}`).value || 0),
+      status:document.getElementById(`price_status_${key}`).value,
+      desc:document.getElementById(`price_desc_${key}`).value.trim()
+    };
+  });
+
+  await setDoc(doc(db,"settings","pricing"), next, {merge:true});
+  pricingConfig = next;
+
+  await writeLog({
+    targetUid:auth.currentUser.uid,
+    targetEmail:currentUserProfile.email || auth.currentUser.email,
+    targetRole:currentUserProfile.role,
+    type:"update_pricing",
+    amount:0,
+    balance:Number(currentUserProfile.balance || 0),
+    remark:"修改套餐价格配置"
+  });
+
+  await addDoc(collection(db,"price_logs"),{
+    operatorUid:auth.currentUser.uid,
+    operatorEmail:currentUserProfile.email || auth.currentUser.email,
+    operatorRole:currentUserProfile.role,
+    type:"update_pricing",
+    remark:"修改套餐价格配置",
+    createdAt:serverTimestamp()
+  });
+
+  alert("套餐价格已保存，其他用户刷新后会看到最新价格");
+  renderPricing();
+}
+
+function canManageAnnouncement(){
+  return hasPerm("canManageAnnouncements");
+}
+
+function announcementHiddenKey(id){
+  return `hidden_announcement_${auth.currentUser?.uid || "guest"}_${id}`;
+}
+
+async function saveAnnouncement(){
+  if(!canManageAnnouncement()){
+    alert("权限不足：只有 SuperAdmin / GM 可以管理公告");
+    return;
+  }
+
+  const id = document.getElementById("editingAnnouncementId").value.trim();
+  const title = document.getElementById("announcementTitle").value.trim();
+  const content = document.getElementById("announcementContent").value.trim();
+  const status = document.getElementById("announcementStatus").value;
+  const isPinned = document.getElementById("announcementPinned").value === "true";
+
+  if(!title || !content){
+    alert("请输入公告标题和内容");
+    return;
+  }
+
+  const payload = {
+    title,
+    content,
+    status,
+    isPinned,
+    updatedByUid:auth.currentUser.uid,
+    updatedByEmail:currentUserProfile.email || auth.currentUser.email,
+    updatedByRole:currentUserProfile.role,
+    updatedAt:serverTimestamp()
+  };
+
+  if(id){
+    await setDoc(doc(db,"announcements",id),payload,{merge:true});
+  }else{
+    await addDoc(collection(db,"announcements"),{
+      ...payload,
+      createdByUid:auth.currentUser.uid,
+      createdByEmail:currentUserProfile.email || auth.currentUser.email,
+      createdByRole:currentUserProfile.role,
+      createdAt:serverTimestamp()
+    });
+  }
+
+  await writeLog({
+    targetUid:auth.currentUser.uid,
+    targetEmail:currentUserProfile.email || auth.currentUser.email,
+    targetRole:currentUserProfile.role,
+    type:id ? "edit_announcement" : "publish_announcement",
+    amount:0,
+    balance:Number(currentUserProfile.balance || 0),
+    remark:title
+  });
+
+  cancelEditAnnouncement(false);
+  alert(id ? "公告已保存" : "公告已发布");
+  await loadAnnouncement();
+}
+
+async function loadAnnouncement(){
+  const box = document.getElementById("latestAnnouncement");
+  const canManage = canManageAnnouncement();
+
+  document.getElementById("announcementTitle").style.display = canManage ? "block" : "none";
+  document.getElementById("announcementContent").style.display = canManage ? "block" : "none";
+  document.getElementById("announcementOptions").style.display = canManage ? "flex" : "none";
+  document.getElementById("saveAnnouncementBtn").style.display = canManage ? "inline-block" : "none";
+
+  const querySnapshot = await getDocs(collection(db,"announcements"));
+  let items = [];
+
+  querySnapshot.forEach(docSnap=>{
+    const a = docSnap.data();
+    const id = docSnap.id;
+
+    if(!canManage && a.status === "Closed") return;
+    if(localStorage.getItem(announcementHiddenKey(id)) === "1") return;
+
+    items.push({id,...a});
+  });
+
+  items.sort((a,b)=>{
+    if(Boolean(a.isPinned) !== Boolean(b.isPinned)) return a.isPinned ? -1 : 1;
+    const at = a.updatedAt?.toMillis ? a.updatedAt.toMillis() : (a.createdAt?.toMillis ? a.createdAt.toMillis() : 0);
+    const bt = b.updatedAt?.toMillis ? b.updatedAt.toMillis() : (b.createdAt?.toMillis ? b.createdAt.toMillis() : 0);
+    return bt - at;
+  });
+
+  if(items.length === 0){
+    box.innerHTML = "暂无公告";
+    return;
+  }
+
+  box.innerHTML = items.map(a=>{
+    const statusText = a.status === "Closed" ? '<span class="danger-text">已关闭</span>' : '<span class="ok-text">显示中</span>';
+    const pinText = a.isPinned ? "📌 " : "";
+    const manageBtns = canManage ? `
+      <button class="small-btn blue" onclick="editAnnouncement('${a.id}')">编辑</button>
+      <button class="small-btn orange" onclick="toggleAnnouncementStatus('${a.id}','${a.status === "Closed" ? "Active" : "Closed"}')">${a.status === "Closed" ? "启用" : "关闭"}</button>
+      <button class="small-btn purple" onclick="toggleAnnouncementPin('${a.id}',${a.isPinned ? "false" : "true"})">${a.isPinned ? "取消置顶" : "置顶"}</button>
+      <button class="small-btn red" onclick="deleteAnnouncementItem('${a.id}')">删除</button>
+    ` : "";
+
+    return `
+      <div class="announce-box">
+        <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap">
+          <div>
+            <b>${pinText}${safeText(a.title)}</b>
+            <div class="muted" style="margin-top:4px">状态：${statusText}</div>
+          </div>
+          <div>
+            <button class="small-btn gray" onclick="hideAnnouncementForMe('${a.id}')">关闭通知</button>
+            ${manageBtns}
+          </div>
+        </div>
+        <div style="margin-top:8px;white-space:pre-wrap">${safeText(a.content)}</div>
+        <div class="muted" style="margin-top:8px">
+          发布人：${safeText(a.createdByEmail || a.updatedByEmail || "-")}　角色：${safeText(a.createdByRole || a.updatedByRole || "-")}　时间：${safeText(nowTextFromTimestamp(a.createdAt || a.updatedAt))}
+          <br>最后修改：${safeText(a.updatedByEmail || "-")}　${safeText(nowTextFromTimestamp(a.updatedAt))}
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+async function editAnnouncement(id){
+  if(!canManageAnnouncement()) return;
+
+  const snap = await getDoc(doc(db,"announcements",id));
+  if(!snap.exists()){
+    alert("公告不存在");
+    return;
+  }
+
+  const a = snap.data();
+  document.getElementById("editingAnnouncementId").value = id;
+  document.getElementById("announcementTitle").value = a.title || "";
+  document.getElementById("announcementContent").value = a.content || "";
+  document.getElementById("announcementStatus").value = a.status || "Active";
+  document.getElementById("announcementPinned").value = a.isPinned ? "true" : "false";
+  document.getElementById("saveAnnouncementBtn").innerText = "保存修改";
+  document.getElementById("cancelEditAnnouncementBtn").style.display = "inline-block";
+  document.getElementById("announcementTitle").scrollIntoView({behavior:"smooth",block:"center"});
+}
+
+function cancelEditAnnouncement(showAlert=true){
+  document.getElementById("editingAnnouncementId").value = "";
+  document.getElementById("announcementTitle").value = "";
+  document.getElementById("announcementContent").value = "";
+  document.getElementById("announcementStatus").value = "Active";
+  document.getElementById("announcementPinned").value = "false";
+  document.getElementById("saveAnnouncementBtn").innerText = "发布公告";
+  document.getElementById("cancelEditAnnouncementBtn").style.display = "none";
+  if(showAlert) alert("已取消编辑");
+}
+
+async function toggleAnnouncementStatus(id,nextStatus){
+  if(!canManageAnnouncement()) return;
+
+  await updateDoc(doc(db,"announcements",id),{
+    status:nextStatus,
+    updatedByUid:auth.currentUser.uid,
+    updatedByEmail:currentUserProfile.email || auth.currentUser.email,
+    updatedByRole:currentUserProfile.role,
+    updatedAt:serverTimestamp()
+  });
+
+  await writeLog({
+    targetUid:auth.currentUser.uid,
+    targetEmail:currentUserProfile.email || auth.currentUser.email,
+    targetRole:currentUserProfile.role,
+    type:"toggle_announcement_status",
+    amount:0,
+    balance:Number(currentUserProfile.balance || 0),
+    remark:`公告状态改为 ${nextStatus}`
+  });
+
+  await loadAnnouncement();
+}
+
+async function toggleAnnouncementPin(id,nextPinned){
+  if(!canManageAnnouncement()) return;
+
+  await updateDoc(doc(db,"announcements",id),{
+    isPinned:Boolean(nextPinned),
+    updatedByUid:auth.currentUser.uid,
+    updatedByEmail:currentUserProfile.email || auth.currentUser.email,
+    updatedByRole:currentUserProfile.role,
+    updatedAt:serverTimestamp()
+  });
+
+  await writeLog({
+    targetUid:auth.currentUser.uid,
+    targetEmail:currentUserProfile.email || auth.currentUser.email,
+    targetRole:currentUserProfile.role,
+    type:"toggle_announcement_pin",
+    amount:0,
+    balance:Number(currentUserProfile.balance || 0),
+    remark:nextPinned ? "公告置顶" : "取消公告置顶"
+  });
+
+  await loadAnnouncement();
+}
+
+async function deleteAnnouncementItem(id){
+  if(!canManageAnnouncement()) return;
+  if(!confirm("确定删除此公告吗？删除后不可恢复。")) return;
+
+  await deleteDoc(doc(db,"announcements",id));
+
+  await writeLog({
+    targetUid:auth.currentUser.uid,
+    targetEmail:currentUserProfile.email || auth.currentUser.email,
+    targetRole:currentUserProfile.role,
+    type:"delete_announcement",
+    amount:0,
+    balance:Number(currentUserProfile.balance || 0),
+    remark:id
+  });
+
+  await loadAnnouncement();
+}
+
+async function hideAnnouncementForMe(id){
+  localStorage.setItem(announcementHiddenKey(id),"1");
+  try{
+    await setDoc(doc(db,"user_notice_hidden",`${auth.currentUser.uid}_${id}`),{
+      userUid:auth.currentUser.uid,
+      noticeId:id,
+      hidden:true,
+      hiddenAt:serverTimestamp()
+    },{merge:true});
+  }catch(e){
+    console.warn("保存关闭通知状态失败，已使用本地隐藏",e);
+  }
+  await loadAnnouncement();
+}
+
+
+async function getDetectionInput(){
+  const fileInput = document.getElementById("detectFile");
+  const file = fileInput?.files?.[0];
+
+  if(file){
+    const text = await file.text();
+    return {
+      text,
+      source:"文件上传",
+      fileName:file.name
+    };
+  }
+
+  return {
+    text:document.getElementById("numberInput").value,
+    source:"手动输入",
+    fileName:"-"
+  };
+}
+
+function handleDetectFileSelected(){
+  const file = document.getElementById("detectFile")?.files?.[0];
+  const hint = document.getElementById("detectFileHint");
+  if(!hint) return;
+  if(file){
+    hint.innerText = `已选择文件：${file.name}，大小：${Math.round(file.size / 1024)} KB。点击开始检测后会优先读取文件。`;
+  }else{
+    hint.innerText = "未选择文件。支持 TXT / CSV，每行一个号码，也兼容逗号分隔。";
+  }
+}
+
+function parseNumberList(text){
+  return text
+    .split(/[
+,;，；]+/)
+    .map(v=>v.trim())
+    .filter(v=>v);
+}
+
+async function runDetection(){
+  const type = document.getElementById("detectType").value;
+
+  if(type !== "dedupe"){
+    alert("功能开发中");
+    return;
+  }
+
+  const inputData = await getDetectionInput();
+
+  if(!inputData.text.trim()){
+    alert("请上传号码文件，或在文本框输入号码");
+    return;
+  }
+
+  const rawList = parseNumberList(inputData.text);
+
+  if(rawList.length === 0){
+    alert("没有识别到有效号码");
+    return;
+  }
+
+  const total = rawList.length;
+  const uniqueList = [...new Set(rawList)];
+  const duplicateCount = total - uniqueList.length;
+  const cost = Number((total * getPrice("dedupe")).toFixed(4));
+
+  if(Number(currentUserProfile.balance || 0) < cost){
+    alert(`余额不足。本次需要 ${cost} 积分，当前余额 ${currentUserProfile.balance || 0} 积分`);
+    return;
+  }
+
+  await runTransaction(db, async (transaction)=>{
+    const userRef = doc(db,"users",auth.currentUser.uid);
+    const userSnap = await transaction.get(userRef);
+    if(!userSnap.exists()) throw new Error("用户资料不存在");
+
+    const data = userSnap.data();
+    const balance = Number(data.balance || 0);
+    if(balance < cost) throw new Error("余额不足");
+
+    transaction.update(userRef,{balance:Number((balance - cost).toFixed(4))});
+  });
+
+  currentUserProfile.balance = Number((Number(currentUserProfile.balance || 0) - cost).toFixed(4));
+  document.getElementById("balanceText").innerText = currentUserProfile.balance;
+  document.getElementById("settingBalance").innerText = currentUserProfile.balance;
+  document.getElementById("dashBalance").innerText = currentUserProfile.balance;
+
+  document.getElementById("detectResult").innerHTML = `
+    <b>检测完成</b><br><br>
+    数据来源：${safeText(inputData.source)}<br>
+    文件名称：${safeText(inputData.fileName)}<br>
+    原始数量：${total}<br>
+    去重后数量：${uniqueList.length}<br>
+    重复数量：${duplicateCount}<br>
+    本次消耗：${cost} 积分
+  `;
+
+  document.getElementById("dedupeTable").innerHTML = `
+    <tr><td>数据来源</td><td>${safeText(inputData.source)}</td></tr>
+    <tr><td>文件名称</td><td>${safeText(inputData.fileName)}</td></tr>
+    <tr><td>原始数量</td><td>${total}</td></tr>
+    <tr><td>去重后数量</td><td>${uniqueList.length}</td></tr>
+    <tr><td>重复数量</td><td>${duplicateCount}</td></tr>
+    <tr><td>本次消耗积分</td><td>${cost}</td></tr>
+  `;
+
+  await addDoc(collection(db,"detection_history"),{
+    uid:auth.currentUser.uid,
+    email:currentUserProfile.email || auth.currentUser.email,
+    type:"数据去重检测",
+    total,
+    unique:uniqueList.length,
+    duplicate:duplicateCount,
+    cost,
+    source:inputData.source,
+    fileName:inputData.fileName,
+    createdAt:serverTimestamp()
+  });
+
+  await writeLog({
+    targetUid:auth.currentUser.uid,
+    targetEmail:currentUserProfile.email || auth.currentUser.email,
+    targetRole:currentUserProfile.role,
+    type:"dedupe_cost",
+    amount:-cost,
+    balance:currentUserProfile.balance,
+    remark:`数据去重检测：${total} 条；来源：${inputData.source}；文件：${inputData.fileName}`
+  });
+
+  tasks.unshift({
+    id:"DD" + Date.now(),
+    type:"数据去重检测",
+    total,
+    success:uniqueList.length,
+    avatar:0,
+    noAvatar:duplicateCount,
+    status:"完成"
+  });
+  renderTasks();
+  await loadDetectionHistory();
+  await updateDashboard();
+  await updateDataCenter();
+  await loadRechargeRequests();
+  await loadPriceLogs();
+  await loadTickets();
+  await loadApiProviders();
+  await loadRiskLogs();
+  await loadGlobalConfig();
+}
+
+async function loadDetectionHistory(){
+  const body = document.getElementById("historyBody");
+  body.innerHTML = "";
+
+  const qs = await getDocs(collection(db,"detection_history"));
+  let rows = [];
+  qs.forEach(s=>{
+    const d = s.data();
+    if(currentUserProfile.role === "SuperAdmin" || d.uid === auth.currentUser.uid){
+      rows.push(d);
+    }
+  });
+
+  rows.sort((a,b)=>{
+    const at = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+    const bt = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+    return bt - at;
+  });
+  rows = rows.slice(0,100);
+
+  if(rows.length === 0){
+    body.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#64748b">暂无检测历史</td></tr>`;
+    return;
+  }
+
+  rows.forEach(r=>{
+    body.innerHTML += `
+      <tr>
+        <td>${safeText(nowTextFromTimestamp(r.createdAt))}</td>
+        <td>${safeText(r.email || "-")}</td>
+        <td>${safeText(r.type || "-")}</td>
+        <td>${safeText(r.total ?? 0)}</td>
+        <td>${safeText(r.unique ?? 0)}</td>
+        <td>${safeText(r.duplicate ?? 0)}</td>
+        <td>${safeText(r.cost ?? 0)}</td>
+      </tr>
+    `;
+  });
+}
+
+
+function parseLadder(text){
+  return String(text || "").split(/\n+/).map(line=>line.trim()).filter(Boolean).map(line=>{
+    const [min,max,rate] = line.split(",").map(x=>x.trim());
+    return {min:Number(min||0), max:max === "" ? 0 : Number(max||0), rate:Number(rate||0)};
+  }).filter(x=>x.rate >= 0);
+}
+
+function ladderToText(ladder){
+  return Array.isArray(ladder) ? ladder.map(x=>`${x.min||0},${x.max||""},${x.rate||0}`).join("\n") : "";
+}
+
+function getBusinessFeeRule(type){
+  return {...defaultFeeConfig[type], ...(feeConfig[type] || {})};
+}
+
+function getRateForAmount(rule, amount){
+  const ladder = Array.isArray(rule.ladder) ? rule.ladder : [];
+  const found = ladder.find(x=> amount >= Number(x.min||0) && (!Number(x.max||0) || amount <= Number(x.max||0)));
+  return found ? Number(found.rate || 0) : Number(rule.rate || 0);
+}
+
+function calculateFee(type, amount, actorProfile=currentUserProfile){
+  const rule = getBusinessFeeRule(type);
+  const exempt = Boolean(actorProfile?.feeExempt || actorProfile?.permissions?.feeExempt);
+  if(!rule.enabled || exempt) return {enabled:false, exempt, mode:rule.mode, rate:0, fee:0, senderFee:0, receiverFee:0, platformFee:0, netAmount:amount, senderDebit:amount};
+  const rate = getRateForAmount(rule, amount);
+  let fee = Number((amount * rate / 100).toFixed(4));
+  const min = Number(rule.min || 0);
+  const max = Number(rule.max || 0);
+  if(min > 0 && fee < min) fee = min;
+  if(max > 0 && fee > max) fee = max;
+  let senderFee = 0, receiverFee = 0, platformFee = fee;
+  if(rule.mode === "sender") senderFee = fee;
+  else if(rule.mode === "receiver") receiverFee = fee;
+  else if(rule.mode === "shared"){ senderFee = Number((fee/2).toFixed(4)); receiverFee = Number((fee-senderFee).toFixed(4)); }
+  else if(rule.mode === "platform") platformFee = -fee;
+  const senderDebit = Number((amount + senderFee).toFixed(4));
+  const netAmount = Number((amount - receiverFee).toFixed(4));
+  return {enabled:true, exempt:false, mode:rule.mode, rate, fee, senderFee, receiverFee, platformFee, netAmount, senderDebit};
+}
+
+function modeName(mode){
+  return {sender:"发送方承担",receiver:"接收方承担",shared:"双方分摊",platform:"平台承担"}[mode] || mode;
+}
+
+function getCreateAccountCost(creatorRole, targetRole){
+  if(!platformRules.createCostEnabled) return 0;
+  if(creatorRole === "SuperAdmin") return Number(platformRules.superCreateAnyCost || 0);
+  if(creatorRole === "Agent" && targetRole === "User") return Number(platformRules.agentCreateUserCost || 0);
+  if(creatorRole === "GM" && targetRole === "User") return Number(platformRules.gmCreateUserCost || 0);
+  if(creatorRole === "GM" && targetRole === "Agent") return Number(platformRules.gmCreateAgentCost || 0);
+  return 0;
+}
+
+async function loadFeeConfig(){
+  const snap = await getDoc(doc(db,"settings","feeConfig"));
+  if(snap.exists()) feeConfig = {...defaultFeeConfig, ...snap.data()};
+  else if(currentUserProfile?.role === "SuperAdmin") await setDoc(doc(db,"settings","feeConfig"), feeConfig, {merge:true});
+  renderFeeConfig();
+  await loadPlatformWallet();
+  await loadFeeLogs();
+}
+
+function renderFeeConfig(){
+  ["transferPoints","recyclePoints","transferBalance","recycleBalance"].forEach(type=>{
+    const r = getBusinessFeeRule(type);
+    const set=(id,v)=>{const el=document.getElementById(id); if(!el) return; if(el.type === "checkbox") el.checked=Boolean(v); else el.value=v;};
+    set(`fee_${type}_enabled`,r.enabled);
+    set(`fee_${type}_rate`,r.rate);
+    set(`fee_${type}_min`,r.min);
+    set(`fee_${type}_max`,r.max);
+    set(`fee_${type}_mode`,r.mode);
+    set(`fee_${type}_ladder`,ladderToText(r.ladder));
+  });
+}
+
+async function saveFeeConfig(){
+  if(!hasPerm("canManageFees")){ alert("权限不足：不能修改手续费规则"); return; }
+  const next = {};
+  ["transferPoints","recyclePoints","transferBalance","recycleBalance"].forEach(type=>{
+    next[type] = {
+      enabled:document.getElementById(`fee_${type}_enabled`).checked,
+      rate:Number(document.getElementById(`fee_${type}_rate`).value || 0),
+      min:Number(document.getElementById(`fee_${type}_min`).value || 0),
+      max:Number(document.getElementById(`fee_${type}_max`).value || 0),
+      mode:document.getElementById(`fee_${type}_mode`).value,
+      ladder:parseLadder(document.getElementById(`fee_${type}_ladder`).value)
+    };
+  });
+  feeConfig = next;
+  await setDoc(doc(db,"settings","feeConfig"), next, {merge:true});
+  await writeLog({targetUid:auth.currentUser.uid,targetEmail:currentUserProfile.email||auth.currentUser.email,targetRole:currentUserProfile.role,type:"update_fee_config",amount:0,balance:Number(currentUserProfile.balance||0),remark:"修改 V2.8 手续费规则"});
+  alert("手续费规则已保存，并立即生效");
+  previewFeeConfig();
+}
+
+function previewFeeConfig(){
+  const type = document.getElementById("feePreviewType")?.value || "transferPoints";
+  const amount = Number(document.getElementById("feePreviewAmount")?.value || 0);
+  const r = calculateFee(type,amount,{...currentUserProfile,feeExempt:false,permissions:{}});
+  document.getElementById("feePreviewResult").innerHTML = `本金：<b>${amount}</b><br>费率：<b>${r.rate}%</b><br>承担方：<b>${modeName(r.mode)}</b><br>手续费：<b>${r.fee}</b><br>发送方扣除：<b>${r.senderDebit}</b><br>接收方到账：<b>${r.netAmount}</b><br>平台钱包变动：<b>${r.platformFee}</b>`;
+}
+
+async function loadPlatformWallet(){
+  const box = document.getElementById("platformWalletBox");
   if(!box) return;
-  box.innerHTML = state.packages.map(p=>`
-    <div class="card">
-      <div class="card-title">${p.name}<span class="badge ${p.enabled?'b-green':'b-red'}">${p.enabled?'启用':'关闭'}</span></div>
-      <div class="stat-value">¥${money(p.price)}</div>
-      <div class="desc">赠送积分：${money(p.points)}</div>
-      <div style="margin-top:12px"><button class="btn primary">购买套餐</button></div>
-    </div>`).join("");
+  const snap = await getDoc(doc(db,"system_wallets","PlatformWallet"));
+  const d = snap.exists() ? snap.data() : {};
+  box.innerHTML = `PlatformWallet<br>手续费积分：<b>${Number(d.points || 0)}</b><br>余额钱包：<b>${Number(d.balance || 0)}</b><br>创建账号收入：<b>${Number(d.totalCreateCostIncome || 0)}</b><br>最后更新：${safeText(nowTextFromTimestamp(d.updatedAt))}`;
 }
 
-function renderOrders(){
-  const el = document.getElementById("ordersTable");
-  if(!el) return;
-  el.innerHTML = state.orders.map(o=>`<tr><td>${o.time}</td><td>${o.user}</td><td>${o.type}</td><td>${money(o.amount)}</td><td>${money(o.points)}</td><td>${o.status}</td></tr>`).join("");
+async function addPlatformWalletPoints(delta){
+  const ref = doc(db,"system_wallets","PlatformWallet");
+  await runTransaction(db, async (transaction)=>{
+    const snap = await transaction.get(ref);
+    const d = snap.exists() ? snap.data() : {};
+    transaction.set(ref,{points:Number((Number(d.points||0)+Number(delta||0)).toFixed(4)),updatedAt:serverTimestamp()},{merge:true});
+  });
 }
 
-function renderLedger(){
-  const el = document.getElementById("ledgerTable");
-  if(!el) return;
-  el.innerHTML = state.ledger.map(l=>`<tr><td>${l.time}</td><td>${l.user}</td><td>${l.type}</td><td>${money(l.before)}</td><td>${money(l.after)}</td><td>${l.desc}</td></tr>`).join("");
+async function writeFeeLog(data){
+  await addDoc(collection(db,"FeeLogs"),{...data,createdAt:serverTimestamp()});
 }
 
-function renderLogs(){
-  const el = document.getElementById("logsTable");
-  if(!el) return;
-  el.innerHTML = state.logs.map(l=>`<tr><td>${l.time}</td><td>${l.actor}</td><td>${l.role}</td><td>${l.type}</td><td>${l.content}</td></tr>`).join("");
+async function loadFeeLogs(){
+  const body=document.getElementById("feeLogsBody");
+  if(!body) return;
+  if(!hasPerm("canViewFeeLogs") && !hasPerm("canManageFees")){ body.innerHTML='<tr><td colspan="8" style="text-align:center;color:#64748b">无权限查看手续费流水</td></tr>'; return; }
+  const qs=await getDocs(collection(db,"FeeLogs")); let rows=[];
+  qs.forEach(s=>rows.push(s.data()));
+  rows.sort((a,b)=>(b.createdAt?.toMillis?.()||0)-(a.createdAt?.toMillis?.()||0));
+  body.innerHTML = rows.length ? rows.slice(0,100).map(r=>`<tr><td>${safeText(nowTextFromTimestamp(r.createdAt))}</td><td>${safeText(r.type)}</td><td>${safeText(modeName(r.feeMode))}</td><td>${safeText(r.senderEmail||r.senderUid)}</td><td>${safeText(r.receiverEmail||r.receiverUid)}</td><td>${safeText(r.amount)}</td><td>${safeText(r.feeAmount)}</td><td>${safeText(r.netAmount)}</td></tr>`).join("") : '<tr><td colspan="8" style="text-align:center;color:#64748b">暂无手续费流水</td></tr>';
 }
 
-function openModal(){document.getElementById("modalBg").classList.add("show");}
-function closeModal(){document.getElementById("modalBg").classList.remove("show");}
+async function loadPlatformRules(){
+  const snap = await getDoc(doc(db,"settings","platformRules"));
+  if(snap.exists()) platformRules = {...defaultPlatformRules, ...snap.data()};
+  else if(currentUserProfile?.role === "SuperAdmin") await setDoc(doc(db,"settings","platformRules"), platformRules, {merge:true});
+  renderPlatformRules();
+  await loadCreateCostLogs();
+}
 
-window.addEventListener("DOMContentLoaded",initSession);
+function renderPlatformRules(){
+  const set=(id,v)=>{const el=document.getElementById(id); if(!el) return; if(el.type === "checkbox") el.checked=Boolean(v); else el.value=v;};
+  set("rule_createCostEnabled",platformRules.createCostEnabled);
+  set("rule_costToPlatformWallet",platformRules.costToPlatformWallet);
+  set("rule_agentCreateUserCost",platformRules.agentCreateUserCost);
+  set("rule_gmCreateUserCost",platformRules.gmCreateUserCost);
+  set("rule_gmCreateAgentCost",platformRules.gmCreateAgentCost);
+  set("rule_superCreateAnyCost",platformRules.superCreateAnyCost);
+}
+
+async function savePlatformRules(){
+  if(!hasPerm("canSetCreateUserCost")){ alert("权限不足：不能修改创建账号成本"); return; }
+  platformRules = {
+    createCostEnabled:document.getElementById("rule_createCostEnabled").checked,
+    costToPlatformWallet:document.getElementById("rule_costToPlatformWallet").checked,
+    agentCreateUserCost:Number(document.getElementById("rule_agentCreateUserCost").value || 0),
+    gmCreateUserCost:Number(document.getElementById("rule_gmCreateUserCost").value || 0),
+    gmCreateAgentCost:Number(document.getElementById("rule_gmCreateAgentCost").value || 0),
+    superCreateAnyCost:Number(document.getElementById("rule_superCreateAnyCost").value || 0)
+  };
+  await setDoc(doc(db,"settings","platformRules"), platformRules, {merge:true});
+  await writeLog({targetUid:auth.currentUser.uid,targetEmail:currentUserProfile.email||auth.currentUser.email,targetRole:currentUserProfile.role,type:"update_platform_rules",amount:0,balance:Number(currentUserProfile.balance||0),remark:"修改创建账号成本规则"});
+  alert("平台规则已保存，立即生效");
+  previewCreateCost();
+}
+
+function previewCreateCost(){
+  const creator=document.getElementById("createCostPreviewCreator")?.value || "Agent";
+  const target=document.getElementById("createCostPreviewTarget")?.value || "User";
+  const cost=getCreateAccountCost(creator,target);
+  document.getElementById("createCostPreviewResult").innerHTML = `创建者：<b>${creator}</b><br>创建对象：<b>${target}</b><br>需要扣除：<b>${cost}</b> 积分<br>${platformRules.createCostEnabled ? "规则状态：已开启" : "规则状态：已关闭"}`;
+}
+
+async function loadCreateCostLogs(){
+  const body=document.getElementById("createCostLogsBody"); if(!body) return;
+  const qs=await getDocs(collection(db,"CreateAccountCostLogs")); let rows=[];
+  qs.forEach(s=>rows.push(s.data()));
+  rows.sort((a,b)=>(b.createdAt?.toMillis?.()||0)-(a.createdAt?.toMillis?.()||0));
+  body.innerHTML=rows.length?rows.slice(0,100).map(r=>`<tr><td>${safeText(nowTextFromTimestamp(r.createdAt))}</td><td>${safeText(r.creatorEmail)}</td><td>${safeText(r.newUserEmail)}</td><td>${safeText(r.newUserRole)}</td><td>${safeText(r.costAmount)}</td><td>${safeText(r.beforeBalance)}</td><td>${safeText(r.afterBalance)}</td><td>${safeText(r.status)}</td></tr>`).join(""):'<tr><td colspan="8" style="text-align:center;color:#64748b">暂无创建成本流水</td></tr>';
+}
+
+function renderPermissionCheckboxes(perms={}){
+  const box=document.getElementById("permissionCheckboxes"); if(!box) return;
+  box.innerHTML = V28_PERMISSION_KEYS.map(([key,label])=>`<div class="permission-box"><label><input type="checkbox" id="perm_${key}" ${perms[key] ? "checked" : ""}> ${label}<br><span class="muted">${key}</span></label></div>`).join("");
+}
+
+function fillPermissionTargetFromCurrent(){
+  document.getElementById("permTargetUid").value = auth.currentUser?.uid || "";
+  loadAccountPermissions();
+}
+
+async function loadAccountPermissions(){
+  if(!hasPerm("canManagePermissions")){ alert("权限不足：不能读取权限中心"); return; }
+  const uid=document.getElementById("permTargetUid").value.trim();
+  if(!uid){ alert("请输入目标 UID"); return; }
+  const snap=await getDoc(doc(db,"users",uid));
+  if(!snap.exists()){ alert("目标账号不存在"); return; }
+  const d=snap.data();
+  renderPermissionCheckboxes(normalizePermissions({uid,...d}));
+}
+
+async function saveAccountPermissions(){
+  if(!hasPerm("canManagePermissions")){ alert("权限不足：不能保存权限"); return; }
+  const uid=document.getElementById("permTargetUid").value.trim();
+  if(!uid){ alert("请输入目标 UID"); return; }
+  const snap=await getDoc(doc(db,"users",uid));
+  if(!snap.exists()){ alert("目标账号不存在"); return; }
+  const perms={};
+  V28_PERMISSION_KEYS.forEach(([key])=>{ perms[key]=Boolean(document.getElementById(`perm_${key}`)?.checked); });
+  await updateDoc(doc(db,"users",uid),{permissions:perms,feeExempt:Boolean(perms.feeExempt)});
+  await writeLog({targetUid:uid,targetEmail:snap.data().email||"",targetRole:snap.data().role||"User",type:"update_permissions",amount:0,balance:Number(snap.data().balance||0),remark:"修改单账号权限开关"});
+  alert("账号权限已保存");
+  await loadUsers();
+}
+
+function pageRequiredPermission(page){
+  return {
+    dashboard:"canViewDashboard",detect:"canUseDetect",users:"canViewUsers",billing:"canViewBilling",history:"canUseDetect",data:"canViewDashboard",ticket:"canUseDetect",api:"canManageApi",risk:"canViewAllLogs",fees:"canManageFees",rules:"canSetCreateUserCost",permissions:"canManagePermissions",settings:"canManageSystem",help:"canUseDetect"
+  }[page];
+}
+
+function applyPermissionUI(){
+  const p=normalizePermissions(currentUserProfile);
+  document.querySelectorAll("#sideMenu li").forEach(li=>{
+    const click=li.getAttribute("onclick") || "";
+    const match=click.match(/showPage\('([^']+)'/);
+    const page=match ? match[1] : "";
+    const need=li.dataset.permission || pageRequiredPermission(page);
+    li.style.display = (!need || p[need] || currentUserProfile?.role === "SuperAdmin") ? "block" : "none";
+  });
+  const byId=(id,ok)=>{const el=document.getElementById(id); if(el) el.style.display=ok?"inline-block":"none";};
+  byId("savePricingBtn",hasPerm("canManageSystem"));
+  byId("saveAnnouncementBtn",hasPerm("canManageAnnouncements"));
+  renderPermissionCheckboxes(defaultPermissionsByRole("Agent"));
+}
+
+async function updateDashboard(){
+  document.getElementById("dashBalance").innerText = currentUserProfile?.balance ?? 0;
+
+  try{
+    const usersSnap = await getDocs(collection(db,"users"));
+    document.getElementById("dashUserCount").innerText = usersSnap.size;
+  }catch(e){
+    document.getElementById("dashUserCount").innerText = "-";
+  }
+
+  try{
+    const historySnap = await getDocs(collection(db,"detection_history"));
+    const today = new Date().toLocaleDateString("zh-CN");
+    let todayCount = 0;
+    historySnap.forEach(s=>{
+      const d = s.data();
+      const dt = d.createdAt?.toDate ? d.createdAt.toDate().toLocaleDateString("zh-CN") : "";
+      if(dt === today) todayCount++;
+    });
+    document.getElementById("dashTaskCount").innerText = historySnap.size;
+    document.getElementById("dashTodayTasks").innerText = todayCount;
+  }catch(e){
+    document.getElementById("dashTaskCount").innerText = "-";
+    document.getElementById("dashTodayTasks").innerText = "-";
+  }
+}
+
+function clearUserSearch(){
+  document.getElementById("userSearch").value = "";
+  loadUsers();
+}
+
+async function transferBalance(){
+  if(!hasPerm("canTransferPoints")){ alert("权限不足：不能进行积分互转"); return; }
+  const fromUid = document.getElementById("transferFromUid").value.trim();
+  const toUid = document.getElementById("transferToUid").value.trim();
+  const amount = Number(document.getElementById("transferAmount").value || 0);
+  const rawNote = document.getElementById("transferNote").value;
+
+  if(!fromUid || !toUid){ alert("请输入转出账号 UID 和接收账号 UID"); return; }
+  if(fromUid === toUid){ alert("转出账号和接收账号不能相同"); return; }
+  if(!amount || amount <= 0){ alert("请输入正确的积分数量"); return; }
+
+  const remark = noteWithReminder(rawNote,"账号积分互转");
+  if(remark === null) return;
+
+  const fromRef = doc(db,"users",fromUid);
+  const toRef = doc(db,"users",toUid);
+  let fromData = null, toData = null;
+  let newFromBalance = 0, newToBalance = 0;
+  let feeResult = null;
+
+  await runTransaction(db, async (transaction)=>{
+    const fromSnap = await transaction.get(fromRef);
+    const toSnap = await transaction.get(toRef);
+    if(!fromSnap.exists()) throw new Error("转出账号不存在");
+    if(!toSnap.exists()) throw new Error("接收账号不存在");
+
+    fromData = fromSnap.data();
+    toData = toSnap.data();
+
+    if(!canManageTarget(currentUserProfile.role, fromData.role || "User", fromUid, fromData)) throw new Error("无权管理转出账号");
+    if(!canManageTarget(currentUserProfile.role, toData.role || "User", toUid, toData)) throw new Error("无权管理接收账号");
+
+    feeResult = calculateFee("transferPoints", amount, fromData);
+    if(feeResult.netAmount <= 0) throw new Error("手续费大于或等于转账本金，接收方到账不能小于等于 0");
+
+    const fromBalance = Number(fromData.balance || 0);
+    const toBalance = Number(toData.balance || 0);
+    if(fromBalance < feeResult.senderDebit) throw new Error(`转出账号余额不足，需要 ${feeResult.senderDebit}`);
+
+    newFromBalance = Number((fromBalance - feeResult.senderDebit).toFixed(4));
+    newToBalance = Number((toBalance + feeResult.netAmount).toFixed(4));
+
+    transaction.update(fromRef,{balance:newFromBalance});
+    transaction.update(toRef,{balance:newToBalance});
+  });
+
+  if(feeResult.platformFee !== 0) await addPlatformWalletPoints(feeResult.platformFee);
+
+  await writeFeeLog({
+    type:"transferPoints", feeMode:feeResult.mode, senderUid:fromUid, senderEmail:fromData.email || "", receiverUid:toUid, receiverEmail:toData.email || "",
+    amount, feeRate:feeResult.rate, feeAmount:feeResult.fee, senderFee:feeResult.senderFee, receiverFee:feeResult.receiverFee, platformFee:feeResult.platformFee, netAmount:feeResult.netAmount,
+    operatorUid:auth.currentUser.uid, operatorEmail:currentUserProfile.email || auth.currentUser.email, remark
+  });
+
+  await writeLog({targetUid:fromUid,targetEmail:fromData.email || "",targetRole:fromData.role || "User",type:"transfer_out",amount:-feeResult.senderDebit,balance:newFromBalance,remark:`转给 ${toData.email || toUid}：${remark}；手续费 ${feeResult.fee}，承担方 ${modeName(feeResult.mode)}`});
+  await writeLog({targetUid:toUid,targetEmail:toData.email || "",targetRole:toData.role || "User",type:"transfer_in",amount:feeResult.netAmount,balance:newToBalance,remark:`来自 ${fromData.email || fromUid}：${remark}；到账 ${feeResult.netAmount}`});
+
+  document.getElementById("transferFromUid").value = "";
+  document.getElementById("transferToUid").value = "";
+  document.getElementById("transferAmount").value = "";
+  document.getElementById("transferNote").value = "";
+
+  alert(`积分互转完成\n发送方扣除：${feeResult.senderDebit}\n接收方到账：${feeResult.netAmount}\n手续费：${feeResult.fee}\n承担方：${modeName(feeResult.mode)}`);
+  await loadUsers(); await loadLogs(); await loadFeeLogs(); await loadPlatformWallet();
+}
+
+function v175Notice(name){
+  alert(`${name} 是商业版高权限后端能力。\n\n需要先部署 Firebase Cloud Functions + Firebase Admin SDK，不能只靠前端完成。`);
+}
+
+function showPage(pageName, menuItem){
+  const need = pageRequiredPermission(pageName);
+  if(need && !hasPerm(need)){
+    alert("权限不足：当前账号不能进入这个页面");
+    return;
+  }
+  document.querySelectorAll(".page-card").forEach(card=>{
+    if(card.dataset.page === pageName){
+      card.style.display = "block";
+    }else{
+      card.style.display = "none";
+    }
+  });
+
+  document.querySelectorAll("#sideMenu li").forEach(li=>{
+    li.classList.remove("active");
+  });
+
+  if(menuItem){
+    menuItem.classList.add("active");
+  }else{
+    const first = document.querySelector(`#sideMenu li[onclick*="${pageName}"]`);
+    if(first) first.classList.add("active");
+  }
+
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+
+function canOperateAdminTools(){
+  return hasPerm("canManageUsers") || hasPerm("canAdjustBalance");
+}
+
+async function submitRechargeRequest(){
+  const amount = Number(document.getElementById("rechargeAmount").value || 0);
+  const note = document.getElementById("rechargeNote").value.trim();
+  const email = document.getElementById("rechargeUserEmail").value.trim() || currentUserProfile.email || auth.currentUser.email;
+  if(!amount || amount <= 0){ alert("请输入充值积分数量"); return; }
+  await addDoc(collection(db,"recharge_requests"),{
+    uid:auth.currentUser.uid,
+    email,
+    amount,
+    note,
+    status:"Pending",
+    createdAt:serverTimestamp()
+  });
+  document.getElementById("rechargeAmount").value = "";
+  document.getElementById("rechargeNote").value = "";
+  alert("充值申请已提交");
+  await loadRechargeRequests();
+}
+
+async function loadRechargeRequests(){
+  const body = document.getElementById("rechargeBody");
+  if(!body) return;
+  body.innerHTML = "";
+  const qs = await getDocs(collection(db,"recharge_requests"));
+  let rows=[];
+  qs.forEach(s=>{
+    const d=s.data();
+    if(canOperateAdminTools() || d.uid === auth.currentUser.uid) rows.push({id:s.id,...d});
+  });
+  rows.sort((a,b)=>(b.createdAt?.toMillis?.()||0)-(a.createdAt?.toMillis?.()||0));
+  if(rows.length===0){ body.innerHTML='<tr><td colspan="6" style="text-align:center;color:#64748b">暂无充值申请</td></tr>'; return; }
+  body.innerHTML=rows.slice(0,100).map(r=>`
+    <tr><td>${safeText(nowTextFromTimestamp(r.createdAt))}</td><td>${safeText(r.email)}</td><td>${safeText(r.amount)}</td><td>${safeText(r.status)}</td><td>${safeText(r.note||"-")}</td><td>${canOperateAdminTools() && r.status === "Pending" ? `<button class="small-btn green" onclick="approveRecharge('${r.id}','${r.uid}',${Number(r.amount||0)})">通过</button><button class="small-btn red" onclick="rejectRecharge('${r.id}')">拒绝</button>` : '<span class="muted">-</span>'}</td></tr>
+  `).join("");
+}
+
+async function approveRecharge(id,uid,amount){
+  if(!canOperateAdminTools()) return;
+  await changeUserBalance(uid, Number(amount), "充值审核通过");
+  await updateDoc(doc(db,"recharge_requests",id),{status:"Approved",reviewBy:currentUserProfile.email,reviewAt:serverTimestamp()});
+  await loadRechargeRequests();
+}
+
+async function rejectRecharge(id){
+  if(!canOperateAdminTools()) return;
+  await updateDoc(doc(db,"recharge_requests",id),{status:"Rejected",reviewBy:currentUserProfile.email,reviewAt:serverTimestamp()});
+  await loadRechargeRequests();
+}
+
+async function batchAddBalance(){
+  if(!canOperateAdminTools()){ alert("权限不足"); return; }
+  const text=document.getElementById("batchBalanceText").value.trim();
+  if(!text){ alert("请输入批量内容"); return; }
+  const rows=text.split(/\r?\n/).map(v=>v.trim()).filter(Boolean);
+  let ok=0;
+  for(const row of rows){
+    const [uid,amountRaw,...noteParts]=row.split(",").map(v=>v.trim());
+    const amount=Number(amountRaw||0);
+    if(uid && amount>0){ await changeUserBalance(uid,amount,noteParts.join(",")||"批量加积分"); ok++; }
+  }
+  alert(`批量完成：${ok} 条`);
+  document.getElementById("batchBalanceText").value="";
+}
+
+async function saveUserTagNote(){
+  if(!canOperateAdminTools()){ alert("权限不足"); return; }
+  const uid=document.getElementById("tagTargetUid").value.trim();
+  const tag=document.getElementById("tagValue").value.trim();
+  const note=document.getElementById("tagNote").value.trim();
+  if(!uid){ alert("请输入目标UID"); return; }
+  const ref=doc(db,"users",uid);
+  const snap=await getDoc(ref);
+  if(!snap.exists()){ alert("用户不存在"); return; }
+  const data=snap.data();
+  const tags=Array.isArray(data.tags)?data.tags:[];
+  if(tag && !tags.includes(tag)) tags.push(tag);
+  const noteHistory=Array.isArray(data.noteHistory)?data.noteHistory:[];
+  if(note) noteHistory.push({note,by:currentUserProfile.email || auth.currentUser.email,at:new Date().toISOString()});
+  await updateDoc(ref,{tags,noteHistory,note:note || data.note || ""});
+  document.getElementById("tagResult").innerHTML=`已保存：<span class="tag">${safeText(tag||"无标签")}</span> ${safeText(note||"")}`;
+  await loadUsers();
+}
+
+async function loadPriceLogs(){
+  const body=document.getElementById("priceLogsBody");
+  if(!body) return;
+  const qs=await getDocs(collection(db,"price_logs"));
+  let rows=[]; qs.forEach(s=>rows.push(s.data()));
+  rows.sort((a,b)=>(b.createdAt?.toMillis?.()||0)-(a.createdAt?.toMillis?.()||0));
+  body.innerHTML = rows.length ? rows.slice(0,50).map(r=>`<tr><td>${safeText(nowTextFromTimestamp(r.createdAt))}</td><td>${safeText(r.operatorEmail)}</td><td>${safeText(r.type)}</td><td>${safeText(r.remark)}</td></tr>`).join("") : '<tr><td colspan="4" style="text-align:center;color:#64748b">暂无价格日志</td></tr>';
+}
+
+async function updateDataCenter(){
+  const qs=await getDocs(collection(db,"detection_history"));
+  let total=0, month=0, today=0;
+  const now=new Date(); const ymd=now.toISOString().slice(0,10); const ym=now.toISOString().slice(0,7);
+  qs.forEach(s=>{
+    const d=s.data(); const dt=d.createdAt?.toDate?.(); if(!dt) return;
+    total += Number(d.total||0);
+    if(dt.toISOString().slice(0,7)===ym) month += Number(d.total||0);
+    if(dt.toISOString().slice(0,10)===ymd) today += Number(d.total||0);
+  });
+  const set=(id,val)=>{const el=document.getElementById(id); if(el) el.innerText=val;};
+  set("dataTodayCount",today); set("dataMonthCount",month); set("dataTotalCount",total); set("dashMonthTasks",month);
+}
+
+async function submitTicket(){
+  const title=document.getElementById("ticketTitle").value.trim();
+  const content=document.getElementById("ticketContent").value.trim();
+  if(!title || !content){ alert("请输入工单标题和内容"); return; }
+  await addDoc(collection(db,"tickets"),{title,content,status:"Open",uid:auth.currentUser.uid,email:currentUserProfile.email||auth.currentUser.email,createdAt:serverTimestamp()});
+  document.getElementById("ticketTitle").value=""; document.getElementById("ticketContent").value="";
+  await loadTickets(); alert("工单已提交");
+}
+
+async function loadTickets(){
+  const body=document.getElementById("ticketBody"); if(!body) return;
+  const qs=await getDocs(collection(db,"tickets")); let rows=[];
+  qs.forEach(s=>{const d=s.data(); if(canOperateAdminTools() || d.uid===auth.currentUser.uid) rows.push({id:s.id,...d});});
+  rows.sort((a,b)=>(b.createdAt?.toMillis?.()||0)-(a.createdAt?.toMillis?.()||0));
+  body.innerHTML=rows.length?rows.slice(0,100).map(t=>`<tr><td>${safeText(nowTextFromTimestamp(t.createdAt))}</td><td>${safeText(t.email)}</td><td>${safeText(t.title)}</td><td>${safeText(t.status)}</td><td>${canOperateAdminTools()?`<button class="small-btn green" onclick="closeTicket('${t.id}')">关闭</button>`:'-'}</td></tr>`).join(""):'<tr><td colspan="5" style="text-align:center;color:#64748b">暂无工单</td></tr>';
+}
+
+async function closeTicket(id){ await updateDoc(doc(db,"tickets",id),{status:"Closed",closedBy:currentUserProfile.email,closedAt:serverTimestamp()}); await loadTickets(); }
+
+async function saveApiProvider(){
+  if(!canOperateAdminTools()){ alert("权限不足"); return; }
+  const data={name:document.getElementById("apiName").value.trim(),type:document.getElementById("apiType").value.trim(),cost:Number(document.getElementById("apiCost").value||0),status:document.getElementById("apiStatus").value,remark:document.getElementById("apiRemark").value.trim(),updatedAt:serverTimestamp(),updatedBy:currentUserProfile.email||auth.currentUser.email};
+  if(!data.name){ alert("请输入接口名称"); return; }
+  await addDoc(collection(db,"api_providers"),data); await loadApiProviders(); alert("接口商已保存");
+}
+async function loadApiProviders(){
+  const body=document.getElementById("apiBody"); if(!body) return;
+  const qs=await getDocs(collection(db,"api_providers")); let rows=[]; qs.forEach(s=>rows.push(s.data()));
+  body.innerHTML=rows.length?rows.map(a=>`<tr><td>${safeText(a.name)}</td><td>${safeText(a.type)}</td><td>${safeText(a.cost)}</td><td>${safeText(a.status)}</td><td>${safeText(a.remark)}</td></tr>`).join(""):'<tr><td colspan="5" style="text-align:center;color:#64748b">暂无接口商</td></tr>';
+}
+
+async function loadRiskLogs(){
+  const body=document.getElementById("riskBody"); if(!body) return;
+  const qs=await getDocs(collection(db,"balance_logs")); let rows=[];
+  qs.forEach(s=>{const d=s.data(); if(["transfer_balance","delete_announcement","update_pricing","freeze_user"].includes(d.type)) rows.push(d);});
+  rows.sort((a,b)=>(b.createdAt?.toMillis?.()||0)-(a.createdAt?.toMillis?.()||0));
+  body.innerHTML=rows.length?rows.slice(0,100).map(r=>`<tr><td>${safeText(nowTextFromTimestamp(r.createdAt))}</td><td>${safeText(r.operatorEmail||r.actorEmail)}</td><td>${safeText(r.type)}</td><td>${safeText(r.remark||r.note)}</td></tr>`).join(""):'<tr><td colspan="4" style="text-align:center;color:#64748b">暂无风险日志</td></tr>';
+}
+
+async function saveGlobalConfig(){
+  if(currentUserProfile?.role !== "SuperAdmin"){ alert("只有 SuperAdmin 可以修改全局配置"); return; }
+  const data={platformName:document.getElementById("cfgPlatformName").value.trim(),logoText:document.getElementById("cfgLogoText").value.trim(),support:document.getElementById("cfgSupport").value.trim(),maintenance:document.getElementById("cfgMaintenance").value,noticeSwitch:document.getElementById("cfgNoticeSwitch").value,updatedAt:serverTimestamp(),updatedBy:currentUserProfile.email||auth.currentUser.email};
+  await setDoc(doc(db,"settings","global"),data,{merge:true});
+  alert("全局配置已保存");
+  await loadGlobalConfig();
+}
+async function loadGlobalConfig(){
+  const snap=await getDoc(doc(db,"settings","global"));
+  if(!snap.exists()) return;
+  const d=snap.data();
+  const set=(id,v)=>{const el=document.getElementById(id); if(el && v!==undefined) el.value=v;};
+  set("cfgPlatformName",d.platformName); set("cfgLogoText",d.logoText); set("cfgSupport",d.support); set("cfgMaintenance",d.maintenance); set("cfgNoticeSwitch",d.noticeSwitch);
+  const status=document.getElementById("dashSystemStatus"); if(status) status.innerText=d.maintenance === "on" ? "维护中" : "正常";
+}
+
+function previewManagedFile(){
+  const f=document.getElementById("managedFile")?.files?.[0];
+  document.getElementById("managedFileHint").innerText = f ? `已选择：${f.name}，大小 ${Math.round(f.size/1024)} KB。真实上传后续接 Firebase Storage。` : "暂无文件";
+}
+
+function downloadTemplate(){
+  const text="+12025550123\n+12025550124\n+12025550123\n";
+  const blob=new Blob([text],{type:"text/plain;charset=utf-8"});
+  const link=document.createElement("a");
+  link.href=URL.createObjectURL(blob); link.download="number_template.txt"; link.click();
+}
+
+
+window.initUserProfile = initUserProfile;
+window.customChangeBalance = customChangeBalance;
+window.changeUserBalance = changeUserBalance;
+window.freezeUser = freezeUser;
+window.unfreezeUser = unfreezeUser;
+window.saveAccountNote = saveAccountNote;
+window.loadLogs = loadLogs;
+window.changePassword = changePassword;
+window.createTask = createTask;
+window.downloadTask = downloadTask;
+window.v175Notice = v175Notice;
+window.runDetection = runDetection;
+window.savePricing = savePricing;
+window.saveAnnouncement = saveAnnouncement;
+window.editAnnouncement = editAnnouncement;
+window.cancelEditAnnouncement = cancelEditAnnouncement;
+window.toggleAnnouncementStatus = toggleAnnouncementStatus;
+window.toggleAnnouncementPin = toggleAnnouncementPin;
+window.deleteAnnouncementItem = deleteAnnouncementItem;
+window.hideAnnouncementForMe = hideAnnouncementForMe;
+window.loadDetectionHistory = loadDetectionHistory;
+window.clearUserSearch = clearUserSearch;
+window.loadUsers = loadUsers;
+window.transferBalance = transferBalance;
+window.showPage = showPage;
+window.handleDetectFileSelected = handleDetectFileSelected;
+window.submitRechargeRequest = submitRechargeRequest;
+window.loadRechargeRequests = loadRechargeRequests;
+window.approveRecharge = approveRecharge;
+window.rejectRecharge = rejectRecharge;
+window.batchAddBalance = batchAddBalance;
+window.saveUserTagNote = saveUserTagNote;
+window.loadPriceLogs = loadPriceLogs;
+window.submitTicket = submitTicket;
+window.loadTickets = loadTickets;
+window.closeTicket = closeTicket;
+window.saveApiProvider = saveApiProvider;
+window.loadApiProviders = loadApiProviders;
+window.loadRiskLogs = loadRiskLogs;
+window.saveGlobalConfig = saveGlobalConfig;
+window.loadGlobalConfig = loadGlobalConfig;
+window.previewManagedFile = previewManagedFile;
+window.downloadTemplate = downloadTemplate;
+window.saveFeeConfig = saveFeeConfig;
+window.previewFeeConfig = previewFeeConfig;
+window.savePlatformRules = savePlatformRules;
+window.previewCreateCost = previewCreateCost;
+window.loadAccountPermissions = loadAccountPermissions;
+window.saveAccountPermissions = saveAccountPermissions;
+window.fillPermissionTargetFromCurrent = fillPermissionTargetFromCurrent;
+
+onAuthStateChanged(auth, async (user)=>{
+  if(!user) return;
+
+  currentUserProfile = await loadCurrentUserProfile(user);
+  if(!currentUserProfile) return;
+
+  document.getElementById("loginSection").style.display = "none";
+  document.getElementById("appPanel").style.display = "flex";
+  showPage("dashboard");
+
+  document.getElementById("userName").innerText = user.email;
+  document.getElementById("roleText").innerText = "权限组：" + (currentUserProfile.role || "-");
+  document.getElementById("balanceText").innerText = currentUserProfile.balance ?? 0;
+  document.getElementById("statusText").innerText = currentUserProfile.status || "Active";
+  document.getElementById("settingEmail").innerText = user.email;
+  document.getElementById("settingRole").innerText = currentUserProfile.role || "-";
+  document.getElementById("settingBalance").innerText = currentUserProfile.balance ?? 0;
+  document.getElementById("permissionNotice").innerText = permissionNoticeText(currentUserProfile.role);
+
+  applyPermissionUI();
+  fillRoleOptions();
+  renderTasks();
+
+  await loadPricing();
+  await loadFeeConfig();
+  await loadPlatformRules();
+  await loadAnnouncement();
+  await loadUsers();
+  await loadLogs();
+  await loadDetectionHistory();
+  await updateDashboard();
+  await updateDataCenter();
+  await loadRechargeRequests();
+  await loadPriceLogs();
+  await loadTickets();
+  await loadApiProviders();
+  await loadRiskLogs();
+  await loadGlobalConfig();
+  previewFeeConfig();
+  previewCreateCost();
+});
 </script>
+
 </body>
 </html>
