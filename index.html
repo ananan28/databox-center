@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>财盛集团 - 博亿研发中心 · 商业版 商业正式融合版</title>
+<title>财盛集团 - 博亿研发中心 · 商业版 接口模拟融合版</title>
 
 <!--
   财盛集团 - 博亿研发中心
-  V2.8 企业权限终版 - 最终融合版 index.html
+  V2.8.1 企业权限终版 - 接口模拟模式融合版 index.html
 
   已融合规则：
   1. SuperAdmin / GM / Agent / User 四级角色
@@ -689,7 +689,7 @@ tr:last-child td{border-bottom:0}
             <div class="card-title">接口商列表</div>
             <div class="table-wrap">
               <table>
-                <thead><tr><th>ID</th><th>接口名称</th><th>类型</th><th>成本</th><th>状态</th><th>备注</th><th>操作</th></tr></thead>
+                <thead><tr><th>ID</th><th>接口名称</th><th>类型</th><th>模式</th><th>成本</th><th>状态</th><th>备注</th><th>操作</th></tr></thead>
                 <tbody id="apiTable"></tbody>
               </table>
             </div>
@@ -717,6 +717,20 @@ tr:last-child td{border-bottom:0}
 
         <section id="page-logs" class="page">
           <div class="card"><div class="card-title">系统日志</div><div class="table-wrap"><table><thead><tr><th>时间</th><th>操作人</th><th>角色</th><th>类型</th><th>内容</th></tr></thead><tbody id="logsTable"></tbody></table></div></div>
+        </section>
+
+
+        <section id="page-recycle" class="page">
+          <div class="card">
+            <div class="card-title">软删除中心 <span class="badge b-red">回收站</span></div>
+            <div class="alert a-orange">点击任何“删除”后，账号 / 接口 / 功能 / 套餐都会先进入这里，并从原页面隐藏。你可以在这里恢复，或者永久删除。</div>
+            <div class="table-wrap" style="margin-top:14px">
+              <table>
+                <thead><tr><th>类型</th><th>ID</th><th>名称</th><th>删除时间</th><th>删除人</th><th>来源</th><th>操作</th></tr></thead>
+                <tbody id="recycleTable"></tbody>
+              </table>
+            </div>
+          </div>
         </section>
 
       </div>
@@ -853,6 +867,7 @@ const permissionList = [
   "canViewApi","canEditApi",
   "canViewPackages","canEditPackages",
   "canViewLogs",
+  "canViewRecycleBin",
   "canManageOwnProfile","canChangeOwnPassword","canChangeOwnTradePassword",
   "canTransferToDownline","canRecycleFromDownline",
   "feeExempt"
@@ -886,6 +901,7 @@ const permissionLabels = {
   canViewPackages:"查看套餐",
   canEditPackages:"修改套餐",
   canViewLogs:"查看日志",
+  canViewRecycleBin:"查看软删除中心",
   canManageOwnProfile:"管理自己资料",
   canChangeOwnPassword:"修改登录密码",
   canChangeOwnTradePassword:"修改交易密码",
@@ -958,7 +974,8 @@ const navGroups = [
     {page:"packages",icon:"🎁",label:"套餐中心",perm:"canViewPackages",sub:"积分套餐"}
   ]},
   {title:"审计",items:[
-    {page:"logs",icon:"📜",label:"系统日志",perm:"canViewLogs",sub:"操作审计"}
+    {page:"logs",icon:"📜",label:"系统日志",perm:"canViewLogs",sub:"操作审计"},
+    {page:"recycle",icon:"🗑️",label:"软删除中心",perm:"canViewRecycleBin",sub:"账号、接口、功能、套餐回收站"}
   ]}
 ];
 
@@ -1009,10 +1026,11 @@ function defaultState(){
     logs:[{time:now,actor:"SYSTEM",role:"System",type:"INIT",content:"V2.8 最终融合版初始化完成"}],
     tasks:[],
     orders:[],
+    deletedItems:[],
     apiProviders:[
-      {id:"API001",name:"WhatsApp接口",type:"WhatsApp",cost:0.03,status:"enabled",remark:"预留注册检测、头像检测、批量检测"},
-      {id:"API002",name:"Telegram接口",type:"Telegram",cost:0.03,status:"enabled",remark:"预留注册检测、用户名检测、头像检测"},
-      {id:"API003",name:"运营商接口",type:"Carrier",cost:0.02,status:"enabled",remark:"预留 Mobile / VoIP / Landline / Carrier"}
+      {id:"API001",name:"WhatsApp接口",type:"WhatsApp",cost:0.03,status:"enabled",mode:"mock",method:"POST",endpoint:"https://mock.local/whatsapp/check",authType:"ApiKey",apiKey:"",bearerToken:"",headers:"{}",bodyTemplate:"{}",timeout:30,retry:1,remark:"模拟注册检测、头像检测、批量检测"},
+      {id:"API002",name:"Telegram接口",type:"Telegram",cost:0.03,status:"enabled",mode:"mock",method:"POST",endpoint:"https://mock.local/telegram/check",authType:"ApiKey",apiKey:"",bearerToken:"",headers:"{}",bodyTemplate:"{}",timeout:30,retry:1,remark:"模拟注册检测、用户名检测、头像检测"},
+      {id:"API003",name:"运营商接口",type:"Carrier",cost:0.02,status:"enabled",mode:"mock",method:"POST",endpoint:"https://mock.local/carrier/lookup",authType:"ApiKey",apiKey:"",bearerToken:"",headers:"{}",bodyTemplate:"{}",timeout:30,retry:1,remark:"模拟 Mobile / VoIP / Landline / Carrier"}
     ],
     features:[
       {id:"FEAT001",name:"数据去重检测",category:"数据处理",price:0,desc:"去除重复号码并输出去重后与重复号码",apiProviderId:"",enabled:true},
@@ -1086,12 +1104,26 @@ function mergeState(s){
     ...t
   }));
   s.orders = s.orders || [];
+  s.deletedItems = s.deletedItems || [];
   s.apiProviders = (s.apiProviders || d.apiProviders).map((a,i)=>({
     id:a.id || ("API" + String(i+1).padStart(3,"0")),
     name:a.name || "未命名接口",
     type:a.type || "Other",
     cost:Number(a.cost || 0),
     status:a.status || (a.enabled === false ? "disabled" : "enabled"),
+    deleted:!!a.deleted || a.status === "deleted",
+    deletedAt:a.deletedAt || "",
+    deletedBy:a.deletedBy || "",
+    mode:a.mode || "mock",
+    method:a.method || "POST",
+    endpoint:a.endpoint || "",
+    authType:a.authType || "ApiKey",
+    apiKey:a.apiKey || "",
+    bearerToken:a.bearerToken || "",
+    headers:a.headers || "{}",
+    bodyTemplate:a.bodyTemplate || "{}",
+    timeout:Number(a.timeout || 30),
+    retry:Number(a.retry || 1),
     remark:a.remark || a.desc || ""
   }));
   s.features = (s.features || d.features).map((f,i)=>({
@@ -1101,7 +1133,10 @@ function mergeState(s){
     price:Number(f.price || 0),
     desc:f.desc || "",
     apiProviderId:f.apiProviderId || "",
-    enabled:f.enabled !== false
+    enabled:f.enabled !== false,
+    deleted:!!f.deleted,
+    deletedAt:f.deletedAt || "",
+    deletedBy:f.deletedBy || ""
   }));
   s.packages = (s.packages || d.packages).map((p,i)=>({
     id:p.id || ("PKG" + String(i+1).padStart(3,"0")),
@@ -1109,7 +1144,10 @@ function mergeState(s){
     price:Number(p.price || 0),
     points:Number(p.points || 0),
     desc:p.desc || "",
-    enabled:p.enabled !== false
+    enabled:p.enabled !== false,
+    deleted:!!p.deleted,
+    deletedAt:p.deletedAt || "",
+    deletedBy:p.deletedBy || ""
   }));
   s.users = (s.users || d.users).map(u => ({
     ...u,
@@ -1302,6 +1340,7 @@ function renderAll(){
   renderOrders();
   renderLedger();
   renderLogs();
+  renderRecycleBin();
   setActivePage(currentPage);
 }
 
@@ -1358,35 +1397,38 @@ function renderCurrentUserPill(){
 function visibleUsers(){
   const u = getUser();
   if(!u) return [];
-  if(u.role === ROLE_SUPER) return state.users;
+  const notDeleted = x => x.status !== STATUS_DELETED && !x.deleted;
+  if(u.role === ROLE_SUPER) return state.users.filter(notDeleted);
   if(u.role === ROLE_GM){
-    return state.users.filter(x => x.role !== ROLE_SUPER);
+    return state.users.filter(x => notDeleted(x) && x.role !== ROLE_SUPER);
   }
   if(u.role === ROLE_AGENT){
-    return state.users.filter(x => x.id === u.id || (x.role === ROLE_USER && x.ownerType === "Agent" && x.ownerId === u.id));
+    return state.users.filter(x => notDeleted(x) && (x.id === u.id || (x.role === ROLE_USER && x.ownerType === "Agent" && x.ownerId === u.id)));
   }
-  return state.users.filter(x => x.id === u.id);
+  return state.users.filter(x => notDeleted(x) && x.id === u.id);
 }
 
 function manageableUsers(){
   const u = getUser();
   if(!u) return [];
-  if(u.role === ROLE_SUPER) return state.users.filter(x => x.id !== u.id);
-  if(u.role === ROLE_GM) return state.users.filter(x => x.role === ROLE_AGENT || x.role === ROLE_USER);
-  if(u.role === ROLE_AGENT) return state.users.filter(x => x.role === ROLE_USER && x.ownerType === "Agent" && x.ownerId === u.id);
+  const notDeleted = x => x.status !== STATUS_DELETED && !x.deleted;
+  if(u.role === ROLE_SUPER) return state.users.filter(x => notDeleted(x) && x.id !== u.id);
+  if(u.role === ROLE_GM) return state.users.filter(x => notDeleted(x) && (x.role === ROLE_AGENT || x.role === ROLE_USER));
+  if(u.role === ROLE_AGENT) return state.users.filter(x => notDeleted(x) && x.role === ROLE_USER && x.ownerType === "Agent" && x.ownerId === u.id);
   return [];
 }
 
 function renderDashboard(){
   const vu = visibleUsers();
   const me = getUser();
-  const directUsers = state.users.filter(u => u.role === ROLE_USER && u.ownerType === "Direct");
-  const agentUsers = state.users.filter(u => u.role === ROLE_USER && u.ownerType === "Agent");
+  const activeUsers = state.users.filter(x => x.status !== STATUS_DELETED && !x.deleted);
+  const directUsers = activeUsers.filter(u => u.role === ROLE_USER && u.ownerType === "Direct");
+  const agentUsers = activeUsers.filter(u => u.role === ROLE_USER && u.ownerType === "Agent");
   const stats = [
     ["可见账号",vu.length,"按当前角色过滤"],
-    ["GM数量",state.users.filter(u=>u.role===ROLE_GM).length,"GM 可互管代理"],
-    ["Agent数量",state.users.filter(u=>u.role===ROLE_AGENT).length,"代理层"],
-    ["User数量",state.users.filter(u=>u.role===ROLE_USER).length,"自然 + 代理"],
+    ["GM数量",activeUsers.filter(u=>u.role===ROLE_GM).length,"GM 可互管代理"],
+    ["Agent数量",activeUsers.filter(u=>u.role===ROLE_AGENT).length,"代理层"],
+    ["User数量",activeUsers.filter(u=>u.role===ROLE_USER).length,"自然 + 代理"],
     ["自然注册",directUsers.length,"归 GM 管理"],
     ["代理用户",agentUsers.length,"归 Agent 管理"],
     ["我的余额",money(me?.balance),"当前账号"],
@@ -1672,7 +1714,9 @@ async function softDeleteUser(id){
   const deletedAt = new Date().toISOString();
   const deletedBy = currentUserId || "SYSTEM";
 
+  moveToRecycle("user", id, u, "用户中心");
   u.status = STATUS_DELETED;
+  u.deleted = true;
   u.deletedAt = deletedAt;
   u.deletedBy = deletedBy;
 
@@ -1685,7 +1729,7 @@ async function softDeleteUser(id){
   addLog("DELETE_USER",`软删除账号 ${u.id}，状态 ${oldStatus} → Deleted`);
   saveState();
   renderAll();
-  toast(synced ? "账号已软删除并同步 Firestore" : "账号已软删除到当前页面，但 Firestore 同步失败，请检查 Rules，否则刷新后可能恢复");
+  toast(synced ? "账号已转入软删除中心，并同步 Firestore" : "账号已转入软删除中心，但 Firestore 同步失败，请检查 Rules，否则刷新后可能恢复");
 }
 
 async function restoreDeletedUser(id){
@@ -1698,6 +1742,8 @@ async function restoreDeletedUser(id){
   if(!confirm(`确定要恢复账号：${u.name || u.id}？`)) return;
 
   u.status = STATUS_ACTIVE;
+  u.deleted = false;
+  removeFromRecycle("user", id);
   u.restoredAt = new Date().toISOString();
   u.restoredBy = currentUserId || "SYSTEM";
 
@@ -2352,6 +2398,160 @@ function handleTaskFileSelected(){
   }
 }
 
+
+function getApiProvider(id){
+  return (state.apiProviders || []).find(a => String(a.id) === String(id)) || null;
+}
+
+function maskSecret(v){
+  const s = String(v || "");
+  if(!s) return "未填写";
+  if(s.length <= 6) return "******";
+  return s.slice(0,3) + "***" + s.slice(-3);
+}
+
+function getNumberSeed(phone){
+  const digits = String(phone || "").replace(/\D/g, "");
+  const tail = digits.slice(-6) || "0";
+  return Number(tail) || 0;
+}
+
+function mockApiDetect(feature, api, numbers){
+  const featureName = String(feature?.name || "");
+  const apiType = String(api?.type || featureName || "");
+  const typeText = (featureName + " " + apiType).toLowerCase();
+
+  return (numbers || []).map((phone, index) => {
+    const seed = getNumberSeed(phone) + index;
+
+    if(typeText.includes("whatsapp") || featureName.includes("WhatsApp")){
+      const registered = seed % 5 !== 0;
+      const hasAvatar = registered && seed % 3 !== 0;
+      return {
+        phone,
+        service:"WhatsApp",
+        registered: registered ? "Yes" : "No",
+        hasAvatar: hasAvatar ? "Yes" : "No",
+        avatarUrl: hasAvatar ? `mock://avatar/whatsapp/${phone}` : "",
+        status: registered ? "Registered" : "Not Registered",
+        reason: registered ? "Mock matched active WS profile" : "Mock no WS profile"
+      };
+    }
+
+    if(typeText.includes("telegram") || featureName.includes("Telegram")){
+      const registered = seed % 4 !== 0;
+      return {
+        phone,
+        service:"Telegram",
+        registered: registered ? "Yes" : "No",
+        username: registered ? `tg_${String(phone).replace(/\D/g, '').slice(-6)}` : "",
+        status: registered ? "Registered" : "Not Registered",
+        reason: registered ? "Mock Telegram profile found" : "Mock not found"
+      };
+    }
+
+    if(typeText.includes("signal") || featureName.includes("Signal")){
+      const registered = seed % 2 === 0;
+      return {
+        phone,
+        service:"Signal",
+        registered: registered ? "Yes" : "No",
+        status: registered ? "Registered" : "Not Registered",
+        reason: registered ? "Mock Signal profile found" : "Mock not found"
+      };
+    }
+
+    if(typeText.includes("carrier") || featureName.includes("运营商")){
+      const lineTypes = ["Mobile", "Mobile", "Mobile", "VoIP", "Landline", "Invalid"];
+      const carriers = ["Verizon", "AT&T", "T-Mobile", "TextNow", "Bandwidth", "Unknown"];
+      const lineType = lineTypes[seed % lineTypes.length];
+      const valid = lineType !== "Invalid";
+      return {
+        phone,
+        country:"US",
+        lineType,
+        carrier: valid ? carriers[seed % carriers.length] : "Unknown",
+        valid: valid ? "Yes" : "No",
+        status: valid ? "Valid" : "Invalid",
+        reason: valid ? "Mock carrier lookup success" : "Mock invalid or disconnected"
+      };
+    }
+
+    if(featureName.includes("空号") || typeText.includes("empty") || typeText.includes("valid")){
+      const valid = seed % 6 !== 0;
+      return {
+        phone,
+        valid: valid ? "Yes" : "No",
+        reachable: valid ? "Yes" : "No",
+        status: valid ? "Active" : "Disconnected",
+        reason: valid ? "Mock number reachable" : "Mock empty/disconnected number"
+      };
+    }
+
+    return {
+      phone,
+      result:"Processed",
+      status:"Success",
+      reason:"Mock generic task processed"
+    };
+  });
+}
+
+function summarizeMockResults(results, feature, api, totalNumbers){
+  const rows = results || [];
+  const total = Number(totalNumbers ?? rows.length) || 0;
+  const registered = rows.filter(r => r.registered === "Yes").length;
+  const notRegistered = rows.filter(r => r.registered === "No").length;
+  const avatarYes = rows.filter(r => r.hasAvatar === "Yes").length;
+  const validYes = rows.filter(r => r.valid === "Yes" || r.reachable === "Yes").length;
+  const invalid = rows.filter(r => r.valid === "No" || r.reachable === "No" || r.status === "Invalid" || r.status === "Disconnected").length;
+  const mobile = rows.filter(r => r.lineType === "Mobile").length;
+  const voip = rows.filter(r => r.lineType === "VoIP").length;
+  const landline = rows.filter(r => r.lineType === "Landline").length;
+  const success = rows.filter(r => !["Invalid", "Error"].includes(r.status)).length;
+  const failed = Math.max(0, total - success);
+  const userUnitPrice = Number(feature?.price || 0);
+  const apiUnitCost = Number(api?.cost || 0);
+  const userCharge = +(total * userUnitPrice).toFixed(4);
+  const interfaceCost = +(total * apiUnitCost).toFixed(4);
+  const platformProfit = +(userCharge - interfaceCost).toFixed(4);
+  return {
+    total,
+    success,
+    failed,
+    registered,
+    notRegistered,
+    avatarYes,
+    validYes,
+    invalid,
+    mobile,
+    voip,
+    landline,
+    userUnitPrice,
+    apiUnitCost,
+    userCharge,
+    interfaceCost,
+    platformProfit,
+    mode: api?.mode || "mock",
+    apiName: api?.name || "未绑定接口",
+    apiType: api?.type || "Other",
+    note:"当前为接口模拟模式：没有请求外部接口，没有消耗真实接口额度。"
+  };
+}
+
+function mockResultColumns(results){
+  const keys = ["phone"];
+  (results || []).forEach(r => Object.keys(r || {}).forEach(k => { if(!keys.includes(k)) keys.push(k); }));
+  return keys;
+}
+
+function resultRowsForDownload(t){
+  const results = t.mockResults || t.results || [];
+  if(!results.length) return [];
+  const cols = mockResultColumns(results);
+  return [cols, ...results.map(r => cols.map(c => r[c] ?? ""))];
+}
+
 function createTask(){
   if(!assertPerm("canCreateTask")) return;
   const fileInput = document.getElementById("taskFile");
@@ -2362,9 +2562,37 @@ function createTask(){
   const feature = getSelectedFeature();
   const type = feature?.name || "自定义功能";
   const isDedupe = type.includes("去重");
-  const count = nums.length || "文件待解析";
   const fileName = file ? file.name : "手动输入";
   const dedupeStats = isDedupe && nums.length ? buildDedupeStats(nums) : null;
+  const api = feature?.apiProviderId ? getApiProvider(feature.apiProviderId) : null;
+
+  let status = isDedupe ? "已完成" : "已创建";
+  let mockResults = [];
+  let mockSummary = null;
+  let resultSummary = {total:nums.length || "文件待解析", success:0, failed:0, note:"真实检测接口接入后显示检测结果"};
+
+  if(dedupeStats){
+    resultSummary = {
+      total:dedupeStats.total,
+      success:dedupeStats.uniqueCount,
+      failed:dedupeStats.duplicateCount,
+      note:"数据去重已完成，可下载去重后号码或重复号码。"
+    };
+  }else if(nums.length){
+    if(api && api.status === "disabled"){
+      toast("当前功能绑定的接口商已停用，请先启用接口商或更换绑定接口");
+      return;
+    }
+    mockResults = mockApiDetect(feature, api, nums);
+    mockSummary = summarizeMockResults(mockResults, feature, api, nums.length);
+    resultSummary = {
+      total:mockSummary.total,
+      success:mockSummary.success,
+      failed:mockSummary.failed,
+      note:mockSummary.note
+    };
+    status = "模拟完成";
+  }
 
   const task = {
     id:"TASK" + Date.now(),
@@ -2375,36 +2603,37 @@ function createTask(){
     featureId:feature?.id || "",
     featureName:type,
     apiProviderId:feature?.apiProviderId || "",
-    count:isDedupe && dedupeStats ? dedupeStats.total : count,
+    apiName:api?.name || "未绑定接口",
+    apiMode:api?.mode || "mock",
+    apiType:api?.type || "Other",
+    apiCost:Number(api?.cost || 0),
+    featurePrice:Number(feature?.price || 0),
+    count:dedupeStats ? dedupeStats.total : (nums.length || "文件待解析"),
     fileName,
     inputMode:file ? "文件上传" : "手动输入",
     numbers:nums,
     sample:nums.slice(0,20),
-    status:isDedupe ? "已完成" : "已创建",
-    resultSummary:{total:count, success:0, failed:0, note:"真实检测接口接入后显示检测结果"}
+    status,
+    resultSummary,
+    mockResults,
+    mockSummary
   };
 
   if(dedupeStats){
     task.dedupeStats = dedupeStats;
-    task.resultSummary = {
-      total:dedupeStats.total,
-      success:dedupeStats.uniqueCount,
-      failed:dedupeStats.duplicateCount,
-      note:"数据去重已完成，可下载去重后号码或重复号码。"
-    };
   }
 
   state.tasks.unshift(task);
-  addLog("CREATE_TASK",`创建检测任务：${type}，文件 ${fileName}，数量 ${task.count}`);
+  addLog("CREATE_TASK",`创建功能任务：${type}，接口 ${task.apiName}，模式 ${task.apiMode}，文件 ${fileName}，数量 ${task.count}`);
   saveState();
   document.getElementById("taskNumbers").value = "";
   if(fileInput) fileInput.value = "";
   const hint = document.getElementById("taskFileHint");
   if(hint) hint.textContent = "支持 TXT / CSV / XLSX / XLS。系统会自动忽略空行、去除前后空格，并统计有效号码数量。";
   renderDedupePreview();
-  renderTasks(); toast(isDedupe ? "去重任务已完成，可在任务列表下载结果" : "任务已创建");
+  renderTasks();
+  toast(isDedupe ? "去重任务已完成，可在任务列表下载结果" : (nums.length ? "模拟接口任务已完成，可查看和下载结果" : "任务已创建，Excel 内容解析后可模拟检测"));
 }
-
 function visibleTasks(){
   const me = getUser();
   if(me.role === ROLE_SUPER || me.role === ROLE_GM) return state.tasks;
@@ -2425,23 +2654,28 @@ function renderTasks(){
   }
   el.innerHTML = tasks.map(t=>{
     const isDedupe = !!t.dedupeStats;
+    const hasResults = Array.isArray(t.mockResults) && t.mockResults.length;
     const dlBtns = isDedupe
       ? `<button class="mini m-green" onclick="downloadTaskNumbers('${t.id || ''}','unique','txt')">去重TXT</button> <button class="mini m-green" onclick="downloadTaskNumbers('${t.id || ''}','unique','csv')">去重CSV</button> <button class="mini m-green" onclick="downloadTaskNumbers('${t.id || ''}','unique','xlsx')">去重XLSX</button> <button class="mini m-green" onclick="downloadTaskNumbers('${t.id || ''}','unique','xls')">去重XLS</button> <button class="mini m-orange" onclick="downloadTaskNumbers('${t.id || ''}','duplicates','txt')">重复TXT</button>`
-      : `<button class="mini m-green" onclick="downloadTaskNumbers('${t.id || ''}','original','txt')">下载TXT</button> <button class="mini m-green" onclick="downloadTaskNumbers('${t.id || ''}','original','csv')">下载CSV</button> <button class="mini m-green" onclick="downloadTaskNumbers('${t.id || ''}','original','xlsx')">下载XLSX</button> <button class="mini m-green" onclick="downloadTaskNumbers('${t.id || ''}','original','xls')">下载XLS</button>`;
+      : hasResults
+        ? `<button class="mini m-green" onclick="downloadTaskNumbers('${t.id || ''}','results','txt')">结果TXT</button> <button class="mini m-green" onclick="downloadTaskNumbers('${t.id || ''}','results','csv')">结果CSV</button> <button class="mini m-green" onclick="downloadTaskNumbers('${t.id || ''}','results','xlsx')">结果XLSX</button> <button class="mini m-green" onclick="downloadTaskNumbers('${t.id || ''}','results','xls')">结果XLS</button>`
+        : `<button class="mini m-green" onclick="downloadTaskNumbers('${t.id || ''}','original','txt')">下载TXT</button> <button class="mini m-green" onclick="downloadTaskNumbers('${t.id || ''}','original','csv')">下载CSV</button> <button class="mini m-green" onclick="downloadTaskNumbers('${t.id || ''}','original','xlsx')">下载XLSX</button> <button class="mini m-green" onclick="downloadTaskNumbers('${t.id || ''}','original','xls')">下载XLS</button>`;
     const countText = isDedupe
       ? `原始 ${t.dedupeStats.total}<br><span class="desc">去重 ${t.dedupeStats.uniqueCount} / 重复 ${t.dedupeStats.duplicateCount}</span>`
-      : t.count;
+      : hasResults
+        ? `检测 ${t.mockSummary?.total || t.count}<br><span class="desc">成功 ${t.mockSummary?.success ?? 0} / 失败 ${t.mockSummary?.failed ?? 0}</span>`
+        : t.count;
+    const statusClass = String(t.status||'').includes('完成') ? 'b-green' : 'b-blue';
     return `<tr>
       <td>${htmlEscape(t.time)}</td>
       <td>${htmlEscape(t.creatorName || t.creator)}</td>
-      <td>${htmlEscape(t.type)}<br><span class="desc">${htmlEscape(t.fileName || "手动输入")}</span></td>
+      <td>${htmlEscape(t.type)}<br><span class="desc">${htmlEscape(t.fileName || "手动输入")} · ${htmlEscape(t.apiName || getApiName(t.apiProviderId))}</span></td>
       <td>${countText}</td>
-      <td><span class="badge b-blue">${htmlEscape(t.status)}</span></td>
-      <td style="min-width:300px"><button class="mini m-blue" onclick="openTaskDetail('${t.id || ''}')">查看</button> ${dlBtns}</td>
+      <td><span class="badge ${statusClass}">${htmlEscape(t.status)}</span></td>
+      <td style="min-width:330px"><button class="mini m-blue" onclick="openTaskDetail('${t.id || ''}')">查看</button> ${dlBtns}</td>
     </tr>`;
   }).join("");
 }
-
 function openTaskDetail(taskId){
   const t = state.tasks.find(x => String(x.id || '') === String(taskId));
   if(!t){
@@ -2467,6 +2701,43 @@ function openTaskDetail(taskId){
       <div style="display:flex;gap:8px;flex-wrap:wrap;line-height:2">${(t.dedupeStats.duplicateNumbers || []).slice(0,50).map(n=>`<span class="badge b-orange">${htmlEscape(n)}</span>`).join(" ") || '<span class="desc">没有重复号码</span>'}</div>
     </div>` : "";
 
+  const hasResults = Array.isArray(t.mockResults) && t.mockResults.length;
+  const mockSummary = t.mockSummary || {};
+  const mockRows = hasResults ? t.mockResults.slice(0,20) : [];
+  const mockCols = hasResults ? mockResultColumns(mockRows) : [];
+  const resultTable = hasResults ? `
+    <div class="card" style="margin-top:16px">
+      <div class="card-title">模拟接口返回结果 <span class="badge b-purple">${htmlEscape(t.apiMode || 'mock')}</span></div>
+      <div class="grid g4">
+        <div class="card stat"><div class="stat-label">总数量</div><div class="stat-value">${mockSummary.total ?? t.count ?? 0}</div></div>
+        <div class="card stat"><div class="stat-label">成功</div><div class="stat-value">${mockSummary.success ?? 0}</div></div>
+        <div class="card stat"><div class="stat-label">失败</div><div class="stat-value">${mockSummary.failed ?? 0}</div></div>
+        <div class="card stat"><div class="stat-label">平台利润</div><div class="stat-value">${money(mockSummary.platformProfit ?? 0)}</div></div>
+      </div>
+      <div class="grid g2" style="margin-top:12px">
+        <div class="card">
+          <div class="card-title">接口与成本</div>
+          <div class="kv"><span>接口商</span><b>${htmlEscape(mockSummary.apiName || t.apiName || '未绑定接口')}</b></div>
+          <div class="kv"><span>接口类型</span><b>${htmlEscape(mockSummary.apiType || t.apiType || '-')}</b></div>
+          <div class="kv"><span>用户单价</span><b>${money(mockSummary.userUnitPrice ?? t.featurePrice ?? 0)} / 条</b></div>
+          <div class="kv"><span>接口成本</span><b>${money(mockSummary.apiUnitCost ?? t.apiCost ?? 0)} / 条</b></div>
+          <div class="kv"><span>用户扣费</span><b>${money(mockSummary.userCharge ?? 0)}</b></div>
+          <div class="kv"><span>接口总成本</span><b>${money(mockSummary.interfaceCost ?? 0)}</b></div>
+        </div>
+        <div class="card">
+          <div class="card-title">结果统计</div>
+          <div class="kv"><span>注册 Yes</span><b>${mockSummary.registered ?? 0}</b></div>
+          <div class="kv"><span>头像 Yes</span><b>${mockSummary.avatarYes ?? 0}</b></div>
+          <div class="kv"><span>Mobile</span><b>${mockSummary.mobile ?? 0}</b></div>
+          <div class="kv"><span>VoIP</span><b>${mockSummary.voip ?? 0}</b></div>
+          <div class="kv"><span>Landline</span><b>${mockSummary.landline ?? 0}</b></div>
+          <div class="kv"><span>Invalid / 空号</span><b>${mockSummary.invalid ?? 0}</b></div>
+        </div>
+      </div>
+      <div class="alert a-blue" style="margin-top:12px">${htmlEscape(mockSummary.note || '当前为模拟接口返回结果。')}</div>
+      <div class="table-wrap" style="margin-top:12px"><table><thead><tr>${mockCols.map(c=>`<th>${htmlEscape(c)}</th>`).join('')}</tr></thead><tbody>${mockRows.map(r=>`<tr>${mockCols.map(c=>`<td>${htmlEscape(r[c] ?? '')}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
+    </div>` : "";
+
   document.getElementById("modalTitle").textContent = "检测任务详情";
   document.getElementById("modalSub").textContent = t.id || "任务详情";
   document.getElementById("modalBody").innerHTML = `
@@ -2477,6 +2748,8 @@ function openTaskDetail(taskId){
         <div class="kv"><span>创建时间</span><b>${t.time || '-'}</b></div>
         <div class="kv"><span>创建人</span><b>${t.creatorName || t.creator || '-'}</b></div>
         <div class="kv"><span>检测类型</span><b>${t.type || '-'}</b></div>
+        <div class="kv"><span>绑定接口</span><b>${htmlEscape(t.apiName || getApiName(t.apiProviderId))}</b></div>
+        <div class="kv"><span>接口模式</span><b>${htmlEscape(t.apiMode || 'mock')}</b></div>
         <div class="kv"><span>上传方式</span><b>${t.inputMode || (t.fileName ? '文件上传' : '手动输入')}</b></div>
         <div class="kv"><span>文件名</span><b>${t.fileName || '手动输入'}</b></div>
         <div class="kv"><span>号码数量</span><b>${t.count || 0}</b></div>
@@ -2494,43 +2767,56 @@ function openTaskDetail(taskId){
       <div class="card-title">号码样本</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;line-height:2">${sampleHtml}</div>
     </div>
+    ${resultTable}
     ${dedupeHtml}
     <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
       <button class="btn ghost" onclick="closeModal()">关闭</button>
       <button class="btn primary" onclick="downloadTaskDetail('${t.id || ''}')">下载任务详情</button>
-      <button class="btn green" onclick="downloadTaskNumbers('${t.id || ''}','unique','txt')">去重TXT</button>
-      <button class="btn green" onclick="downloadTaskNumbers('${t.id || ''}','unique','csv')">去重CSV</button>
-      <button class="btn green" onclick="downloadTaskNumbers('${t.id || ''}','unique','xlsx')">去重XLSX</button>
-      <button class="btn green" onclick="downloadTaskNumbers('${t.id || ''}','unique','xls')">去重XLS</button>
-      <button class="btn orange" onclick="downloadTaskNumbers('${t.id || ''}','duplicates','txt')">重复号码TXT</button>
+      ${hasResults ? `<button class="btn green" onclick="downloadTaskNumbers('${t.id || ''}','results','txt')">结果TXT</button><button class="btn green" onclick="downloadTaskNumbers('${t.id || ''}','results','csv')">结果CSV</button><button class="btn green" onclick="downloadTaskNumbers('${t.id || ''}','results','xlsx')">结果XLSX</button><button class="btn green" onclick="downloadTaskNumbers('${t.id || ''}','results','xls')">结果XLS</button>` : ""}
+      ${t.dedupeStats ? `<button class="btn green" onclick="downloadTaskNumbers('${t.id || ''}','unique','txt')">去重TXT</button><button class="btn orange" onclick="downloadTaskNumbers('${t.id || ''}','duplicates','txt')">重复号码TXT</button>` : ""}
     </div>`;
   openModal();
 }
-
 function downloadTaskDetail(taskId){
   const t = state.tasks.find(x => String(x.id || '') === String(taskId));
   if(!t){ toast("任务不存在"); return; }
-  const content = [
+  const lines = [
     `任务编号：${t.id || '-'}`,
     `创建时间：${t.time || '-'}`,
     `创建人：${t.creatorName || t.creator || '-'}`,
     `检测类型：${t.type || '-'}`,
+    `绑定接口：${t.apiName || getApiName(t.apiProviderId)}`,
+    `接口模式：${t.apiMode || 'mock'}`,
     `上传方式：${t.inputMode || '-'}`,
     `文件名：${t.fileName || '手动输入'}`,
     `号码数量：${t.count || 0}`,
     `任务状态：${t.status || '-'}`,
-    '',
-    '号码样本：',
-    ...(Array.isArray(t.sample) ? t.sample : [])
-  ].join('\n');
-  const blob = new Blob([content], {type:'text/plain;charset=utf-8'});
+    `成功数：${t.resultSummary?.success ?? 0}`,
+    `失败数：${t.resultSummary?.failed ?? 0}`,
+    `说明：${t.resultSummary?.note || ''}`
+  ];
+  if(t.mockSummary){
+    lines.push('', '模拟接口商业统计：');
+    lines.push(`用户单价：${money(t.mockSummary.userUnitPrice)} / 条`);
+    lines.push(`接口成本：${money(t.mockSummary.apiUnitCost)} / 条`);
+    lines.push(`用户扣费：${money(t.mockSummary.userCharge)}`);
+    lines.push(`接口总成本：${money(t.mockSummary.interfaceCost)}`);
+    lines.push(`平台利润：${money(t.mockSummary.platformProfit)}`);
+    lines.push(`注册Yes：${t.mockSummary.registered}`);
+    lines.push(`头像Yes：${t.mockSummary.avatarYes}`);
+    lines.push(`Mobile：${t.mockSummary.mobile}`);
+    lines.push(`VoIP：${t.mockSummary.voip}`);
+    lines.push(`Landline：${t.mockSummary.landline}`);
+    lines.push(`Invalid/空号：${t.mockSummary.invalid}`);
+  }
+  lines.push('', '号码样本：', ...(Array.isArray(t.sample) ? t.sample : []));
+  const blob = new Blob([lines.join('\n')], {type:'text/plain;charset=utf-8'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = `${t.id || 'task'}_detail.txt`;
   a.click();
   URL.revokeObjectURL(a.href);
 }
-
 function csvCell(v){
   const s = String(v ?? "");
   return '"' + s.replaceAll('"','""') + '"';
@@ -2546,6 +2832,9 @@ function downloadBlob(filename, content, type='text/plain;charset=utf-8'){
 }
 
 function getTaskDownloadNumbers(t, kind){
+  if(kind === 'results'){
+    return resultRowsForDownload(t);
+  }
   if(kind === 'unique'){
     return t.dedupeStats ? (t.dedupeStats.unique || []) : (t.numbers || t.sample || []);
   }
@@ -2561,6 +2850,25 @@ function getTaskDownloadNumbers(t, kind){
 function downloadTaskNumbers(taskId, kind='original', format='txt'){
   const t = state.tasks.find(x => String(x.id || '') === String(taskId));
   if(!t){ toast("任务不存在"); return; }
+
+  if(kind === 'results'){
+    const rows = resultRowsForDownload(t);
+    if(!rows.length){ toast("暂无模拟检测结果可下载"); return; }
+    if(format === 'csv'){
+      const csv = rows.map(r=>r.map(csvCell).join(',')).join('\n');
+      downloadBlob(`${t.id || 'task'}_results.csv`, csv, 'text/csv;charset=utf-8');
+    }else if(format === 'xlsx' || format === 'xls'){
+      const table = rows.map((r,ri)=>'<tr>' + r.map(c => ri === 0 ? `<th>${htmlEscape(c)}</th>` : `<td>${htmlEscape(c)}</td>`).join('') + '</tr>').join('');
+      const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body><table>${table}</table></body></html>`;
+      downloadBlob(`${t.id || 'task'}_results.${format}`, html, 'application/vnd.ms-excel;charset=utf-8');
+    }else{
+      const cols = rows[0];
+      const body = rows.slice(1).map(r => cols.map((c,i)=>`${c}: ${r[i] ?? ''}`).join(' | ')).join('\n');
+      downloadBlob(`${t.id || 'task'}_results.txt`, body, 'text/plain;charset=utf-8');
+    }
+    return;
+  }
+
   const nums = getTaskDownloadNumbers(t, kind);
   const nameMap = {original:'原始号码', unique:'去重后号码', duplicates:'重复号码', duplicateTypes:'重复号码种类'};
   if(!nums.length){ toast(`${nameMap[kind] || '号码'}为空，暂无可下载内容`); return; }
@@ -2578,14 +2886,13 @@ function downloadTaskNumbers(taskId, kind='original', format='txt'){
   }
 }
 
-
 function nextFeatureId(){ const nums=(state.features||[]).map(f=>Number(String(f.id||'').replace('FEAT',''))||0); return 'FEAT'+String(Math.max(0,...nums)+1).padStart(3,'0'); }
 function nextApiId(){ const nums=(state.apiProviders||[]).map(a=>Number(String(a.id||'').replace('API',''))||0); return 'API'+String(Math.max(0,...nums)+1).padStart(3,'0'); }
-function getApiName(id){ const a=(state.apiProviders||[]).find(x=>String(x.id)===String(id)); return a ? a.name : '未绑定接口'; }
-function getEnabledFeatures(){ return (state.features||[]).filter(f=>f.enabled!==false); }
-function getSelectedFeature(){ const id=document.getElementById('taskFeature')?.value||''; return (state.features||[]).find(f=>String(f.id)===String(id)) || getEnabledFeatures()[0] || null; }
+function getApiName(id){ const a=(state.apiProviders||[]).find(x=>String(x.id)===String(id) && !x.deleted && x.status !== 'deleted'); return a ? a.name : '未绑定接口'; }
+function getEnabledFeatures(){ return (state.features||[]).filter(f=>f.enabled!==false && !f.deleted); }
+function getSelectedFeature(){ const id=document.getElementById('taskFeature')?.value||''; return (state.features||[]).find(f=>String(f.id)===String(id) && !f.deleted) || getEnabledFeatures()[0] || null; }
 function getSelectedFeatureName(){ const f=getSelectedFeature(); return f ? f.name : ''; }
-function apiProviderOptions(selected=''){ return `<option value="">不绑定接口</option>` + (state.apiProviders||[]).map(a=>`<option value="${htmlEscape(a.id)}" ${String(a.id)===String(selected)?'selected':''}>${htmlEscape(a.name)} · ${htmlEscape(a.type)}</option>`).join(''); }
+function apiProviderOptions(selected=''){ return `<option value="">不绑定接口</option>` + (state.apiProviders||[]).filter(a=>!a.deleted && a.status !== 'deleted').map(a=>`<option value="${htmlEscape(a.id)}" ${String(a.id)===String(selected)?'selected':''}>${htmlEscape(a.name)} · ${htmlEscape(a.type)}</option>`).join(''); }
 
 function renderFeatureCenter(){
   const grid=document.getElementById('featureGrid'), toolbar=document.getElementById('featureAdminToolbar'), select=document.getElementById('taskFeature');
@@ -2593,7 +2900,7 @@ function renderFeatureCenter(){
   if(toolbar) toolbar.innerHTML=canEdit ? `<button class="btn primary" onclick="openFeatureModal()">新增功能</button>` : '';
   if(select){ const active=getEnabledFeatures(); select.innerHTML=active.map(f=>`<option value="${htmlEscape(f.id)}">${htmlEscape(f.name)} · ${htmlEscape(f.category||'功能')}</option>`).join('') || `<option value="">暂无已上架功能</option>`; }
   if(!grid) return;
-  const list=canEdit ? (state.features||[]) : getEnabledFeatures();
+  const list=canEdit ? (state.features||[]).filter(f=>!f.deleted) : getEnabledFeatures();
   grid.innerHTML=list.length ? list.map(f=>{
     const status=f.enabled!==false?'<span class="badge b-green">已上架</span>':'<span class="badge b-red">已下架</span>';
     const actions=canEdit?`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="mini m-blue" onclick="openFeatureModal('${f.id}')">编辑</button><button class="mini m-orange" onclick="toggleFeature('${f.id}')">${f.enabled!==false?'下架':'上架'}</button><button class="mini m-red" onclick="deleteFeature('${f.id}')">删除</button></div>`:'';
@@ -2613,20 +2920,104 @@ function openFeatureModal(id=''){
 }
 function saveFeatureFromModal(){ const id=document.getElementById('featureEditId').value.trim(); const payload={id:id||nextFeatureId(),name:document.getElementById('featureName').value.trim()||'未命名功能',category:document.getElementById('featureCategory').value.trim()||'自定义功能',price:Number(document.getElementById('featurePrice').value||0),apiProviderId:document.getElementById('featureApiProvider').value,desc:document.getElementById('featureDesc').value.trim(),enabled:document.getElementById('featureEnabled').value==='true'}; const idx=(state.features||[]).findIndex(x=>String(x.id)===String(payload.id)); if(idx>=0) state.features[idx]=payload; else state.features.unshift(payload); addLog(id?'EDIT_FEATURE':'CREATE_FEATURE',`${id?'编辑':'新增'}功能：${payload.name}`); saveState(); closeModal(); renderFeatureCenter(); renderTasks(); toast('功能已保存'); }
 function toggleFeature(id){ const f=(state.features||[]).find(x=>String(x.id)===String(id)); if(!f)return; f.enabled=!f.enabled; addLog('TOGGLE_FEATURE',`${f.enabled?'上架':'下架'}功能：${f.name}`); saveState(); renderFeatureCenter(); toast(f.enabled?'功能已上架':'功能已下架'); }
-function deleteFeature(id){ const f=(state.features||[]).find(x=>String(x.id)===String(id)); if(!f)return; if(!confirm(`确定删除功能：${f.name}？`))return; state.features=(state.features||[]).filter(x=>String(x.id)!==String(id)); addLog('DELETE_FEATURE',`删除功能：${f.name}`); saveState(); renderFeatureCenter(); toast('功能已删除'); }
+function deleteFeature(id){ const f=(state.features||[]).find(x=>String(x.id)===String(id)); if(!f||f.deleted)return; if(!confirm(`确定软删除功能：${f.name}？\n\n删除后会转移到软删除中心，并从功能中心立即隐藏。`))return; moveToRecycle('feature', id, f, '功能中心'); f.deleted=true; f.enabled=false; f.deletedAt=new Date().toISOString(); f.deletedBy=currentUserId||'SYSTEM'; addLog('SOFT_DELETE_FEATURE',`软删除功能：${f.name}`); saveState(); renderFeatureCenter(); renderTasks(); renderRecycleBin(); toast('功能已转入软删除中心'); }
 
 function renderApiCenter(){
   const grid=document.getElementById('apiGrid'), table=document.getElementById('apiTable'), toolbar=document.getElementById('apiAdminToolbar');
   const canEdit=hasPerm('canEditApi') || getUser()?.role===ROLE_SUPER;
   if(toolbar) toolbar.innerHTML=canEdit?`<button class="btn primary" onclick="openApiModal()">新增接口商</button>`:'';
-  const list=state.apiProviders||[];
-  if(grid) grid.innerHTML=list.map(a=>`<div class="card"><div class="card-title">${htmlEscape(a.name)} ${a.status==='enabled'?'<span class="badge b-green">启用</span>':'<span class="badge b-red">停用</span>'}</div><div class="desc">${htmlEscape(a.remark||'暂无备注')}</div><div class="kv"><span>类型</span><b>${htmlEscape(a.type)}</b></div><div class="kv"><span>成本</span><b>${money(a.cost)}</b></div></div>`).join('') || `<div class="card"><div class="alert a-orange">暂无接口商。</div></div>`;
-  if(table){ if(!list.length){table.innerHTML=`<tr><td colspan="7" style="text-align:center;color:#94a3b8">暂无接口商</td></tr>`;return;} table.innerHTML=list.map(a=>`<tr><td>${htmlEscape(a.id)}</td><td>${htmlEscape(a.name)}</td><td>${htmlEscape(a.type)}</td><td>${money(a.cost)}</td><td>${a.status==='enabled'?'<span class="badge b-green">启用</span>':'<span class="badge b-red">停用</span>'}</td><td>${htmlEscape(a.remark||'-')}</td><td>${canEdit?`<button class="mini m-blue" onclick="openApiModal('${a.id}')">编辑</button> <button class="mini m-orange" onclick="toggleApiProvider('${a.id}')">${a.status==='enabled'?'停用':'启用'}</button> <button class="mini m-red" onclick="deleteApiProvider('${a.id}')">删除</button>`:'-'}</td></tr>`).join(''); }
+  const list=(state.apiProviders||[]).filter(a=>!a.deleted && a.status !== 'deleted');
+  if(grid) grid.innerHTML=list.map(a=>`<div class="card"><div class="card-title">${htmlEscape(a.name)} ${a.status==='enabled'?'<span class="badge b-green">启用</span>':'<span class="badge b-red">停用</span>'}</div><div class="desc">${htmlEscape(a.remark||'暂无备注')}</div><div class="kv"><span>类型</span><b>${htmlEscape(a.type)}</b></div><div class="kv"><span>模式</span><b>${a.mode==='real'?'真实接口':'模拟接口'}</b></div><div class="kv"><span>请求</span><b>${htmlEscape(a.method || 'POST')}</b></div><div class="kv"><span>成本</span><b>${money(a.cost)} / 条</b></div><div class="kv"><span>接口地址</span><b>${htmlEscape(a.endpoint || '未填写')}</b></div></div>`).join('') || `<div class="card"><div class="alert a-orange">暂无接口商。</div></div>`;
+  if(table){ if(!list.length){table.innerHTML=`<tr><td colspan="8" style="text-align:center;color:#94a3b8">暂无接口商</td></tr>`;return;} table.innerHTML=list.map(a=>`<tr><td>${htmlEscape(a.id)}</td><td>${htmlEscape(a.name)}</td><td>${htmlEscape(a.type)}</td><td>${a.mode==='real'?'<span class="badge b-orange">真实</span>':'<span class="badge b-purple">模拟</span>'}</td><td>${money(a.cost)}</td><td>${a.status==='enabled'?'<span class="badge b-green">启用</span>':'<span class="badge b-red">停用</span>'}</td><td>${htmlEscape(a.remark||'-')}</td><td>${canEdit?`<button class="mini m-blue" onclick="openApiModal('${a.id}')">编辑</button> <button class="mini m-purple" onclick="testApiProvider('${a.id}')">模拟测试</button> <button class="mini m-orange" onclick="toggleApiProvider('${a.id}')">${a.status==='enabled'?'停用':'启用'}</button> <button class="mini m-red" onclick="deleteApiProvider('${a.id}')">删除</button>`:'-'}</td></tr>`).join(''); }
 }
-function openApiModal(id=''){ if(!(hasPerm('canEditApi')||getUser()?.role===ROLE_SUPER)){toast('权限不足：不能管理接口');return;} const a=id?(state.apiProviders||[]).find(x=>String(x.id)===String(id)):null; document.getElementById('modalTitle').textContent=a?'编辑接口商':'新增接口商'; document.getElementById('modalSub').textContent='接口名称、类型、成本、启用状态都可自定义'; document.getElementById('modalBody').innerHTML=`<input id="apiEditId" type="hidden" value="${a?htmlEscape(a.id):''}"><div class="form-row"><div class="field"><label>接口名称</label><input id="apiName" class="input" value="${htmlEscape(a?.name||'')}" placeholder="例如：WhatsApp-A"></div><div class="field"><label>接口类型</label><input id="apiType" class="input" value="${htmlEscape(a?.type||'')}" placeholder="例如：WhatsApp / Carrier"></div></div><div class="form-row" style="margin-top:14px"><div class="field"><label>接口成本</label><input id="apiCost" class="input" type="number" step="0.0001" value="${Number(a?.cost||0)}"></div><div class="field"><label>状态</label><select id="apiStatus" class="select"><option value="enabled" ${a?.status!=='disabled'?'selected':''}>启用</option><option value="disabled" ${a?.status==='disabled'?'selected':''}>停用</option></select></div></div><div class="field" style="margin-top:14px"><label>备注</label><textarea id="apiRemark" class="textarea" placeholder="接口说明 / 成功率 / 联系人 / 备注">${htmlEscape(a?.remark||'')}</textarea></div><div style="margin-top:14px"><button class="btn primary" onclick="saveApiFromModal()">保存接口</button></div>`; openModal(); }
-function saveApiFromModal(){ const id=document.getElementById('apiEditId').value.trim(); const payload={id:id||nextApiId(),name:document.getElementById('apiName').value.trim()||'未命名接口',type:document.getElementById('apiType').value.trim()||'Other',cost:Number(document.getElementById('apiCost').value||0),status:document.getElementById('apiStatus').value,remark:document.getElementById('apiRemark').value.trim()}; const idx=(state.apiProviders||[]).findIndex(x=>String(x.id)===String(payload.id)); if(idx>=0) state.apiProviders[idx]=payload; else state.apiProviders.unshift(payload); addLog(id?'EDIT_API':'CREATE_API',`${id?'编辑':'新增'}接口：${payload.name}`); saveState(); closeModal(); renderApiCenter(); renderFeatureCenter(); toast('接口已保存'); }
+
+function openApiModal(id=''){
+  if(!(hasPerm('canEditApi')||getUser()?.role===ROLE_SUPER)){toast('权限不足：不能管理接口');return;}
+  const a=id?(state.apiProviders||[]).find(x=>String(x.id)===String(id)):null;
+  document.getElementById('modalTitle').textContent=a?'编辑接口商':'新增接口商';
+  document.getElementById('modalSub').textContent='V2.8.1 支持模拟接口配置；真实接口后续由 Cloud Functions 中转调用';
+  document.getElementById('modalBody').innerHTML=`
+    <input id="apiEditId" type="hidden" value="${a?htmlEscape(a.id):''}">
+    <div class="form-row">
+      <div class="field"><label>接口名称</label><input id="apiName" class="input" value="${htmlEscape(a?.name||'')}" placeholder="例如：WhatsApp-A"></div>
+      <div class="field"><label>接口类型</label><input id="apiType" class="input" value="${htmlEscape(a?.type||'')}" placeholder="WhatsApp / Telegram / Signal / Carrier / Empty"></div>
+    </div>
+    <div class="form-row3" style="margin-top:14px">
+      <div class="field"><label>接口模式</label><select id="apiMode" class="select"><option value="mock" ${a?.mode!=='real'?'selected':''}>模拟接口</option><option value="real" ${a?.mode==='real'?'selected':''}>真实接口预留</option></select></div>
+      <div class="field"><label>请求方式</label><select id="apiMethod" class="select"><option value="POST" ${(a?.method||'POST')==='POST'?'selected':''}>POST</option><option value="GET" ${a?.method==='GET'?'selected':''}>GET</option></select></div>
+      <div class="field"><label>状态</label><select id="apiStatus" class="select"><option value="enabled" ${a?.status!=='disabled'?'selected':''}>启用</option><option value="disabled" ${a?.status==='disabled'?'selected':''}>停用</option></select></div>
+    </div>
+    <div class="form-row" style="margin-top:14px">
+      <div class="field"><label>接口地址 URL</label><input id="apiEndpoint" class="input" value="${htmlEscape(a?.endpoint||'')}" placeholder="https://api.example.com/check"></div>
+      <div class="field"><label>接口成本 / 条</label><input id="apiCost" class="input" type="number" step="0.0001" value="${Number(a?.cost||0)}"></div>
+    </div>
+    <div class="form-row3" style="margin-top:14px">
+      <div class="field"><label>认证方式</label><select id="apiAuthType" class="select"><option value="ApiKey" ${(a?.authType||'ApiKey')==='ApiKey'?'selected':''}>API Key</option><option value="Bearer" ${a?.authType==='Bearer'?'selected':''}>Bearer Token</option><option value="Basic" ${a?.authType==='Basic'?'selected':''}>Basic Auth</option><option value="None" ${a?.authType==='None'?'selected':''}>无认证</option></select></div>
+      <div class="field"><label>API Key</label><input id="apiKey" class="input" type="password" value="${htmlEscape(a?.apiKey||'')}" placeholder="当前前端仅模拟保存，真实版需后端加密"></div>
+      <div class="field"><label>Bearer Token</label><input id="apiBearerToken" class="input" type="password" value="${htmlEscape(a?.bearerToken||'')}" placeholder="真实版不要暴露在前端"></div>
+    </div>
+    <div class="form-row" style="margin-top:14px">
+      <div class="field"><label>Header 参数 JSON</label><textarea id="apiHeaders" class="textarea" placeholder='{"X-API-Key":"{{apiKey}}"}'>${htmlEscape(a?.headers||'{}')}</textarea></div>
+      <div class="field"><label>Body 模板 JSON</label><textarea id="apiBodyTemplate" class="textarea" placeholder='{"phones":"{{numbers}}"}'>${htmlEscape(a?.bodyTemplate||'{}')}</textarea></div>
+    </div>
+    <div class="form-row" style="margin-top:14px">
+      <div class="field"><label>超时时间 / 秒</label><input id="apiTimeout" class="input" type="number" value="${Number(a?.timeout||30)}"></div>
+      <div class="field"><label>失败重试次数</label><input id="apiRetry" class="input" type="number" value="${Number(a?.retry||1)}"></div>
+    </div>
+    <div class="field" style="margin-top:14px"><label>备注</label><textarea id="apiRemark" class="textarea" placeholder="接口说明 / 成功率 / 联系人 / 备注">${htmlEscape(a?.remark||'')}</textarea></div>
+    <div class="alert a-orange" style="margin-top:14px">真实接口的 API Key 后续必须放在 Cloud Functions / 后端环境变量或加密存储里，不能只靠前端保存。</div>
+    <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap"><button class="btn primary" onclick="saveApiFromModal()">保存接口</button>${a?`<button class="btn purple" onclick="testApiProvider('${a.id}')">模拟测试</button>`:''}</div>`;
+  openModal();
+}
+
+function saveApiFromModal(){
+  const id=document.getElementById('apiEditId').value.trim();
+  const payload={
+    id:id||nextApiId(),
+    name:document.getElementById('apiName').value.trim()||'未命名接口',
+    type:document.getElementById('apiType').value.trim()||'Other',
+    cost:Number(document.getElementById('apiCost').value||0),
+    status:document.getElementById('apiStatus').value,
+    mode:document.getElementById('apiMode').value,
+    method:document.getElementById('apiMethod').value,
+    endpoint:document.getElementById('apiEndpoint').value.trim(),
+    authType:document.getElementById('apiAuthType').value,
+    apiKey:document.getElementById('apiKey').value.trim(),
+    bearerToken:document.getElementById('apiBearerToken').value.trim(),
+    headers:document.getElementById('apiHeaders').value.trim() || '{}',
+    bodyTemplate:document.getElementById('apiBodyTemplate').value.trim() || '{}',
+    timeout:Number(document.getElementById('apiTimeout').value||30),
+    retry:Number(document.getElementById('apiRetry').value||1),
+    remark:document.getElementById('apiRemark').value.trim()
+  };
+  const idx=(state.apiProviders||[]).findIndex(x=>String(x.id)===String(payload.id));
+  if(idx>=0) state.apiProviders[idx]=payload; else state.apiProviders.unshift(payload);
+  addLog(id?'EDIT_API':'CREATE_API',`${id?'编辑':'新增'}接口：${payload.name}，模式：${payload.mode}`);
+  saveState(); closeModal(); renderApiCenter(); renderFeatureCenter(); toast('接口已保存');
+}
+
 function toggleApiProvider(id){ const a=(state.apiProviders||[]).find(x=>String(x.id)===String(id)); if(!a)return; a.status=a.status==='enabled'?'disabled':'enabled'; addLog('TOGGLE_API',`${a.status==='enabled'?'启用':'停用'}接口：${a.name}`); saveState(); renderApiCenter(); renderFeatureCenter(); toast(a.status==='enabled'?'接口已启用':'接口已停用'); }
-function deleteApiProvider(id){ const a=(state.apiProviders||[]).find(x=>String(x.id)===String(id)); if(!a)return; if(!confirm(`确定删除接口：${a.name}？已绑定的功能会变成未绑定接口。`))return; state.apiProviders=(state.apiProviders||[]).filter(x=>String(x.id)!==String(id)); (state.features||[]).forEach(f=>{if(String(f.apiProviderId)===String(id))f.apiProviderId='';}); addLog('DELETE_API',`删除接口：${a.name}`); saveState(); renderApiCenter(); renderFeatureCenter(); toast('接口已删除'); }
+function deleteApiProvider(id){ const a=(state.apiProviders||[]).find(x=>String(x.id)===String(id)); if(!a||a.deleted)return; if(!confirm(`确定软删除接口：${a.name}？\n\n删除后会转移到软删除中心，并从接口中心立即隐藏；已绑定功能会临时显示未绑定接口。`))return; moveToRecycle('api', id, a, '接口中心'); a.deleted=true; a.status='deleted'; a.deletedAt=new Date().toISOString(); a.deletedBy=currentUserId||'SYSTEM'; addLog('SOFT_DELETE_API',`软删除接口：${a.name}`); saveState(); renderApiCenter(); renderFeatureCenter(); renderRecycleBin(); toast('接口已转入软删除中心'); }
+
+function testApiProvider(id){
+  const api = getApiProvider(id);
+  if(!api){toast('接口不存在');return;}
+  const feature = (state.features || []).find(f => String(f.apiProviderId) === String(id)) || {name:api.type + '检测', price:0.05};
+  const sampleNumbers = ['14155552671','12125550188','13105550999','17185551234','14695550123'];
+  const results = mockApiDetect(feature, api, sampleNumbers);
+  const summary = summarizeMockResults(results, feature, api, sampleNumbers.length);
+  const cols = mockResultColumns(results);
+  document.getElementById('modalTitle').textContent='接口模拟测试';
+  document.getElementById('modalSub').textContent=api.name + ' · ' + (api.mode==='real'?'真实接口预留':'模拟接口');
+  document.getElementById('modalBody').innerHTML=`
+    <div class="grid g2">
+      <div class="card"><div class="card-title">接口配置</div><div class="kv"><span>接口名称</span><b>${htmlEscape(api.name)}</b></div><div class="kv"><span>类型</span><b>${htmlEscape(api.type)}</b></div><div class="kv"><span>模式</span><b>${api.mode==='real'?'真实接口预留':'模拟接口'}</b></div><div class="kv"><span>URL</span><b>${htmlEscape(api.endpoint||'未填写')}</b></div><div class="kv"><span>认证</span><b>${htmlEscape(api.authType||'ApiKey')} · ${maskSecret(api.apiKey || api.bearerToken)}</b></div></div>
+      <div class="card"><div class="card-title">模拟统计</div><div class="kv"><span>总数量</span><b>${summary.total}</b></div><div class="kv"><span>成功</span><b>${summary.success}</b></div><div class="kv"><span>失败</span><b>${summary.failed}</b></div><div class="kv"><span>用户扣费</span><b>${money(summary.userCharge)}</b></div><div class="kv"><span>接口成本</span><b>${money(summary.interfaceCost)}</b></div><div class="kv"><span>平台利润</span><b>${money(summary.platformProfit)}</b></div></div>
+    </div>
+    <div class="table-wrap" style="margin-top:14px"><table><thead><tr>${cols.map(c=>`<th>${htmlEscape(c)}</th>`).join('')}</tr></thead><tbody>${results.map(r=>`<tr>${cols.map(c=>`<td>${htmlEscape(r[c] ?? '')}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
+    <div class="alert a-blue" style="margin-top:14px">这是模拟测试，不会请求外部接口，也不会扣除真实积分。</div>`;
+  openModal();
+}
 
 function nextPackageId(){
   const nums = (state.packages || [])
@@ -2644,7 +3035,7 @@ function renderPackages(){
     toolbar.innerHTML = canEdit ? `<button class="btn primary" onclick="openPackageModal()">新增套餐 / 项目</button>` : "";
   }
 
-  const list = canEdit ? state.packages : state.packages.filter(p => p.enabled !== false);
+  const list = canEdit ? state.packages.filter(p=>!p.deleted) : state.packages.filter(p => p.enabled !== false && !p.deleted);
   if(!list.length){
     box.innerHTML = `<div class="card"><div class="alert a-orange">暂无可用套餐。</div></div>`;
     return;
@@ -2738,15 +3129,157 @@ function togglePackage(id){
 
 function deletePackage(id){
   if(!assertPerm("canEditPackages")) return;
-  const pkg = state.packages.find(p=>p.id===id);
-  if(!pkg){toast("套餐不存在"); return;}
-  if(!confirm(`确认删除套餐 / 项目：${pkg.name}？`)) return;
-  state.packages = state.packages.filter(p=>p.id!==id);
-  addLog("DELETE_PACKAGE",`删除套餐 ${id}：${pkg.name}`);
+  const pkg = state.packages.find(p=>String(p.id)===String(id));
+  if(!pkg || pkg.deleted){toast("套餐不存在或已删除"); return;}
+  if(!confirm(`确认软删除套餐 / 项目：${pkg.name}？\n\n删除后会转移到软删除中心，并从套餐中心立即隐藏。`)) return;
+  moveToRecycle("package", id, pkg, "套餐中心");
+  pkg.deleted = true;
+  pkg.enabled = false;
+  pkg.deletedAt = new Date().toISOString();
+  pkg.deletedBy = currentUserId || "SYSTEM";
+  addLog("SOFT_DELETE_PACKAGE",`软删除套餐 ${id}：${pkg.name}`);
   saveState();
   renderPackages();
+  renderRecycleBin();
   renderLogs();
-  toast("套餐已删除");
+  toast("套餐已转入软删除中心");
+}
+
+
+
+function getRecycleTypeLabel(type){
+  return {user:"账号", api:"接口", feature:"功能", package:"套餐"}[type] || type;
+}
+
+function getRecycleItemName(type, item){
+  if(!item) return "-";
+  if(type === "user") return item.name || item.email || item.id || "未命名账号";
+  return item.name || item.id || "未命名项目";
+}
+
+function moveToRecycle(type, id, item, source){
+  state.deletedItems = state.deletedItems || [];
+  const refId = String(id);
+  const now = new Date().toISOString();
+  const actor = currentUserId || "SYSTEM";
+  const snapshot = JSON.parse(JSON.stringify(item || {}));
+  const existed = state.deletedItems.findIndex(x => x.type === type && String(x.refId) === refId);
+  const record = {
+    type,
+    refId,
+    name:getRecycleItemName(type, item),
+    source:source || "系统",
+    deletedAt:now,
+    deletedBy:actor,
+    snapshot
+  };
+  if(existed >= 0) state.deletedItems[existed] = record;
+  else state.deletedItems.unshift(record);
+}
+
+function removeFromRecycle(type, id){
+  state.deletedItems = (state.deletedItems || []).filter(x => !(x.type === type && String(x.refId) === String(id)));
+}
+
+function buildRecycleRecords(){
+  const records = [...(state.deletedItems || [])];
+  const exists = (type,id) => records.some(r => r.type === type && String(r.refId) === String(id));
+  (state.users || []).filter(u => u.status === STATUS_DELETED || u.deleted).forEach(u => {
+    if(!exists("user", u.id)) records.push({type:"user", refId:u.id, name:getRecycleItemName("user",u), source:"用户中心", deletedAt:u.deletedAt||"", deletedBy:u.deletedBy||"", snapshot:u});
+  });
+  (state.apiProviders || []).filter(a => a.deleted || a.status === "deleted").forEach(a => {
+    if(!exists("api", a.id)) records.push({type:"api", refId:a.id, name:getRecycleItemName("api",a), source:"接口中心", deletedAt:a.deletedAt||"", deletedBy:a.deletedBy||"", snapshot:a});
+  });
+  (state.features || []).filter(f => f.deleted).forEach(f => {
+    if(!exists("feature", f.id)) records.push({type:"feature", refId:f.id, name:getRecycleItemName("feature",f), source:"功能中心", deletedAt:f.deletedAt||"", deletedBy:f.deletedBy||"", snapshot:f});
+  });
+  (state.packages || []).filter(p => p.deleted).forEach(p => {
+    if(!exists("package", p.id)) records.push({type:"package", refId:p.id, name:getRecycleItemName("package",p), source:"套餐中心", deletedAt:p.deletedAt||"", deletedBy:p.deletedBy||"", snapshot:p});
+  });
+  return records.sort((a,b)=>String(b.deletedAt||"").localeCompare(String(a.deletedAt||"")));
+}
+
+function renderRecycleBin(){
+  const el = document.getElementById("recycleTable");
+  if(!el) return;
+  const records = buildRecycleRecords();
+  if(!records.length){
+    el.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#94a3b8">软删除中心暂无内容</td></tr>`;
+    return;
+  }
+  el.innerHTML = records.map(r => `
+    <tr>
+      <td><span class="badge b-red">${htmlEscape(getRecycleTypeLabel(r.type))}</span></td>
+      <td>${htmlEscape(r.refId)}</td>
+      <td>${htmlEscape(r.name || "-")}</td>
+      <td>${htmlEscape(r.deletedAt || "-")}</td>
+      <td>${htmlEscape(r.deletedBy || "-")}</td>
+      <td>${htmlEscape(r.source || "-")}</td>
+      <td>
+        <button class="mini m-green" onclick="restoreRecycleItem('${htmlEscape(r.type)}','${htmlEscape(r.refId)}')">恢复</button>
+        <button class="mini m-red" onclick="permanentDeleteRecycleItem('${htmlEscape(r.type)}','${htmlEscape(r.refId)}')">永久删除</button>
+      </td>
+    </tr>`).join("");
+}
+
+async function restoreRecycleItem(type, id){
+  const me = getUser();
+  if(!me || normalizeRole(me.role) !== ROLE_SUPER){toast("只有所有者可以恢复软删除内容");return;}
+  const rec = buildRecycleRecords().find(x => x.type === type && String(x.refId) === String(id));
+  if(!rec){toast("软删除记录不存在");return;}
+  if(!confirm(`确定恢复${getRecycleTypeLabel(type)}：${rec.name || id}？`)) return;
+
+  if(type === "user"){
+    const u = state.users.find(x => String(x.id) === String(id));
+    if(u){
+      u.status = STATUS_ACTIVE;
+      u.deleted = false;
+      u.restoredAt = new Date().toISOString();
+      u.restoredBy = currentUserId || "SYSTEM";
+      await updateFirestoreUserFields(u.id,{status:STATUS_ACTIVE,restoredAt:u.restoredAt,restoredBy:u.restoredBy}).catch(()=>false);
+    }else if(rec.snapshot){
+      const restored = {...rec.snapshot, status:STATUS_ACTIVE, deleted:false, restoredAt:new Date().toISOString(), restoredBy:currentUserId||"SYSTEM"};
+      state.users.push(restored);
+    }
+  }
+  if(type === "api"){
+    let a = state.apiProviders.find(x => String(x.id) === String(id));
+    if(!a && rec.snapshot){state.apiProviders.push({...rec.snapshot}); a = state.apiProviders.find(x => String(x.id) === String(id));}
+    if(a){a.deleted=false; a.status = a.status === "deleted" ? "disabled" : (a.status || "disabled"); a.restoredAt=new Date().toISOString(); a.restoredBy=currentUserId||"SYSTEM";}
+  }
+  if(type === "feature"){
+    let f = state.features.find(x => String(x.id) === String(id));
+    if(!f && rec.snapshot){state.features.push({...rec.snapshot}); f = state.features.find(x => String(x.id) === String(id));}
+    if(f){f.deleted=false; f.enabled=false; f.restoredAt=new Date().toISOString(); f.restoredBy=currentUserId||"SYSTEM";}
+  }
+  if(type === "package"){
+    let p = state.packages.find(x => String(x.id) === String(id));
+    if(!p && rec.snapshot){state.packages.push({...rec.snapshot}); p = state.packages.find(x => String(x.id) === String(id));}
+    if(p){p.deleted=false; p.enabled=false; p.restoredAt=new Date().toISOString(); p.restoredBy=currentUserId||"SYSTEM";}
+  }
+
+  removeFromRecycle(type,id);
+  addLog("RESTORE_RECYCLE",`恢复${getRecycleTypeLabel(type)} ${id}：${rec.name || ""}`);
+  saveState();
+  renderAll();
+  toast("已恢复，恢复后的接口 / 功能 / 套餐默认保持停用或下架，确认后再启用");
+}
+
+function permanentDeleteRecycleItem(type, id){
+  const me = getUser();
+  if(!me || normalizeRole(me.role) !== ROLE_SUPER){toast("只有所有者可以永久删除");return;}
+  const rec = buildRecycleRecords().find(x => x.type === type && String(x.refId) === String(id));
+  if(!rec){toast("软删除记录不存在");return;}
+  if(!confirm(`永久删除${getRecycleTypeLabel(type)}：${rec.name || id}？\n\n永久删除后当前页面无法恢复。`)) return;
+  if(type === "user") state.users = (state.users || []).filter(x => String(x.id) !== String(id));
+  if(type === "api") state.apiProviders = (state.apiProviders || []).filter(x => String(x.id) !== String(id));
+  if(type === "feature") state.features = (state.features || []).filter(x => String(x.id) !== String(id));
+  if(type === "package") state.packages = (state.packages || []).filter(x => String(x.id) !== String(id));
+  removeFromRecycle(type,id);
+  addLog("PERMANENT_DELETE",`永久删除${getRecycleTypeLabel(type)} ${id}：${rec.name || ""}`);
+  saveState();
+  renderAll();
+  toast("已永久删除当前页面记录");
 }
 
 function renderOrders(){
