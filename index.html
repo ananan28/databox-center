@@ -1200,6 +1200,24 @@ function addLog(type,content,actorId=currentUserId){
   saveState();
 }
 
+async function updateFirestoreUserFields(userId, fields){
+  // V2.8 商业正式版：账号状态类操作必须同步到 Firestore users/{uid}。
+  // 如果 Firestore Rules 暂时未放行，前端仍会保留本地状态，但刷新后会以 Firestore 为准。
+  try{
+    const api = await ensureFirebase();
+    const {doc, updateDoc} = api.fsMod;
+    await updateDoc(doc(fbDb, "users", userId), {
+      ...fields,
+      updatedAt: new Date().toISOString(),
+      updatedBy: currentUserId || "SYSTEM"
+    });
+    return true;
+  }catch(err){
+    console.warn("Firestore 用户资料同步失败：", err);
+    return false;
+  }
+}
+
 async function login(){
   const email = document.getElementById("loginEmail").value.trim();
   const pass = document.getElementById("loginPassword").value;
@@ -1427,8 +1445,19 @@ function renderUsers(){
 function userActionButtons(u){
   const me = getUser();
   if(!me || u.id === me.id) return `<button class="mini" onclick="goPage('profile')">自己</button>`;
+  const isDeleted = u.status === STATUS_DELETED;
   let html = "";
+
   if(hasPerm("canEditUser")) html += `<button class="mini m-blue" onclick="openEditUserModal('${u.id}')">编辑</button> `;
+
+  if(isDeleted){
+    html += `<button class="mini m-red" disabled title="该账号已经软删除">已删除</button> `;
+    if(hasPerm("canEditUser") && normalizeRole(me.role) === ROLE_SUPER){
+      html += `<button class="mini m-green" onclick="restoreDeletedUser('${u.id}')">恢复</button>`;
+    }
+    return html || "-";
+  }
+
   if(hasPerm("canFreezeUser") && u.role !== ROLE_SUPER){
     html += `<button class="mini m-orange" onclick="toggleFreeze('${u.id}')">${u.status===STATUS_FROZEN?"解冻":"冻结"}</button> `;
   }
@@ -1574,33 +1603,114 @@ function openEditUserModal(id){
   openModal();
 }
 
-function saveEditUser(id){
+async function saveEditUser(id){
+  if(!assertPerm("canEditUser")) return;
   const u = state.users.find(x=>x.id===id);
   if(!u) return;
-  u.name = document.getElementById("editName").value.trim() || u.name;
-  u.phone = document.getElementById("editPhone").value.trim();
-  u.status = document.getElementById("editStatus").value;
-  u.ownerId = document.getElementById("editOwnerId").value.trim();
-  addLog("EDIT_USER",`编辑账号 ${u.id}`);
+
+  const oldStatus = u.status;
+  const nextName = document.getElementById("editName").value.trim() || u.name;
+  const nextPhone = document.getElementById("editPhone").value.trim();
+  const nextStatus = document.getElementById("editStatus").value;
+  const nextOwnerId = document.getElementById("editOwnerId").value.trim();
+
+  u.name = nextName;
+  u.phone = nextPhone;
+  u.status = nextStatus;
+  u.ownerId = nextOwnerId;
+
+  const synced = await updateFirestoreUserFields(u.id, {
+    name: nextName,
+    displayName: nextName,
+    phone: nextPhone,
+    status: nextStatus,
+    ownerId: nextOwnerId
+  });
+
+  addLog("EDIT_USER",`编辑账号 ${u.id}${oldStatus !== nextStatus ? `，状态 ${oldStatus} → ${nextStatus}` : ""}`);
   saveState();
   closeModal();
   renderAll();
+  toast(synced ? "账号资料已保存并同步 Firestore" : "账号资料已保存到当前页面，但 Firestore 同步失败，请检查 Rules");
 }
 
-function toggleFreeze(id){
+async function toggleFreeze(id){
+  if(!assertPerm("canFreezeUser")) return;
   const u = state.users.find(x=>x.id===id);
-  if(!u || u.role === ROLE_SUPER) return;
-  u.status = u.status === STATUS_FROZEN ? STATUS_ACTIVE : STATUS_FROZEN;
-  addLog("FREEZE_USER",`${u.status === STATUS_FROZEN ? "冻结" : "解冻"}账号 ${u.id}`);
-  saveState(); renderAll();
+  if(!u){toast("账号不存在");return;}
+  if(u.role === ROLE_SUPER){toast("不能冻结所有者账号");return;}
+  if(u.status === STATUS_DELETED){toast("账号已删除，不能冻结 / 解冻，请先恢复账号");return;}
+
+  const nextStatus = u.status === STATUS_FROZEN ? STATUS_ACTIVE : STATUS_FROZEN;
+  const actionText = nextStatus === STATUS_FROZEN ? "冻结" : "解冻";
+  if(!confirm(`确定要${actionText}账号：${u.name || u.id}？`)) return;
+
+  u.status = nextStatus;
+  const synced = await updateFirestoreUserFields(u.id, {
+    status: nextStatus,
+    frozenAt: nextStatus === STATUS_FROZEN ? new Date().toISOString() : "",
+    frozenBy: nextStatus === STATUS_FROZEN ? currentUserId : ""
+  });
+
+  addLog("FREEZE_USER",`${actionText}账号 ${u.id}`);
+  saveState();
+  renderAll();
+  toast(synced ? `账号已${actionText}并同步 Firestore` : `账号已${actionText}到当前页面，但 Firestore 同步失败，请检查 Rules`);
 }
 
-function softDeleteUser(id){
+async function softDeleteUser(id){
+  if(!assertPerm("canDeleteUser")) return;
   const u = state.users.find(x=>x.id===id);
-  if(!u || u.role === ROLE_SUPER) return;
+  if(!u){toast("账号不存在");return;}
+  if(u.role === ROLE_SUPER){toast("不能删除所有者账号");return;}
+  if(u.status === STATUS_DELETED){toast("该账号已经是 Deleted 状态，无需重复删除");return;}
+
+  const ok = confirm(`确定要软删除账号：${u.name || u.id}？\n\n本操作不会物理删除 Firestore 文档，只会把 status 改为 Deleted，并记录 deletedAt / deletedBy。`);
+  if(!ok) return;
+
+  const oldStatus = u.status;
+  const deletedAt = new Date().toISOString();
+  const deletedBy = currentUserId || "SYSTEM";
+
   u.status = STATUS_DELETED;
-  addLog("DELETE_USER",`软删除账号 ${u.id}`);
-  saveState(); renderAll();
+  u.deletedAt = deletedAt;
+  u.deletedBy = deletedBy;
+
+  const synced = await updateFirestoreUserFields(u.id, {
+    status: STATUS_DELETED,
+    deletedAt,
+    deletedBy
+  });
+
+  addLog("DELETE_USER",`软删除账号 ${u.id}，状态 ${oldStatus} → Deleted`);
+  saveState();
+  renderAll();
+  toast(synced ? "账号已软删除并同步 Firestore" : "账号已软删除到当前页面，但 Firestore 同步失败，请检查 Rules，否则刷新后可能恢复");
+}
+
+async function restoreDeletedUser(id){
+  if(!assertPerm("canEditUser")) return;
+  const me = getUser();
+  if(!me || normalizeRole(me.role) !== ROLE_SUPER){toast("只有所有者可以恢复已删除账号");return;}
+  const u = state.users.find(x=>x.id===id);
+  if(!u){toast("账号不存在");return;}
+  if(u.status !== STATUS_DELETED){toast("该账号不是 Deleted 状态");return;}
+  if(!confirm(`确定要恢复账号：${u.name || u.id}？`)) return;
+
+  u.status = STATUS_ACTIVE;
+  u.restoredAt = new Date().toISOString();
+  u.restoredBy = currentUserId || "SYSTEM";
+
+  const synced = await updateFirestoreUserFields(u.id, {
+    status: STATUS_ACTIVE,
+    restoredAt: u.restoredAt,
+    restoredBy: u.restoredBy
+  });
+
+  addLog("RESTORE_USER",`恢复账号 ${u.id}，状态 Deleted → Active`);
+  saveState();
+  renderAll();
+  toast(synced ? "账号已恢复并同步 Firestore" : "账号已恢复到当前页面，但 Firestore 同步失败，请检查 Rules");
 }
 
 function renderPermissionPage(){
